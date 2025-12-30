@@ -7,11 +7,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
-            /* 申报书风格配色 - 蓝/灰/白 */
-            --bg-color: #ffffff;
+            /* 申报书风格配色 - 蓝/灰/白 - 保持专业 */
+            --bg-color: #f0f2f5; /* 背景稍微调灰一点，突出图纸 */
             --box-bg: #f8f9fa;
             --border-color: #cbd5e1;
-            --border-strong: #475569;
             --text-main: #1e293b;
             --text-sub: #64748b;
             
@@ -28,7 +27,7 @@
             --l1-color: #475569; /* 铁灰 - 感知 */
             --l1-bg: #f1f5f9;
 
-            --bus-color: #7c3aed; /* 紫色保持用于区分总线，但调深 */
+            --bus-color: #7c3aed; /* 紫色 */
             --bus-bg: #f5f3ff;
         }
 
@@ -36,37 +35,48 @@
             margin: 0;
             padding: 0;
             background-color: var(--bg-color);
-            font-family: 'Microsoft YaHei', 'SimHei', sans-serif; /* 常用公文/申报书字体 */
+            font-family: 'Microsoft YaHei', 'SimHei', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            width: 100vw;
             color: var(--text-main);
-            overflow: hidden;
+            overflow: hidden; /* 防止滚动条出现 */
+        }
+
+        /* 缩放容器 Wrapper */
+        #scale-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
         }
 
         .diagram-container {
-            width: 1100px; /* 调整为更接近A4横向比例 */
-            height: 750px;
+            width: 1100px;
+            height: 780px;
             position: relative;
             background-color: #fff;
-            padding: 40px;
+            padding: 30px 40px;
             box-sizing: border-box;
             display: grid;
-            grid-template-columns: 180px 1fr 240px;
+            grid-template-columns: 160px 1fr 240px;
             grid-template-rows: auto 1fr auto;
             gap: 20px;
-            /* 模拟纸张效果 */
-            box-shadow: 0 0 20px rgba(0,0,0,0.1); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15); 
+            /* 默认不缩放，由JS控制 transform */
+            transform-origin: center center;
         }
 
-        /* 标题区 - 移除炫酷渐变，改为严肃标题 */
+        /* 标题区 */
         .header {
             grid-column: 1 / -1;
             text-align: center;
             border-bottom: 2px solid #0f172a;
-            padding-bottom: 15px;
-            margin-bottom: 10px;
+            padding-bottom: 10px;
+            margin-bottom: 5px;
         }
 
         .header h1 {
@@ -78,46 +88,50 @@
         }
 
         .header .subtitle {
-            font-size: 14px;
+            font-size: 13px;
             color: #555;
-            margin-top: 5px;
-            font-family: 'Times New Roman', serif; /* 英文用衬线体更学术 */
+            margin-top: 4px;
+            font-family: 'Times New Roman', serif;
         }
 
-        /* 左侧：总线 - 竖向柱状 */
+        /* 左侧：总线 */
         .bus-column {
             grid-row: 2;
             background: var(--bus-bg);
             border: 2px dashed var(--bus-color);
-            border-radius: 4px;
+            border-radius: 6px;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 15px 10px;
+            padding: 10px;
             position: relative;
+            margin-right: 10px;
         }
 
         .bus-label {
             writing-mode: vertical-rl;
             text-orientation: upright;
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             color: var(--bus-color);
-            letter-spacing: 4px;
-            height: 60%;
+            letter-spacing: 3px;
+            height: 50%;
             text-align: center;
             margin: 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .protocol-box {
             background: #fff;
             border: 1px solid var(--bus-color);
             color: var(--bus-color);
-            padding: 6px 4px;
-            border-radius: 2px;
-            font-size: 11px;
-            margin: 5px 0;
-            width: 90%;
+            padding: 5px 2px;
+            border-radius: 3px;
+            font-size: 10px;
+            margin: 4px 0;
+            width: 95%;
             text-align: center;
             font-weight: bold;
             font-family: Arial, sans-serif;
@@ -129,30 +143,55 @@
             grid-row: 2;
             display: flex;
             flex-direction: column;
-            gap: 12px;
             height: 100%;
+            position: relative;
         }
 
         .layer-box {
             border: 1px solid var(--border-color);
-            border-radius: 2px;
-            padding: 12px;
+            border-radius: 4px;
+            padding: 10px 15px;
             position: relative;
             display: flex;
             flex-direction: column;
             transition: all 0.2s;
+            z-index: 2;
         }
 
-        /* 加上左侧粗线条，强调层级 */
+        /* 连接端口 (Ports) */
+        .layer-box::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 50%;
+            width: 25px;
+            height: 2px;
+            background: #cbd5e1;
+            z-index: 1;
+        }
+        .layer-box::after {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            border: 2px solid var(--bus-color);
+            border-radius: 50%;
+            z-index: 3;
+        }
+
         .l4 { background: var(--l4-bg); border-left: 5px solid var(--l4-color); flex: 1; }
         .l3 { background: var(--l3-bg); border-left: 5px solid var(--l3-color); flex: 1.2; }
-        .l2 { background: var(--l2-bg); border-left: 5px solid var(--l2-color); flex: 1.5; border-color: var(--l2-color); } /* 核心层加深边框 */
+        .l2 { background: var(--l2-bg); border-left: 5px solid var(--l2-color); flex: 1.5; border-color: var(--l2-color); box-shadow: 0 4px 10px rgba(37, 99, 235, 0.05); } 
         .l1 { background: var(--l1-bg); border-left: 5px solid var(--l1-color); flex: 1; }
 
         .layer-header {
             display: flex;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             border-bottom: 1px solid rgba(0,0,0,0.05);
             padding-bottom: 4px;
         }
@@ -170,7 +209,7 @@
 
         .layer-title {
             font-weight: 700;
-            font-size: 15px;
+            font-size: 14px;
             color: #333;
         }
 
@@ -180,36 +219,86 @@
             gap: 8px;
             height: 100%;
         }
-        
-        /* L2 需要2行2列 */
-        .l2 .layer-content {
-             grid-template-columns: 1fr 1fr;
-        }
+        .l2 .layer-content { grid-template-columns: 1fr 1fr; }
 
         .module-card {
             background: #fff;
             border: 1px solid #e2e8f0;
-            padding: 8px;
-            border-radius: 2px;
-            font-size: 12px;
+            padding: 6px 8px;
+            border-radius: 3px;
+            font-size: 11px;
             color: #555;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-card i {
+            position: absolute;
+            right: 5px;
+            bottom: 5px;
+            font-size: 16px;
+            opacity: 0.1;
+            transform: rotate(-10deg);
         }
 
         .module-card strong {
-            display: block;
+            display: flex;
+            align-items: center;
+            gap: 5px;
             color: #000;
-            margin-bottom: 3px;
-            font-size: 12px;
+            margin-bottom: 2px;
+            font-size: 11px;
+            z-index: 1;
         }
+        
+        .module-card strong i { font-size: 10px; opacity: 0.7; }
+        .l4 .module-card strong i { color: var(--l4-color); }
+        .l3 .module-card strong i { color: var(--l3-color); }
+        .l2 .module-card strong i { color: var(--l2-color); }
+        .l1 .module-card strong i { color: var(--l1-color); }
 
         .module-card span {
-            font-size: 11px;
+            font-size: 10px;
             color: #666;
             line-height: 1.2;
+            z-index: 1;
         }
+
+        /* 纵向流向箭头 */
+        .flow-arrow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 24px;
+            position: relative;
+        }
+        
+        .flow-line {
+            height: 100%;
+            width: 1px;
+            background: #cbd5e1;
+            position: absolute;
+        }
+        
+        .flow-label-box {
+            background: #fff;
+            padding: 0 8px;
+            font-size: 10px;
+            color: #64748b;
+            font-weight: bold;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+        }
+
+        .flow-up { color: var(--l2-color); }
+        .flow-down { color: var(--l4-color); }
 
         /* 右侧：机制与说明 */
         .info-column {
@@ -227,249 +316,312 @@
         }
 
         .info-header {
-            background: #e2e8f0;
-            padding: 8px 10px;
+            background: #f1f5f9;
+            padding: 6px 10px;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 12px;
             color: #334155;
             border-bottom: 1px solid #cbd5e1;
             text-align: center;
         }
 
-        .info-body {
-            padding: 10px;
-        }
+        .info-body { padding: 10px; }
 
         .concept-item {
             margin-bottom: 8px;
-            font-size: 12px;
+            font-size: 11px;
             color: #475569;
             line-height: 1.4;
         }
-        .concept-item strong { color: #1e293b; }
+        .concept-item strong { color: #1e293b; display:block; margin-bottom:2px; }
 
         /* OODA 流程图样式 */
         .ooda-flow {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 5px;
         }
         
         .ooda-node {
             display: flex;
             align-items: center;
-            border: 1px solid #ddd;
-            padding: 6px;
+            border: 1px solid #e2e8f0;
+            padding: 5px;
             border-radius: 3px;
             background: #f8fafc;
-            font-size: 11px;
+            font-size: 10px;
         }
         
         .ooda-icon {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #fff;
             border-radius: 3px;
-            margin-right: 8px;
-            font-size: 10px;
+            margin-right: 6px;
+            font-size: 9px;
         }
 
         /* 图注 Caption */
         .caption {
             grid-column: 1 / -1;
             text-align: center;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
             color: #333;
-            margin-top: 10px;
-            font-family: 'Songti SC', 'SimSun', serif; /* 宋体，符合图注规范 */
+            margin-top: 5px;
+            font-family: 'Songti SC', 'SimSun', serif;
         }
 
-        /* 连接线示意 (SVG) */
-        .connections {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 99;
-        }
     </style>
 </head>
 <body>
 
-<div class="diagram-container">
-    
-    <!-- Header -->
-    <div class="header">
-        <h1>系统总体技术架构图</h1>
-        <div class="subtitle">System General Technical Architecture based on Dynamic Ontology</div>
-    </div>
-
-    <!-- LEFT: BUS -->
-    <div class="bus-column">
-        <div class="protocol-box">物理层: TSN / EtherCAT</div>
-        <div class="protocol-box">传输层: DDS / MQTT</div>
-        <div class="protocol-box">应用层: gRPC</div>
+<div id="scale-wrapper">
+    <div class="diagram-container" id="diagram">
         
-        <div class="bus-label">基于本体的事件驱动总线</div>
-        
-        <div style="margin-top:auto; font-size:12px; text-align:center; color:#555;">
-            <i class="fa-solid fa-arrow-right-arrow-left" style="color:var(--bus-color);"></i><br>
-            发布/订阅<br>机制
+        <!-- Header -->
+        <div class="header">
+            <h1>系统总体技术架构图</h1>
+            <div class="subtitle">System General Technical Architecture based on Dynamic Spatiotemporal Ontology</div>
         </div>
+
+        <!-- LEFT: BUS -->
+        <div class="bus-column">
+            <div class="protocol-box">TSN / EtherCAT</div>
+            <div class="protocol-box">DDS / MQTT</div>
+            <div class="protocol-box">gRPC / Protobuf</div>
+            
+            <div class="bus-label">
+                <i class="fa-solid fa-network-wired" style="transform: rotate(90deg); margin-bottom:10px;"></i>
+                基于本体的事件驱动总线
+            </div>
+            
+            <div style="margin-top:auto; font-size:11px; text-align:center; color:#555; background:#fff; padding:5px; border-radius:4px; width:90%; border:1px solid #ddd;">
+                <strong>Pub/Sub</strong><br>
+                <i class="fa-solid fa-arrow-right-arrow-left" style="color:var(--bus-color); margin:3px 0;"></i><br>
+                读写分离
+            </div>
+        </div>
+
+        <!-- CENTER: LAYERS -->
+        <div class="layers-column">
+            
+            <!-- L4 -->
+            <div class="layer-box l4">
+                <div class="layer-header">
+                    <span class="layer-id">L4</span>
+                    <span class="layer-title">编排执行与闭环控制层</span>
+                    <i class="fa-solid fa-robot" style="margin-left:auto; color:var(--l4-color); opacity:0.5;"></i>
+                </div>
+                <div class="layer-content">
+                    <div class="module-card">
+                        <i class="fa-solid fa-list-check"></i>
+                        <strong><i class="fa-solid fa-list-ol"></i> 原子任务编排</strong>
+                        <span>动作序列化与分解</span>
+                    </div>
+                    <div class="module-card">
+                        <i class="fa-solid fa-microchip"></i>
+                        <strong><i class="fa-solid fa-layer-group"></i> 硬件抽象层 (HAL)</strong>
+                        <span>多源异构驱动映射</span>
+                    </div>
+                    <div class="module-card">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <strong><i class="fa-solid fa-clock-rotate-left"></i> 执行闭环反馈</strong>
+                        <span>QoS监测与热迁移</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FLOW: L3 -> L4 -->
+            <div class="flow-arrow">
+                <div class="flow-line"></div>
+                <div class="flow-label-box flow-down">
+                    <i class="fa-solid fa-arrow-down"></i> 意图指令下发 (Command)
+                </div>
+            </div>
+
+            <!-- L3 -->
+            <div class="layer-box l3">
+                <div class="layer-header">
+                    <span class="layer-id">L3</span>
+                    <span class="layer-title">认知决策与博弈推演层</span>
+                    <i class="fa-solid fa-brain" style="margin-left:auto; color:var(--l3-color); opacity:0.5;"></i>
+                </div>
+                <div class="layer-content">
+                    <div class="module-card">
+                        <i class="fa-solid fa-chess-board"></i>
+                        <strong><i class="fa-solid fa-chess"></i> 增量式博弈推演</strong>
+                        <span>MARL + MCTS / 策略生成</span>
+                    </div>
+                    <div class="module-card">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                        <strong><i class="fa-solid fa-timeline"></i> 双系统决策架构</strong>
+                        <span>快直觉(NN) + 慢推理(Logic)</span>
+                    </div>
+                    <div class="module-card">
+                        <i class="fa-solid fa-user-shield"></i>
+                        <strong><i class="fa-solid fa-gavel"></i> 伦理安全门控</strong>
+                        <span>人在回路(HITL) / 数字确权</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FLOW: L2 <-> L3 -->
+            <div class="flow-arrow">
+                <div class="flow-line"></div>
+                <div class="flow-label-box" style="gap:15px;">
+                    <span class="flow-up"><i class="fa-solid fa-arrow-up"></i> 态势感知</span>
+                    <span class="flow-down">决策更新 <i class="fa-solid fa-arrow-down"></i></span>
+                </div>
+            </div>
+
+            <!-- L2 -->
+            <div class="layer-box l2">
+                <div class="layer-header">
+                    <span class="layer-id">L2</span>
+                    <span class="layer-title">动态本体层 (核心数据底座)</span>
+                    <i class="fa-solid fa-diagram-project" style="margin-left:auto; color:var(--l2-color); opacity:0.5;"></i>
+                </div>
+                <div class="layer-content">
+                    <div class="module-card">
+                        <i class="fa-solid fa-circle-nodes"></i>
+                        <strong><i class="fa-solid fa-share-nodes"></i> 动态图谱构建</strong>
+                        <span>实体时空映射 / 拓扑演进</span>
+                    </div>
+                    <div class="module-card">
+                        <i class="fa-solid fa-link"></i>
+                        <strong><i class="fa-solid fa-handshake"></i> Edge-Raft 共识</strong>
+                        <span>抗弱网干扰 / 抗节点毁损</span>
+                    </div>
+                    <div class="module-card">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <strong><i class="fa-solid fa-eraser"></i> 时空盲区补全</strong>
+                        <span>虚拟投影 / 卡尔曼滤波</span>
+                    </div>
+                    <div class="module-card">
+                        <i class="fa-solid fa-wifi"></i>
+                        <strong><i class="fa-solid fa-lock"></i> 拒止环境离线自治</strong>
+                        <span>意图锁定 / 孤岛闭环模式</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FLOW: L1 -> L2 -->
+            <div class="flow-arrow">
+                <div class="flow-line"></div>
+                <div class="flow-label-box flow-up">
+                    <i class="fa-solid fa-arrow-up"></i> 语义对象升维 (Semantic Upload)
+                </div>
+            </div>
+
+            <!-- L1 -->
+            <div class="layer-box l1">
+                <div class="layer-header">
+                    <span class="layer-id">L1</span>
+                    <span class="layer-title">边缘感知与语义映射层</span>
+                    <i class="fa-solid fa-satellite-dish" style="margin-left:auto; color:var(--l1-color); opacity:0.5;"></i>
+                </div>
+                <div class="layer-content">
+                    <div class="module-card">
+                        <i class="fa-solid fa-filter"></i>
+                        <strong><i class="fa-solid fa-file-code"></i> 源端语义升维</strong>
+                        <span>Zero-Copy / 原始数据清洗</span>
+                    </div>
+                    <div class="module-card">
+                        <i class="fa-solid fa-crosshairs"></i>
+                        <strong><i class="fa-solid fa-map-location-dot"></i> 多模态时空对齐</strong>
+                        <span>异构坐标归一 / 虚警消除</span>
+                    </div>
+                    <div class="module-card">
+                        <i class="fa-solid fa-eye"></i>
+                        <strong><i class="fa-solid fa-bullseye"></i> 意图驱动感知</strong>
+                        <span>ROI区域聚焦 / 参数动态调优</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RIGHT: INFO -->
+        <div class="info-column">
+            
+            <div class="info-group">
+                <div class="info-header"><i class="fa-solid fa-compass-drafting"></i> 关键设计理念</div>
+                <div class="info-body">
+                    <div class="concept-item">
+                        <strong><i class="fa-solid fa-arrows-up-down-left-right" style="color:var(--l2-color)"></i> 纵横解耦设计</strong>
+                        纵向：边缘语义归一<br>横向：分布式共识
+                    </div>
+                    <div class="concept-item">
+                        <strong><i class="fa-solid fa-globe" style="color:var(--l2-color)"></i> 语义全同态映射</strong>
+                        物理世界 <i class="fa-solid fa-right-left" style="font-size:10px;"></i> 数字空间<br>
+                        (逻辑真值维护)
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-group" style="flex:1;">
+                <div class="info-header"><i class="fa-solid fa-recycle"></i> OODA-H 智能闭环</div>
+                <div class="info-body ooda-flow">
+                    <div class="ooda-node">
+                        <div class="ooda-icon" style="background:var(--l1-color);">1</div>
+                        <span><strong>Observe (感知)</strong><br>L1: 多模态数据采集</span>
+                    </div>
+                    <div class="ooda-node">
+                        <div class="ooda-icon" style="background:var(--l2-color);">2</div>
+                        <span><strong>Orient (调整)</strong><br>L2: 态势图谱更新</span>
+                    </div>
+                    <div class="ooda-node">
+                        <div class="ooda-icon" style="background:var(--l3-color);">3</div>
+                        <span><strong>Decide (决策)</strong><br>L3: 博弈策略生成</span>
+                    </div>
+                    <div class="ooda-node">
+                        <div class="ooda-icon" style="background:var(--l4-color);">4</div>
+                        <span><strong>Act (执行)</strong><br>L4: 物理动作驱动</span>
+                    </div>
+                    <div class="ooda-node" style="border:1px dashed #ef4444; background:#fff1f2;">
+                        <div class="ooda-icon" style="background:#ef4444;"><i class="fa-solid fa-user"></i></div>
+                        <span><strong>Human Check</strong><br>关键指令确权</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Caption -->
+        <div class="caption">图 1：基于全域业务本体的分布式认知决策引擎总体技术架构图</div>
+
     </div>
-
-    <!-- CENTER: LAYERS -->
-    <div class="layers-column">
-        
-        <!-- L4 -->
-        <div class="layer-box l4">
-            <div class="layer-header">
-                <span class="layer-id">L4</span>
-                <span class="layer-title">编排执行与闭环控制层</span>
-            </div>
-            <div class="layer-content">
-                <div class="module-card">
-                    <strong>原子任务编排</strong>
-                    <span>动作序列化与分解</span>
-                </div>
-                <div class="module-card">
-                    <strong>硬件抽象层 (HAL)</strong>
-                    <span>多源异构设备驱动映射</span>
-                </div>
-                <div class="module-card">
-                    <strong>执行闭环反馈</strong>
-                    <span>QoS监测与热迁移</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- L3 -->
-        <div class="layer-box l3">
-            <div class="layer-header">
-                <span class="layer-id">L3</span>
-                <span class="layer-title">认知决策与博弈推演层</span>
-            </div>
-            <div class="layer-content">
-                <div class="module-card">
-                    <strong>增量式博弈推演</strong>
-                    <span>MARL + MCTS / 策略生成</span>
-                </div>
-                <div class="module-card">
-                    <strong>双系统决策架构</strong>
-                    <span>快直觉(NN) + 慢推理(逻辑)</span>
-                </div>
-                <div class="module-card">
-                    <strong>伦理安全门控</strong>
-                    <span>人在回路(HITL) / 数字确权</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- L2 -->
-        <div class="layer-box l2">
-            <div class="layer-header">
-                <span class="layer-id">L2</span>
-                <span class="layer-title">动态本体层 (核心数据底座)</span>
-            </div>
-            <div class="layer-content">
-                <div class="module-card">
-                    <strong>动态图谱构建</strong>
-                    <span>实体时空映射 / 拓扑演进</span>
-                </div>
-                <div class="module-card">
-                    <strong>Edge-Raft 分布式共识</strong>
-                    <span>抗弱网干扰 / 抗节点毁损</span>
-                </div>
-                <div class="module-card">
-                    <strong>时空盲区逻辑补全</strong>
-                    <span>虚拟投影 / 卡尔曼滤波</span>
-                </div>
-                <div class="module-card">
-                    <strong>拒止环境离线自治</strong>
-                    <span>意图锁定 / 孤岛闭环模式</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- L1 -->
-        <div class="layer-box l1">
-            <div class="layer-header">
-                <span class="layer-id">L1</span>
-                <span class="layer-title">边缘感知与语义映射层</span>
-            </div>
-            <div class="layer-content">
-                <div class="module-card">
-                    <strong>源端语义升维</strong>
-                    <span>Zero-Copy / 原始数据清洗</span>
-                </div>
-                <div class="module-card">
-                    <strong>多模态时空对齐</strong>
-                    <span>异构坐标归一 / 虚警消除</span>
-                </div>
-                <div class="module-card">
-                    <strong>意图驱动主动感知</strong>
-                    <span>ROI区域聚焦 / 参数动态调优</span>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- RIGHT: INFO -->
-    <div class="info-column">
-        
-        <div class="info-group">
-            <div class="info-header">关键设计理念</div>
-            <div class="info-body">
-                <div class="concept-item">
-                    <strong>纵横解耦设计：</strong><br>
-                    纵向：边缘语义归一，破除数据烟囱<br>
-                    横向：分布式共识，消除信息孤岛
-                </div>
-                <div class="concept-item">
-                    <strong>语义全同态映射：</strong><br>
-                    物理世界 ⟺ 数字空间<br>
-                    (逻辑真值维护)
-                </div>
-            </div>
-        </div>
-
-        <div class="info-group" style="flex:1;">
-            <div class="info-header">OODA-H 智能闭环</div>
-            <div class="info-body ooda-flow">
-                <div class="ooda-node">
-                    <div class="ooda-icon" style="background:var(--l1-color);">1</div>
-                    <span><strong>Observe (感知)</strong><br>L1: 多模态数据采集</span>
-                </div>
-                <div class="ooda-node">
-                    <div class="ooda-icon" style="background:var(--l2-color);">2</div>
-                    <span><strong>Orient (调整)</strong><br>L2: 态势图谱更新</span>
-                </div>
-                <div class="ooda-node">
-                    <div class="ooda-icon" style="background:var(--l3-color);">3</div>
-                    <span><strong>Decide (决策)</strong><br>L3: 博弈策略生成</span>
-                </div>
-                <div class="ooda-node">
-                    <div class="ooda-icon" style="background:var(--l4-color);">4</div>
-                    <span><strong>Act (执行)</strong><br>L4: 物理动作驱动</span>
-                </div>
-                <div class="ooda-node" style="border:1px dashed #ef4444; background:#fff1f2;">
-                    <div class="ooda-icon" style="background:#ef4444;"><i class="fa-solid fa-user"></i></div>
-                    <span><strong>Human Check</strong><br>关键指令确权</span>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Caption -->
-    <div class="caption">图 1：基于全域业务本体的分布式认知决策引擎总体技术架构图</div>
-
 </div>
+
+<script>
+    function fitDiagram() {
+        const diagram = document.getElementById('diagram');
+        const wrapper = document.getElementById('scale-wrapper');
+        const containerWidth = 1100; // Original width
+        const containerHeight = 780; // Original height
+        const padding = 20; // Padding around the diagram
+
+        // Calculate available space
+        const availWidth = window.innerWidth - (padding * 2);
+        const availHeight = window.innerHeight - (padding * 2);
+
+        // Calculate scale
+        const scaleX = availWidth / containerWidth;
+        const scaleY = availHeight / containerHeight;
+        const scale = Math.min(scaleX, scaleY, 1); // Never scale up beyond 1.0 (optional)
+
+        // Apply scale
+        diagram.style.transform = `scale(${scale})`;
+    }
+
+    // Run on load and resize
+    window.addEventListener('load', fitDiagram);
+    window.addEventListener('resize', fitDiagram);
+</script>
 
 </body>
 </html>
-```
