@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Native Fusion Engine 战略立项报告 (v29 - 精简易懂版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f8fafc; /* slate-50 */
+            color: #0f172a; /* slate-900 */
+        }
+        .nav-item.active {
+            background-color: #e2e8f0; /* slate-200 */
+            border-left: 4px solid #0f172a; /* slate-900 */
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .nav-item {
+            color: #64748b;
+        }
+        .nav-group-title {
+            padding-left: 2rem;
+            font-size: 0.75rem;
+            font-weight: 800;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .slide-section {
+            display: none;
+            animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .slide-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .strategic-box {
+            border-left: 4px solid #3b82f6;
+            background: linear-gradient(to right, #eff6ff, #ffffff);
+        }
+
+        /* Tech Giant Card */
+        .giant-card {
+            transition: all 0.3s ease;
+        }
+        .giant-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* FAQ Card */
+        .faq-card {
+            transition: all 0.3s ease;
+        }
+        .faq-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="flex flex-col md:flex-row min-h-screen">
+
+    <!-- Sidebar Navigation -->
+    <nav class="w-full md:w-72 bg-white border-r border-slate-200 flex-shrink-0 z-20 shadow-sm overflow-y-auto">
+        <div class="p-8 border-b border-slate-100">
+            <h1 class="text-xl font-extrabold text-slate-800 leading-tight">AI-Native Fusion Engine</h1>
+            <p class="text-xs text-slate-500 mt-2">高性能存算融合数据底座</p>
+        </div>
+        <ul class="flex flex-col py-2 text-sm font-medium">
+            
+            <div class="nav-group-title text-red-400">Step 1: 痛点与趋势</div>
+            <li><button onclick="navigateTo('challenge')" class="nav-item w-full text-left px-8 py-3 hover:bg-slate-50 transition-colors active" id="nav-challenge">1. 核心瓶颈：效率漏斗</button></li>
+            <li><button onclick="navigateTo('industry')" class="nav-item w-full text-left px-8 py-3 hover:bg-slate-50 transition-colors" id="nav-industry">2. 行业背书：大厂动向</button></li>
+
+            <div class="nav-group-title text-blue-400">Step 2: 核心方案</div>
+            <li><button onclick="navigateTo('home')" class="nav-item w-full text-left px-8 py-3 hover:bg-slate-50 transition-colors" id="nav-home">3. 核心架构：存算融合</button></li>
+            <li><button onclick="navigateTo('scalability')" class="nav-item w-full text-left px-8 py-3 hover:bg-slate-50 transition-colors" id="nav-scalability">4. 扩展能力：弹性架构</button></li>
+
+            <div class="nav-group-title text-purple-400">Step 3: 价值验证</div>
+            <li><button onclick="navigateTo('position')" class="nav-item w-full text-left px-8 py-3 hover:bg-slate-50 transition-colors" id="nav-position">5. 竞争优势：双战场</button></li>
+            <li><button onclick="navigateTo('case')" class="nav-item w-full text-left px-8 py-3 hover:bg-slate-50 transition-colors" id="nav-case">6. 实战案例：效率证明</button></li>
+            <li><button onclick="navigateTo('limitations')" class="nav-item w-full text-left px-8 py-3 hover:bg-slate-50 transition-colors" id="nav-limitations">7. 局限性分析：代价</button></li>
+            <li><button onclick="navigateTo('qa')" class="nav-item w-full text-left px-8 py-3 hover:bg-slate-50 transition-colors" id="nav-qa">8. 战略问答：终极拷问</button></li>
+        </ul>
+        <div class="p-8 mt-4 text-xs text-slate-400 border-t border-slate-100">
+            汇报人：架构组<br>
+            2026 Q1
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-8 md:p-12 overflow-y-auto bg-slate-50">
+        
+        <!-- ========================================== -->
+        <!-- STEP 1: PAIN (CHALLENGE) -->
+        <!-- ========================================== -->
+        <section id="challenge" class="slide-section active max-w-6xl mx-auto">
+            <div class="mb-8">
+                <span class="text-red-500 font-bold tracking-wide text-sm uppercase">Step 1.1: The Pain</span>
+                <h2 class="text-3xl font-bold text-slate-900 mt-2 mb-4">当前痛点：算力黑洞与架构臃肿</h2>
+                <p class="text-lg text-slate-600">传统的“大数据胶水架构”是为离线报表设计的，在 AI 时代变成了<strong>吞噬算力的黑洞</strong>。</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <!-- Architecture Bloat -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm relative">
+                    <div class="absolute top-0 left-0 bg-red-100 text-red-600 text-xs font-bold px-3 py-1 rounded-br-lg">现状：链路太长</div>
+                    <div class="space-y-4 mt-4">
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded border border-slate-100">
+                            <span class="font-bold text-slate-600">1. Spark (清洗)</span>
+                            <span class="text-xs text-red-500 font-bold">JVM GC 卡顿</span>
+                        </div>
+                        <div class="flex justify-center text-slate-300">↓ 序列化 (Pickle) ↓</div>
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded border border-slate-100">
+                            <span class="font-bold text-slate-600">2. Python (胶水)</span>
+                            <span class="text-xs text-red-500 font-bold">GIL 锁限制</span>
+                        </div>
+                        <div class="flex justify-center text-slate-300">↓ 内存拷贝 ↓</div>
+                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded border border-slate-100">
+                            <span class="font-bold text-slate-600">3. vLLM (推理)</span>
+                            <span class="text-xs text-red-500 font-bold">GPU 经常空转</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pain Points List -->
+                <div class="space-y-4">
+                    <div class="p-4 bg-white rounded-lg border-l-4 border-red-500 shadow-sm">
+                        <h4 class="font-bold text-slate-800 mb-1">GPU 利用率低</h4>
+                        <p class="text-sm text-slate-600">因为 CPU 处理数据（解码、Tokenize）太慢，昂贵的 GPU 经常处于等待状态，造成巨大的硬件浪费。</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg border-l-4 border-orange-500 shadow-sm">
+                        <h4 class="font-bold text-slate-800 mb-1">无法支持“流式业务”</h4>
+                        <p class="text-sm text-slate-600">传统架构基于 Batch（批处理），延迟通常在分钟级。无法满足“视频流实时告警”或“实时反欺诈”的需求。</p>
+                    </div>
+                    <div class="p-4 bg-white rounded-lg border-l-4 border-yellow-500 shadow-sm">
+                        <h4 class="font-bold text-slate-800 mb-1">交付运维噩梦</h4>
+                        <p class="text-sm text-slate-600">去客户现场部署一套 Spark + Kafka + Redis + VectorDB 集群，需要 3 个工程师耗时一周，维护成本极高。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="industry" class="slide-section max-w-6xl mx-auto">
+            <div class="mb-8">
+                <span class="text-purple-600 font-bold tracking-wide text-sm uppercase">Step 1.2: Market Validation</span>
+                <h2 class="text-3xl font-bold text-slate-900 mt-2 mb-4">行业调研：巨头们如何应对这一瓶颈？</h2>
+                <p class="text-lg text-slate-600">全球巨头都在抛弃 Java/Python 胶水，<strong>转向 Rust/C++ 重构底层引擎</strong>。</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="space-y-6">
+                    <h3 class="font-bold text-slate-800 text-xl border-b border-slate-200 pb-2">🌍 国际动向</h3>
+                    <div class="giant-card bg-white p-6 rounded-xl border-l-4 border-blue-500 shadow-sm">
+                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-800">Databricks (Photon)</h4><span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">C++ Native</span></div>
+                        <p class="text-sm text-slate-600">意识到 JVM 是瓶颈，投入数年完全用 C++ 重写了 Spark 执行引擎。</p>
+                    </div>
+                    <div class="giant-card bg-white p-6 rounded-xl border-l-4 border-green-500 shadow-sm">
+                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-800">LanceDB / Polars</h4><span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">Rust Ecosystem</span></div>
+                        <p class="text-sm text-slate-600">Polars 证明了单机可以比 Pandas 快 50 倍，LanceDB 证明了 Zero-Copy 的价值。</p>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <h3 class="font-bold text-slate-800 text-xl border-b border-slate-200 pb-2">🇨🇳 国内动向</h3>
+                    <div class="giant-card bg-white p-6 rounded-xl border-l-4 border-red-500 shadow-sm">
+                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-800">华为 (GaussDB)</h4><span class="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">软硬协同</span></div>
+                        <p class="text-sm text-slate-600">强调数据库内核与昇腾 AI 芯片的直通（NDP, 近数据计算），目的就是为了减少数据搬运。</p>
+                    </div>
+                    <div class="giant-card bg-white p-6 rounded-xl border-l-4 border-orange-400 shadow-sm">
+                        <div class="flex justify-between mb-2"><h4 class="font-bold text-slate-800">阿里 / 腾讯</h4><span class="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">Serverless</span></div>
+                        <p class="text-sm text-slate-600">都在推行“数据库内置 AI 能力”，试图让数据不出库即可完成推理。</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conclusion Box -->
+            <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                <p class="text-blue-900 font-medium text-sm">
+                    <i class="fa-solid fa-lightbulb mr-2 text-yellow-500"></i>
+                    <strong>调研结论：</strong> “存算融合 + Native 内核” 是行业公认的未来。现在切入，正是为了把握基础设施代际升级的窗口期。
+                </p>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- STEP 2: SOLUTION -->
+        <!-- ========================================== -->
+        <section id="home" class="slide-section max-w-6xl mx-auto">
+            <div class="mb-8">
+                <span class="text-blue-600 font-bold tracking-wide text-sm uppercase">Step 2.1: The Solution</span>
+                <h2 class="text-4xl font-extrabold text-slate-900 mt-2 mb-6">Fusion Engine：云边同构的算力底座</h2>
+                <p class="text-xl text-slate-600 leading-relaxed max-w-4xl">
+                    通过极致的 Rust 工程优化（Zero-Copy），将单机性能推向物理极限，同时支持云端与端侧的统一交付。
+                </p>
+            </div>
+
+            <!-- Solution Diagram -->
+            <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-8 mb-10 relative overflow-hidden">
+                 <div class="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">Fusion Core Architecture</div>
+                <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+                    
+                    <!-- Batch Mode -->
+                    <div class="flex-1 text-center opacity-70">
+                        <div class="text-4xl mb-4">📦</div>
+                        <h3 class="font-bold text-slate-700 text-lg">Batch Mode</h3>
+                        <p class="text-xs text-slate-500 font-mono mt-1">ETL / 离线分析</p>
+                        <p class="text-xs text-slate-400 mt-2">替代 Spark</p>
+                    </div>
+
+                    <!-- Core Engine -->
+                    <div class="w-64 flex-shrink-0 text-center relative">
+                        <div class="absolute inset-0 flex items-center justify-center -z-10">
+                            <div class="w-full h-2 bg-gradient-to-r from-slate-200 via-blue-200 to-slate-200 rounded"></div>
+                        </div>
+                        <div class="bg-blue-600 text-white p-6 rounded-xl shadow-xl transform scale-110 z-10 relative hover:scale-115 transition-transform duration-300">
+                            <div class="font-bold text-xl">Fusion Engine</div>
+                            <div class="text-xs opacity-90 mt-2 font-mono">Rust + Arrow + CUDA</div>
+                            <div class="mt-4 bg-white/20 p-2 rounded text-xs font-bold">
+                                Zero-Copy Pipeline
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Stream Mode -->
+                    <div class="flex-1 text-center">
+                        <div class="text-4xl mb-4">🌊</div>
+                        <h3 class="font-bold text-blue-700 text-lg">Stream Mode</h3>
+                        <p class="text-xs text-slate-500 font-mono mt-1">Real-time Inference</p>
+                        <p class="text-xs text-blue-600 font-bold mt-2">核心优势场景</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Value Props -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-t-4 border-t-green-500">
+                    <div class="text-3xl mb-4">☁️</div>
+                    <h3 class="font-bold text-slate-800 text-lg">公有云：降本</h3>
+                    <p class="text-sm text-slate-600 mt-2">替代臃肿的 Spark/Python 胶水层，将云资源利用率提升 300%，大幅削减 AWS/阿里云账单。</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-t-4 border-t-blue-500">
+                    <div class="text-3xl mb-4">📱</div>
+                    <h3 class="font-bold text-slate-800 text-lg">端侧：赋能</h3>
+                    <p class="text-sm text-slate-600 mt-2">让手机和车机具备“服务器级”的多模态处理能力，实现数据不出端的极致隐私保护。</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200 border-t-4 border-t-purple-500">
+                    <div class="text-3xl mb-4">⚡</div>
+                    <h3 class="font-bold text-slate-800 text-lg">业务层：实时</h3>
+                    <p class="text-sm text-slate-600 mt-2">解锁毫秒级多模态流处理能力，支持视频安防、实时风控等高价值场景。</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="scalability" class="slide-section max-w-6xl mx-auto">
+            <div class="mb-8">
+                <span class="text-blue-600 font-bold tracking-wide text-sm uppercase">Step 2.2: Scalability</span>
+                <h2 class="text-3xl font-bold text-slate-900 mt-2 mb-4">弹性扩展架构：Shared-Disk Architecture</h2>
+                <p class="text-lg text-slate-600">不仅单机快，通过存算分离架构，我们同样支持 K8s 水平自动扩缩容。</p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Diagram Area -->
+                <div class="lg:col-span-2 bg-slate-900 rounded-xl p-8 relative overflow-hidden text-white shadow-xl">
+                    <div class="absolute top-0 right-0 opacity-10 text-6xl">🔗</div>
+                    
+                    <div class="flex flex-col gap-6 items-center">
+                        
+                        <!-- Compute Layer -->
+                        <div class="w-full flex justify-center gap-4 relative z-10">
+                            <div class="bg-blue-600 p-3 rounded-lg w-32 text-center text-sm shadow-lg border border-blue-400">
+                                Node A<br><span class="text-[10px] opacity-75">Stateless</span>
+                            </div>
+                            <div class="bg-blue-600 p-3 rounded-lg w-32 text-center text-sm shadow-lg border border-blue-400">
+                                Node B<br><span class="text-[10px] opacity-75">Stateless</span>
+                            </div>
+                            <div class="bg-blue-500/50 p-3 rounded-lg w-32 text-center text-sm border-2 border-dashed border-blue-400 flex items-center justify-center">
+                                <span class="text-xs">+ Auto Scale</span>
+                            </div>
+                        </div>
+
+                        <!-- Connector -->
+                        <div class="h-8 border-l-2 border-slate-500 border-dashed"></div>
+
+                        <!-- Storage Layer -->
+                        <div class="w-full bg-slate-700/50 p-4 rounded-xl border border-slate-600 text-center">
+                            <div class="text-lg font-bold mb-1">S3 / Object Store</div>
+                            <div class="text-xs text-slate-400">Unified Data Lake (Parquet/Lance)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Explanation -->
+                <div class="space-y-4">
+                    <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-blue-500">
+                        <h4 class="font-bold text-slate-800 mb-1">微观融合 (Micro-Fusion)</h4>
+                        <p class="text-sm text-slate-600">在<strong>单机内部</strong>，计算与内存融合，实现 Zero-Copy 极致性能。</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 border-green-500">
+                        <h4 class="font-bold text-slate-800 mb-1">宏观分离 (Macro-Separation)</h4>
+                        <p class="text-sm text-slate-600">在<strong>集群层面</strong>，计算节点无状态，数据在 S3。扩容只需拉起新进程并挂载数据。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- STEP 3: VALUE -->
+        <!-- ========================================== -->
+        <section id="position" class="slide-section max-w-6xl mx-auto">
+            <div class="mb-8">
+                <span class="text-purple-600 font-bold tracking-wide text-sm uppercase">Step 3.1: Competitive Advantage</span>
+                <h2 class="text-3xl font-bold text-slate-900 mt-2 mb-4">核心竞争优势：双战场策略</h2>
+                <p class="text-lg text-slate-600">Fusion Engine 的核心竞争力在于它能同时在两个截然不同的战场上创造价值，这是传统技术栈做不到的。</p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Scenario A: Public Cloud -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-md p-8 relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="text-3xl">☁️</span>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">公有云战场</h3>
+                            <span class="text-xs text-blue-600 font-bold uppercase tracking-wider">帮客户省钱</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            <strong>逻辑：</strong> 客户不再需要为 Databricks/Spark 这种“重型全家桶”支付高昂的溢价。
+                        </p>
+                        <div class="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                            <strong class="block text-blue-800 text-sm mb-1">效果对比</strong>
+                            <div class="flex justify-between text-xs text-slate-600">
+                                <span>传统: 租昂贵的 PaaS 服务</span>
+                                <span class="font-bold text-red-500">$$$</span>
+                            </div>
+                            <div class="flex justify-between text-xs text-slate-600 mt-1">
+                                <span>我们: 租廉价裸金属 + 我们的引擎</span>
+                                <span class="font-bold text-green-600">$ (效能高5倍)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scenario B: Edge / Mobile -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-md p-8 relative overflow-hidden group">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-purple-500"></div>
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="text-3xl">📱</span>
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-800">端侧/边缘战场</h3>
+                            <span class="text-xs text-purple-600 font-bold uppercase tracking-wider">让不可能变可能</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            <strong>逻辑：</strong> 把数据中心级别的处理能力塞进手机和工控机里，解决隐私和断网问题。
+                        </p>
+                        <div class="bg-purple-50 p-3 rounded-lg border border-purple-100">
+                            <strong class="block text-purple-800 text-sm mb-1">能力对比</strong>
+                            <div class="flex justify-between text-xs text-slate-600">
+                                <span>传统: SQLite (只能存简单的字)</span>
+                                <span class="text-red-500">弱</span>
+                            </div>
+                            <div class="flex justify-between text-xs text-slate-600 mt-1">
+                                <span>我们: 向量+视频+推理 一体化</span>
+                                <span class="text-green-600 font-bold">强 (服务器级能力)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Case Study -->
+        <section id="case" class="slide-section max-w-6xl mx-auto">
+            <div class="mb-8">
+                <span class="text-green-600 font-bold tracking-wide text-sm uppercase">Step 3.2: The Proof</span>
+                <h2 class="text-3xl font-bold text-slate-900 mt-2 mb-4">实战案例：智慧城市“全域追踪”</h2>
+                <p class="text-lg text-slate-600">场景：从全城 5000 个摄像头的视频流中，实时寻找“撞击护栏的红色跑车”。</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                
+                <!-- Old Way -->
+                <div class="bg-slate-50 p-6 rounded-xl border border-slate-200 opacity-80">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-bold text-slate-600">传统架构</h4>
+                        <span class="bg-red-100 text-red-600 text-xs font-bold px-2 py-1 rounded">延迟: ~30秒</span>
+                    </div>
+                    <div class="space-y-3 text-sm text-slate-500">
+                        <div class="flex items-center gap-3"><span class="w-6 text-center bg-white rounded-full border border-slate-200">1</span><div class="flex-1 bg-white p-2 rounded border border-slate-200">Postgres 查摄像头 ID</div></div>
+                        <div class="flex items-center gap-3"><span class="w-6 text-center bg-white rounded-full border border-slate-200">2</span><div class="flex-1 bg-white p-2 rounded border border-slate-200">Python 下载 S3 视频文件</div></div>
+                        <div class="flex items-center gap-3"><span class="w-6 text-center bg-white rounded-full border border-slate-200">3</span><div class="flex-1 bg-white p-2 rounded border border-slate-200">FFmpeg 解码 (CPU 瓶颈)</div></div>
+                        <div class="flex items-center gap-3"><span class="w-6 text-center bg-white rounded-full border border-slate-200">4</span><div class="flex-1 bg-white p-2 rounded border border-slate-200">vLLM 推理识别</div></div>
+                        <div class="mt-4 p-2 bg-red-50 text-red-700 text-xs rounded"><i class="fa-solid fa-triangle-exclamation mr-1"></i> 嫌疑人已逃离现场。</div>
+                    </div>
+                </div>
+
+                <!-- New Way -->
+                <div class="bg-white p-8 rounded-xl border-l-4 border-green-500 shadow-lg transform scale-105">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-bold text-slate-800 text-lg">Fusion Engine</h4>
+                        <span class="bg-green-100 text-green-700 text-sm font-bold px-3 py-1 rounded">延迟: < 200毫秒</span>
+                    </div>
+                    <div class="space-y-4 text-sm text-slate-600">
+                        <div class="p-3 bg-blue-50 rounded border border-blue-100">
+                            <strong class="block text-blue-800 mb-1">In-Memory 混合查询</strong>
+                            <p class="text-xs">一条 SQL 同时完成时空过滤与视频内容识别：</p>
+                            <code class="block mt-2 bg-slate-800 text-green-400 p-2 rounded text-xs font-mono">
+                                SELECT * FROM stream <br>
+                                WHERE location='CBD' AND ai_match(frame, 'red crash')
+                            </code>
+                        </div>
+                        <div class="mt-2 p-2 bg-green-50 text-green-700 text-xs rounded font-bold border border-green-100">
+                            <i class="fa-solid fa-check-circle mr-1"></i> 实时锁定目标，立即触发告警。
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Limitations -->
+        <section id="limitations" class="slide-section max-w-6xl mx-auto">
+            <div class="mb-8">
+                <span class="text-yellow-600 font-bold tracking-wide text-sm uppercase">Step 3.3: Trade-offs</span>
+                <h2 class="text-3xl font-bold text-slate-900 mt-2 mb-4">理性评估：局限性与代价</h2>
+                <p class="text-lg text-slate-600">没有完美的架构。选择 Fusion Engine 意味着我们需要在以下方面付出代价。</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Limit 1 -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-yellow-400 transition-colors">
+                    <div class="text-2xl mb-3">🐍</div>
+                    <h3 class="font-bold text-slate-800 text-lg mb-2">生态隔离</h3>
+                    <p class="text-sm text-slate-600 mb-4">无法直接 `import torch` 或使用 Python 丰富的第三方库。所有算子需要用 Rust 重写或绑定。</p>
+                    <div class="bg-slate-50 p-2 rounded text-xs text-slate-500">
+                        <strong>缓解策略：</strong> 提供 WASM 插件机制。
+                    </div>
+                </div>
+
+                <!-- Limit 2 -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-red-400 transition-colors">
+                    <div class="text-2xl mb-3">👨‍💻</div>
+                    <h3 class="font-bold text-slate-800 text-lg mb-2">人才门槛高</h3>
+                    <p class="text-sm text-slate-600 mb-4">Rust + Database Kernel + CUDA 复合型人才极贵且难招。</p>
+                    <div class="bg-slate-50 p-2 rounded text-xs text-slate-500">
+                        <strong>缓解策略：</strong> 核心团队保持精英化。
+                    </div>
+                </div>
+
+                <!-- Limit 3 -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-orange-400 transition-colors">
+                    <div class="text-2xl mb-3">⏱️</div>
+                    <h3 class="font-bold text-slate-800 text-lg mb-2">模型适配滞后</h3>
+                    <p class="text-sm text-slate-600 mb-4">学术界新模型首发 Python 版。Rust 推理栈适配通常滞后 1-2 周。</p>
+                    <div class="bg-slate-50 p-2 rounded text-xs text-slate-500">
+                        <strong>缓解策略：</strong> 聚焦于“成熟模型”的高效运行。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Strategic Q&A -->
+        <section id="qa" class="slide-section max-w-6xl mx-auto">
+            <div class="mb-8">
+                <span class="text-purple-600 font-bold tracking-wide text-sm uppercase">Step 3.4: Strategic Q&A</span>
+                <h2 class="text-3xl font-bold text-slate-900 mt-2 mb-4">战略问答：终极拷问</h2>
+                <p class="text-lg text-slate-600">直面关键质疑，阐述我们的“非对称优势”。</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Q1 -->
+                <div class="faq-card bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xl mr-3">?</div>
+                        <h3 class="font-bold text-slate-800 text-lg">这真的是“下一代”技术吗？</h3>
+                    </div>
+                    <div class="text-sm text-slate-600 space-y-3 leading-relaxed">
+                        <p><strong>是的。这是计算范式的必然进化。</strong></p>
+                        <ul class="list-disc list-inside bg-slate-50 p-3 rounded text-xs text-slate-500">
+                            <li>第一代 (Hadoop): 解决“存不下” (Disk I/O)</li>
+                            <li>第二代 (Spark): 解决“算得慢” (Memory I/O)</li>
+                            <li><strong>下一代 (Fusion): 解决“AI 跑不通” (Serialization)</strong></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="faq-card bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xl mr-3">?</div>
+                        <h3 class="font-bold text-slate-800 text-lg">为什么巨头（Snowflake）没做？</h3>
+                    </div>
+                    <div class="text-sm text-slate-600 space-y-3 leading-relaxed">
+                        <p><strong>创新者的窘境与技术包袱：</strong></p>
+                        <ul class="list-disc list-inside bg-slate-50 p-3 rounded text-xs text-slate-500 space-y-2">
+                            <li><strong>商业冲突:</strong> 巨头卖的是“资源时长”。帮客户省钱不符合其利益。</li>
+                            <li><strong>技术债:</strong> 他们是 Java/C++ 底座。转向 Rust 意味着重写数百万行代码。</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        function navigateTo(sectionId) {
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('nav-' + sectionId).classList.add('active');
+            document.querySelectorAll('.slide-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
