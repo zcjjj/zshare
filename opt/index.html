@@ -3,856 +3,2029 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>面向 Agent 应用的长上下文 LLM 部署优化</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <title>面向 Agent 的 LLM 推理全栈优化</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        /* --- 1. 核心视觉定义 (Neon Dark 风格) --- */
         :root {
-            --bg-body: #0b0e14;
-            --bg-sidebar: #111827;
-            --bg-card: #1f2937;
-            --bg-glass: rgba(31, 41, 55, 0.7);
+            /* 浅色主题配色 */
+            --bg-dark: #f8fafc;       /* Slate 50 */
+            --bg-panel: #ffffff;      /* White */
+            --bg-sidebar: #f1f5f9;    /* Slate 100 */
             
-            --primary: #3b82f6;   /* 科技蓝 */
-            --accent: #06b6d4;    /* 亮青色 */
-            --highlight: #f59e0b; /* 警示黄 */
-            --success: #10b981;   /* 成功绿 */
-            --danger: #ef4444;    /* 警告红 */
+            --text-primary: #0f172a;  /* Slate 900 */
+            --text-secondary: #475569;/* Slate 600 */
+            --text-code: #334155;     /* Slate 700 */
+
+            /* 功能色系 */
+            --c-gateway: #7c3aed;     /* Violet 600 */
+            --c-prefill: #2563eb;     /* Blue 600 */
+            --c-decode: #059669;      /* Emerald 600 */
+            --c-infra: #d97706;       /* Amber 600 - Storage */
+            --c-network: #6366f1;     /* Indigo 500 - Network */
+            --c-danger: #dc2626;      /* Red 600 */
+            --c-line: #94a3b8;        /* Slate 400 */
             
-            --text-main: #f3f4f6;
-            --text-sub: #9ca3af;
-            --border: #374151;
-            
-            --shadow-card: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-            --shadow-neon: 0 0 10px rgba(59, 130, 246, 0.3);
+            --border: #cbd5e1;        /* Slate 300 */
+            --radius: 8px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background: var(--bg-body);
-            color: var(--text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
             height: 100vh;
+            width: 100vw;
             display: flex;
             overflow: hidden;
         }
 
-        /* --- 侧边栏 --- */
+        /* --- Sidebar --- */
         .sidebar {
             width: 260px;
-            background: var(--bg-sidebar);
+            background-color: var(--bg-sidebar);
             border-right: 1px solid var(--border);
             display: flex;
             flex-direction: column;
+            padding: 1.5rem 1rem;
             flex-shrink: 0;
-            z-index: 20;
+            z-index: 10;
         }
 
         .brand {
-            padding: 24px;
             font-size: 1.1rem;
             font-weight: 800;
-            color: var(--text-main);
-            border-bottom: 1px solid var(--border);
-            letter-spacing: 1px;
-            background: linear-gradient(90deg, rgba(59,130,246,0.15) 0%, transparent 100%);
-            display: flex; align-items: center; gap: 10px;
-        }
-        .brand i { color: var(--primary); }
-
-        .nav-items { flex: 1; overflow-y: auto; padding: 15px 0; }
-        .nav-items::-webkit-scrollbar { width: 4px; }
-        .nav-items::-webkit-scrollbar-thumb { background: #374151; border-radius: 2px; }
-
-        .nav-group {
-            padding: 12px 24px 6px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            color: #6b7280;
-            font-weight: 700;
-            letter-spacing: 0.05em;
-            margin-top: 10px;
-        }
-
-        .nav-link {
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
-            padding: 10px 24px;
-            color: var(--text-sub);
-            text-decoration: none;
-            font-size: 0.9rem;
+            gap: 10px;
+            padding: 0 0.5rem;
+        }
+
+        .nav-list {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .nav-list::-webkit-scrollbar { width: 4px; }
+        .nav-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+
+        .nav-group-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin: 15px 0 5px 10px;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-item {
+            padding: 10px 12px;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             transition: all 0.2s;
             border-left: 3px solid transparent;
-        }
-        .nav-link:hover { background: rgba(255,255,255,0.05); color: #fff; }
-        .nav-link.active {
-            background: linear-gradient(90deg, rgba(59, 130, 246, 0.15) 0%, transparent 100%);
-            color: var(--primary);
-            border-left-color: var(--primary);
+            font-weight: 500;
         }
 
-        /* --- 主内容区 --- */
-        .main {
+        .nav-item:hover {
+            background: rgba(0,0,0,0.05);
+            color: var(--text-primary);
+        }
+
+        .nav-item.active {
+            background: #e2e8f0;
+            color: var(--text-primary);
+            border-left-color: currentColor; 
+        }
+
+        /* --- Main Stage --- */
+        .main-stage {
             flex: 1;
-            overflow-y: auto;
-            padding: 40px 60px;
-            scroll-behavior: smooth;
-            position: relative;
-            background-image: radial-gradient(circle at 50% 0%, #1e293b 0%, #0b0e14 60%);
-        }
-
-        .slide {
-            min-height: 85vh;
-            margin-bottom: 60px;
-            background: var(--bg-glass);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 50px;
-            box-shadow: var(--shadow-card);
+            padding: 2rem 4rem;
             display: flex;
             flex-direction: column;
             position: relative;
-            page-break-after: always;
+            background: radial-gradient(circle at top right, #f1f5f9 0%, #f8fafc 70%);
+        }
+
+        .slide-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            animation: fadeUp 0.3s ease-out;
+            height: 100%;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .slide-header {
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 1rem;
+            flex-shrink: 0;
         }
-        .slide-title h2 { 
-            font-size: 2.2rem; 
-            margin-bottom: 8px; 
-            background: linear-gradient(to right, #fff, #94a3b8); 
-            -webkit-background-clip: text; 
-            -webkit-text-fill-color: transparent; 
-            font-weight: 700;
-        }
-        .slide-title p { color: var(--primary); font-size: 1rem; font-weight: 500; letter-spacing: 0.5px; }
-        .slide-number { font-family: 'Courier New', monospace; color: #4b5563; font-weight: bold; font-size: 1.5rem; opacity: 0.5; }
-
-        /* --- 布局与排版 --- */
-        .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; flex: 1; }
-        .full-width { grid-column: 1 / -1; }
         
-        .text-block p { margin-bottom: 12px; line-height: 1.7; font-size: 1.05rem; color: #d1d5db; }
-        .text-block ul { padding-left: 20px; margin-bottom: 20px; color: #d1d5db; }
-        .text-block li { margin-bottom: 10px; }
-        .highlight { color: var(--highlight); font-weight: 600; }
-        .accent-text { color: var(--accent); font-weight: 600; }
+        .slide-title {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            letter-spacing: -0.5px;
+        }
 
-        /* --- 通用组件 --- */
-        .chart-box {
-            background: rgba(0,0,0,0.2);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid rgba(255,255,255,0.05);
-            display: flex; align-items: center; justify-content: center;
+        .slide-meta {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        /* --- Content Layout --- */
+        .content-split {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            gap: 1.5rem;
+        }
+
+        /* Top: Diagram Area (Hardcore) */
+        .diagram-area {
+            flex: 5;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            min-height: 250px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+            background-image: linear-gradient(#e2e8f0 1px, transparent 1px), linear-gradient(90deg, #e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
         }
 
-        .tag { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; margin-right: 6px; margin-bottom: 6px; }
-        .tag-blue { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
-        .tag-orange { background: rgba(245,158,11,0.15); color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
-        .tag-green { background: rgba(16,185,129,0.15); color: #34d399; border: 1px solid rgba(16,185,129,0.3); }
-        .tag-red { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
-
-        .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%; }
-        .stat-card { background: rgba(255,255,255,0.03); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border); transition: transform 0.2s; }
-        .stat-card:hover { transform: translateY(-2px); background: rgba(255,255,255,0.05); }
-        .stat-value { font-size: 2.2rem; font-weight: 800; color: #fff; margin: 10px 0; }
-        .stat-label { font-size: 0.85rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; }
-
-        /* --- 架构金字塔 (Pyramid) --- */
-        .pyramid-container { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 12px; padding: 10px 0; }
-        .p-level {
-            width: 100%; padding: 18px 25px; color: #fff; border-radius: 8px; position: relative;
-            border: 1px solid rgba(255,255,255,0.1);
-            display: flex; align-items: center;
-            backdrop-filter: blur(4px);
-            transition: all 0.3s;
+        .diagram-badge {
+            position: absolute;
+            top: 10px; left: 10px;
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text-secondary);
+            font-family: monospace;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            z-index: 10;
         }
-        .p-level:hover { transform: scale(1.02); box-shadow: var(--shadow-neon); z-index: 10; }
-        .l4 { width: 50%; background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%); }
-        .l3 { width: 65%; background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); }
-        .l2 { width: 80%; background: linear-gradient(135deg, #0891b2 0%, #155e75 100%); }
-        .p-content { display: flex; align-items: center; gap: 15px; width: 100%; }
-        .p-icon { font-size: 1.4rem; width: 40px; display: flex; justify-content: center; opacity: 0.9; }
-        .p-text h4 { margin: 0; font-size: 1.1rem; text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
-        .p-text span { font-size: 0.85rem; opacity: 0.8; }
 
-        /* --- 示意图 (Diagrams) --- */
-        .node-model { border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem; z-index: 2; }
-        .node-m-large { background: var(--primary); color: white; border: 2px solid #2563eb; }
-        .node-m-small { background: var(--accent); color: black; border: 2px solid #0891b2; }
-        .node-token { border-radius: 50%; background: #334155; display: flex; align-items: center; justify-content: center; font-family: monospace; font-size: 0.8rem; border: 1px solid #475569; width: 28px; height: 28px;}
-        .token-drafted { border-color: var(--accent); color: var(--accent); background: rgba(6,182,212,0.1); border-style: dashed; }
-        .token-verified { background: var(--success); color: white; border-color: var(--success); }
-        .block-verify { border: 2px dashed var(--primary); border-radius: 8px; background: rgba(59,130,246,0.1); display: flex; gap: 8px; align-items: center; }
-        .node { background: #1f2937; border: 1px solid var(--border); padding: 15px; border-radius: 8px; text-align: center; min-width: 100px; }
-
-        /* PDF 按钮 */
-        #pdf-btn {
-            position: fixed; bottom: 30px; right: 30px;
-            background: linear-gradient(135deg, var(--primary), #2563eb);
-            color: #fff; border: none; padding: 12px 20px; border-radius: 30px;
-            font-weight: 600; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-            cursor: pointer; z-index: 100; transition: transform 0.2s;
-            display: flex; align-items: center; gap: 8px;
+        svg text {
+            font-family: 'JetBrains Mono', monospace;
         }
-        #pdf-btn:hover { transform: scale(1.05); }
 
-        /* Checklist 样式 */
-        .checklist-item {
-            display: flex; align-items: center; gap: 15px; padding: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+        /* Bottom: Details Grid */
+        .details-grid {
+            flex: 4;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            min-height: 0;
         }
-        .checklist-item:last-child { border-bottom: none; }
-        .check-icon { color: var(--success); font-size: 1.2rem; }
-        .check-text { font-size: 1rem; color: var(--text-main); }
 
-        /* Matrix Table */
-        .matrix-table { width: 100%; border-collapse: separate; border-spacing: 4px; font-size: 0.75rem; }
-        .matrix-table th { color: #9ca3af; padding: 5px; font-weight: 600; }
-        .cell { padding: 6px; border-radius: 4px; text-align: center; font-weight: 600; }
-        .c-pre { background: rgba(55,65,81,0.5); color: #9ca3af; }
-        .c-draft { background: rgba(245,158,11,0.2); color: #fbbf24; }
-        .c-pad { background: transparent; border: 1px dashed #374151; color: #4b5563; }
+        .card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+        
+        .card:hover { 
+            transform: translateY(-2px); 
+            border-color: #94a3b8;
+        }
 
-        /* 打印适配 */
+        .card-title {
+            font-size: 0.9rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 8px;
+        }
+        
+        .card-body {
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: #334155;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .card.challenge-card {
+            background-color: #fff1f2;
+            border-color: #fecaca;
+        }
+        .challenge-card .card-title {
+            color: var(--c-danger);
+            border-bottom-color: #fecaca;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: var(--c-prefill);
+            font-size: 0.9em;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* --- Lifecycle Map --- */
+        .lc-container { display: flex; flex-direction: column; align-items: center; padding: 20px 0; gap: 15px; width: 100%; }
+        .lc-step { display: flex; align-items: center; gap: 30px; width: 100%; max-width: 800px; cursor: default; transition: transform 0.2s; }
+        .lc-icon-box { width: 70px; height: 70px; background: var(--bg-panel); border: 2px solid; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; box-shadow: var(--shadow); flex-shrink: 0; z-index: 2; }
+        .lc-line-connect { position: absolute; left: 39px; top: -30px; bottom: -30px; width: 2px; background: #cbd5e1; z-index: 0; border-left: 2px dashed #cbd5e1; }
+        .lc-card { flex: 1; background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; box-shadow: var(--shadow); position: relative; overflow: hidden; display:flex; flex-direction:column; justify-content:center;}
+        .lc-bg-icon { position: absolute; right: -10px; bottom: -10px; font-size: 5rem; opacity: 0.05; z-index: 0; }
+        .lc-title { font-weight: 800; font-size: 1rem; margin-bottom: 5px; z-index: 1; position: relative; }
+        .lc-desc { font-size: 0.8rem; color: var(--text-secondary); z-index: 1; position: relative; }
+        .lc-tags { display: flex; gap: 6px; margin-top: 5px; flex-wrap: wrap; }
+        .lc-tag { font-size: 0.7rem; padding: 3px 8px; border-radius: 4px; background: #f1f5f9; color: var(--text-secondary); border: 1px solid #e2e8f0; }
+
+        /* --- Page Number & PDF Button --- */
+        .page-number {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .pdf-btn-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+            padding: 4px;
+            animation: fadeIn 0.5s;
+        }
+        .pdf-btn {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            border-right: 1px solid #eee;
+        }
+        .pdf-btn:hover { background-color: #f8fafc; border-radius: 4px;}
+        .pdf-close {
+            padding: 6px 10px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .pdf-close:hover { color: var(--c-danger); }
+
+        /* --- PRINT STYLES (PDF Export) --- */
+        /* Only visible during printing */
+        #printContainer {
+            display: none;
+        }
+
         @media print {
-            .sidebar, #pdf-btn { display: none !important; }
-            body { height: auto; overflow: visible; background: #0b0e14; }
-            .main { padding: 0; width: 100%; }
-            .slide { margin-bottom: 0; border: none; box-shadow: none; break-after: always; min-height: 100vh; background: #0b0e14; }
+            /* Hide UI elements */
+            .sidebar, .pdf-btn-container, #slideContainer, #pageNum { 
+                display: none !important; 
+            }
+            
+            /* Show Print Container */
+            #printContainer {
+                display: block !important;
+                background-color: white;
+            }
+
+            /* Reset body for print */
+            body {
+                background-color: white;
+                height: auto;
+                width: auto;
+                overflow: visible;
+                display: block;
+            }
+            
+            .main-stage {
+                padding: 0;
+                background: white;
+                height: auto;
+                overflow: visible;
+                display: block;
+            }
+
+            /* Page break logic */
+            .print-page {
+                break-after: page;
+                page-break-after: always;
+                height: 100vh; /* Force full page height */
+                width: 100%;
+                padding: 40px; /* Add margin for print */
+                box-sizing: border-box;
+                display: flex;
+                flex-direction: column;
+            }
+            
+            /* Avoid breaking inside cards */
+            .card {
+                break-inside: avoid;
+            }
+            
+            /* Ensure diagrams scale */
+            svg {
+                max-width: 100%;
+                height: auto;
+            }
         }
+
     </style>
 </head>
 <body>
 
-<nav class="sidebar">
-    <div class="brand">
-        <i class="fa-solid fa-brain"></i> <span>AGENT.INFRA</span>
-    </div>
-    <div class="nav-items" id="navItems">
-        <!-- JS 动态生成 -->
-    </div>
-</nav>
-
-<main class="main" id="mainContent">
-    <!-- JS 动态生成 -->
-</main>
-
-<button id="pdf-btn" onclick="generatePDF()">
-    <i class="fa-solid fa-file-pdf"></i> Export PDF
-</button>
-
-<script>
-const slides = [
-    // --- Slide 1: 封面 ---
-    {
-        group: "1. 背景与架构",
-        title: "面向 Agent 应用的长上下文 LLM 部署优化",
-        subtitle: "突破显存墙：支撑 1M+ Context 的算力新基建",
-        content: `
-            <div class="content-grid" style="align-items: center;">
-                <div class="text-block">
-                    <h3 style="font-size:1.5rem; color:var(--text-main); margin-bottom:20px;">背景与目标</h3>
-                    <ul style="font-size: 1.1rem;">
-                        <li><strong>长输入挑战:</strong> Agent 场景输入常超 128k 甚至 1M tokens，导致 KV-Cache 显存爆炸。</li>
-                        <li><strong>双重敏感:</strong> 既要求极低的 <strong>首字延迟 (TTFT)</strong>，又要求流畅的 <strong>解码速度 (TPOT)</strong>。</li>
-                        <li><strong>核心目标:</strong> 高吞吐、低延迟、低成本、可横向扩展。</li>
-                    </ul>
-                    <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border);">
-                        <div style="display:flex; gap:10px;">
-                            <span class="tag tag-blue">PD Separation</span>
-                            <span class="tag tag-green">KV Offloading</span>
-                            <span class="tag tag-orange">Speculative Decoding</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="chart-box" style="height: 300px; border:none; background:transparent;">
-                    <div style="position:relative; width:220px; height:220px; display:flex; align-items:center; justify-content:center;">
-                        <div style="position:absolute; width:100%; height:100%; border:4px dashed var(--primary); border-radius:50%; animation: spin 20s linear infinite;"></div>
-                        <div style="position:absolute; width:80%; height:80%; border:2px solid var(--accent); border-radius:50%; opacity:0.5;"></div>
-                        <div style="text-align:center;">
-                            <div style="font-size:3rem; font-weight:800; color:var(--text-main);">1M+</div>
-                            <div style="font-size:1.2rem; color:var(--text-sub);">Context</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `
-    },
-
-    // --- Slide 2: 优化金字塔 ---
-    {
-        title: "优化金字塔",
-        subtitle: "L2-L4 分层优化策略",
-        content: `
-            <div class="content-grid">
-                <div class="pyramid-container" style="justify-content: center;">
-                    <!-- L4 -->
-                    <div class="p-level l4">
-                        <div class="p-content">
-                            <div class="p-icon"><i class="fa-solid fa-sitemap"></i></div>
-                            <div class="p-text">
-                                <h4>L4 调度层 (Schedule)</h4>
-                                <span>PD 分离 | 语义路由 | 弹性扩缩</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- L3 -->
-                    <div class="p-level l3">
-                        <div class="p-content">
-                            <div class="p-icon"><i class="fa-solid fa-memory"></i></div>
-                            <div class="p-text">
-                                <h4>L3 存储层 (Storage)</h4>
-                                <span>KV-Cache 压缩 | 分级存储 | Prefix 复用</span>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- L2 -->
-                    <div class="p-level l2">
-                        <div class="p-content">
-                            <div class="p-icon"><i class="fa-solid fa-microchip"></i></div>
-                            <div class="p-text">
-                                <h4>L2 计算层 (Compute)</h4>
-                                <span>稀疏 Attention | 投机解码 | 量化</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="text-block">
-                    <h3 style="color:var(--text-main); margin-bottom:20px;">分层解耦，逐个击破</h3>
-                    <ul>
-                        <li style="margin-bottom:15px;">
-                            <strong class="highlight">L4 调度层:</strong> 解决集群资源分配问题。通过 <strong>PD 分离</strong> 将计算密集型（Prefill）和显存密集型（Decode）任务物理隔离。
-                        </li>
-                        <li style="margin-bottom:15px;">
-                            <strong class="highlight">L3 存储层:</strong> 解决显存墙问题。利用 <strong>Offloading</strong> 和 <strong>压缩技术</strong> 在有限显存下塞入更多 Context。
-                        </li>
-                        <li style="margin-bottom:15px;">
-                            <strong class="highlight">L2 计算层:</strong> 解决计算瓶颈。利用 <strong>投机采样</strong> 和 <strong>FlashAttention</strong> 提升单卡算力利用率。
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        `
-    },
-
-    // --- Slide 3 (L4-1): PD 分离 ---
-    {
-        group: "2. L4 调度层",
-        title: "L4 调度 (1/2): 分离式推理 (PD Separation)",
-        subtitle: "Prefill 与 Decode 的物理隔离架构",
-        content: `
-            <div class="full-width">
-                <!-- 架构图 -->
-                <div class="chart-box" style="margin-bottom: 25px; padding: 15px; background: rgba(255,255,255,0.01);">
-                    <svg width="100%" height="220" viewBox="0 0 800 320">
-                        <defs><marker id="ah" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 10 3.5, 0 7" fill="#6b7280"/></marker></defs>
-                        
-                        <!-- Blocks -->
-                        <rect x="50" y="50" width="180" height="100" rx="8" fill="rgba(245,158,11,0.1)" stroke="#f59e0b" stroke-width="2"/>
-                        <text x="140" y="90" fill="#f59e0b" text-anchor="middle" font-weight="bold">Prefill Cluster</text>
-                        <text x="140" y="115" fill="#9ca3af" text-anchor="middle" font-size="12">High Compute (H800)</text>
-
-                        <rect x="570" y="50" width="180" height="100" rx="8" fill="rgba(59,130,246,0.1)" stroke="#3b82f6" stroke-width="2"/>
-                        <text x="660" y="90" fill="#3b82f6" text-anchor="middle" font-weight="bold">Decode Cluster</text>
-                        <text x="660" y="115" fill="#9ca3af" text-anchor="middle" font-size="12">High BW (L40S)</text>
-
-                        <rect x="280" y="80" width="240" height="40" rx="20" fill="rgba(16,185,129,0.1)" stroke="#10b981" stroke-dasharray="4"/>
-                        <text x="400" y="105" fill="#10b981" text-anchor="middle" font-size="14" font-weight="bold">KV Cache Transfer</text>
-
-                        <rect x="250" y="240" width="300" height="50" rx="8" fill="#1f2937" stroke="#4b5563"/>
-                        <text x="400" y="270" fill="#e5e7eb" text-anchor="middle" font-weight="bold">Unified Scheduler</text>
-
-                        <!-- Arrows -->
-                        <line x1="230" y1="100" x2="280" y2="100" stroke="#6b7280" stroke-width="2" marker-end="url(#ah)"/>
-                        <line x1="520" y1="100" x2="570" y2="100" stroke="#6b7280" stroke-width="2" marker-end="url(#ah)"/>
-                        <path d="M300 240 L140 150" stroke="#6b7280" stroke-width="2" marker-end="url(#ah)" fill="none"/>
-                        <path d="M500 240 L660 150" stroke="#6b7280" stroke-width="2" marker-end="url(#ah)" fill="none" stroke-dasharray="4"/>
-                    </svg>
-                </div>
-
-                <!-- 详情矩阵 (2x2) -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
-                        <h4 style="color:var(--text-main); margin-bottom:10px;"><i class="fa-solid fa-thumbs-up text-green"></i> 核心价值</h4>
-                        <ul style="font-size:0.85rem; padding-left:15px; color:var(--text-sub);">
-                            <li><strong>消除干扰:</strong> 避免 Prefill 阶段抢占计算资源导致 Decode 卡顿。</li>
-                            <li><strong>硬件特化:</strong> Prefill 用算力卡(H800)，Decode 用显存卡(L40S)，降低 TCO。</li>
-                        </ul>
-                    </div>
-                    <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
-                        <h4 style="color:var(--text-main); margin-bottom:10px;"><i class="fa-solid fa-microchip text-blue"></i> 关键技术</h4>
-                        <ul style="font-size:0.85rem; padding-left:15px; color:var(--text-sub);">
-                            <li><strong>RDMA Zero-copy:</strong> 绕过 CPU 直接传输 KV Cache，降低延迟。</li>
-                            <li><strong>Chunked Prefill:</strong> 长 Prompt 切片流水线处理，掩盖传输时间。</li>
-                        </ul>
-                    </div>
-                    <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
-                        <h4 style="color:var(--text-main); margin-bottom:10px;"><i class="fa-solid fa-calculator text-highlight"></i> 实例配比计算</h4>
-                        <ul style="font-size:0.85rem; padding-left:15px; color:var(--text-sub);">
-                            <li><strong>输入/输出比:</strong> Ratio = $L_{in} / L_{out}$，比值越高需越多 Prefill 节点。</li>
-                            <li><strong>SLA 约束:</strong> TTFT 要求越严，Prefill 冗余度需越高。</li>
-                        </ul>
-                    </div>
-                    <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
-                        <h4 style="color:var(--text-main); margin-bottom:10px;"><i class="fa-solid fa-bullseye text-accent"></i> 适用场景</h4>
-                        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                            <span class="tag tag-blue">长文档 RAG</span>
-                            <span class="tag tag-orange">混合长短负载</span>
-                            <span class="tag tag-green">高并发集群</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `
-    },
-
-    // --- Slide 4 (L4-2): 语义路由 ---
-    {
-        title: "L4 调度 (2/2): 语义路由与前缀复用",
-        subtitle: "基于 Cache Affinity 的智能路由",
-        content: `
-            <div class="content-grid">
-                <div class="text-block">
-                    <p>利用 <strong>Consistent Hashing</strong> 或 <strong>Radix Routing</strong> 将具有相同 Prompt 前缀（如 System Prompt、热门文档）的请求路由到同一节点。</p>
-                    <div class="stat-grid" style="margin-top:40px;">
-                        <div class="stat-card">
-                            <div class="stat-value text-green">95%</div>
-                            <div class="stat-label">Cache Hit Rate</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value text-blue">3x</div>
-                            <div class="stat-label">Prefill Speedup</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value text-highlight">-60%</div>
-                            <div class="stat-label">Memory Waste</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value text-accent">0</div>
-                            <div class="stat-label">Prefill Time (on Hit)</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="chart-box">
-                    <div style="display:flex; flex-direction:column; align-items:center; gap:20px; width:100%;">
-                        <div style="display:flex; gap:10px;">
-                            <div class="node" style="border-color:var(--text-sub);">Req 1: [Doc A] + Q1</div>
-                            <div class="node" style="border-color:var(--text-sub);">Req 2: [Doc A] + Q2</div>
-                        </div>
-                        <i class="fa-solid fa-arrow-down" style="color:var(--accent);"></i>
-                        <div class="node" style="border-color:var(--accent); width:200px;">
-                            <strong>Smart Router</strong>
-                            <span>Prefix Matcher</span>
-                        </div>
-                        <div style="display:flex; gap:40px; width:100%; justify-content:center;">
-                            <div style="flex:1; border:1px solid var(--success); padding:15px; border-radius:8px; background:rgba(16,185,129,0.05); text-align:center;">
-                                <strong style="color:var(--success);">Worker 01</strong><br>
-                                <span style="font-size:0.8rem;">Cached: [Doc A]</span>
-                                <div style="margin-top:10px; font-size:0.75rem; color:var(--success);">Hit! Zero Prefill</div>
-                            </div>
-                            <div style="flex:1; border:1px solid var(--border); padding:15px; border-radius:8px; opacity:0.5; text-align:center;">
-                                <strong>Worker 02</strong><br>
-                                <span style="font-size:0.8rem;">Cached: [Doc B]</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `
-    },
-
-    // --- Slide 5 (L3-1): 分级存储 ---
-    {
-        group: "3. L3 存储层",
-        title: "L3 存储 (1/2): 分级存储与 Offloading",
-        subtitle: "利用分级存储打破显存墙",
-        content: `
-            <div class="content-grid">
-                <div class="text-block">
-                    <p>当 Context 长度突破显存极限（如 128k+），单纯依赖 HBM 成本过高。<strong>Offloading</strong> 技术利用 PCIe 带宽，将非活跃 KV Cache 下沉至 CPU RAM 或 NVMe SSD。</p>
-                    
-                    <div style="margin-top:20px; background:rgba(255,255,255,0.03); padding:20px; border-radius:8px; border:1px solid var(--border);">
-                        <h4 style="color:var(--text-main); margin-bottom:10px; font-size:1rem;">关键机制</h4>
-                        <ul style="font-size:0.9rem; padding-left:20px; color:var(--text-sub);">
-                            <li style="margin-bottom:8px;"><strong>Tiered Storage:</strong> 建立 HBM (Hot) -> DRAM (Warm) -> SSD (Cold) 的三级存储金字塔。</li>
-                            <li style="margin-bottom:8px;"><strong>Prefetching:</strong> 基于 Attention pattern 预测，在计算前异步将数据从 CPU 拉回 GPU，掩盖 PCIe 延迟。</li>
-                            <li><strong>Non-blocking:</strong> 计算与数据传输 (H2D/D2H) 并行流水线。</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- 架构示意图 -->
-                <div class="chart-box" style="flex-direction: column; gap: 10px; padding: 30px; background: rgba(0,0,0,0.2);">
-                    
-                    <!-- GPU HBM -->
-                    <div style="width:100%; display:flex; align-items:center; gap:15px;">
-                        <div style="width:80px; text-align:right; font-weight:800; color:#ef4444; font-size:0.9rem;">GPU HBM</div>
-                        <div style="flex:1; height:50px; border:2px solid #ef4444; background:rgba(239,68,68,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center; gap:5px; position:relative;">
-                            <span class="tag tag-red" style="background:#ef4444; color:#fff; border:none;">Hot</span>
-                            <span style="font-size:0.8rem; color:#fff;">Active Tokens</span>
-                            <div style="position:absolute; right:10px; font-size:0.7rem; color:#ef4444;">80GB/Card</div>
-                        </div>
-                    </div>
-
-                    <!-- PCIe Bus -->
-                    <div style="display:flex; align-items:center; gap:10px; color:#6b7280; font-size:0.8rem; height:40px;">
-                        <div style="width:80px;"></div>
-                        <div style="flex:1; display:flex; justify-content:center; align-items:center; gap:20px; border-left:2px dashed #4b5563; border-right:2px dashed #4b5563; height:100%;">
-                            <span><i class="fa-solid fa-arrow-up"></i> Swap In</span>
-                            <span style="border:1px solid #4b5563; padding:2px 8px; border-radius:4px;">PCIe Gen5 (128GB/s)</span>
-                            <span><i class="fa-solid fa-arrow-down"></i> Swap Out</span>
-                        </div>
-                    </div>
-
-                    <!-- CPU DRAM -->
-                    <div style="width:100%; display:flex; align-items:center; gap:15px;">
-                        <div style="width:80px; text-align:right; font-weight:800; color:#f59e0b; font-size:0.9rem;">CPU RAM</div>
-                        <div style="flex:1; height:50px; border:2px solid #f59e0b; background:rgba(245,158,11,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center; gap:5px; position:relative;">
-                            <span class="tag tag-orange" style="background:#f59e0b; color:#000; border:none;">Warm</span>
-                            <span style="font-size:0.8rem; color:#e5e7eb;">Cached Blocks</span>
-                            <div style="position:absolute; right:10px; font-size:0.7rem; color:#f59e0b;">1TB+</div>
-                        </div>
-                    </div>
-
-                    <!-- NVMe SSD (Optional) -->
-                    <div style="width:100%; margin-top:10px; display:flex; align-items:center; gap:15px; opacity:0.6;">
-                        <div style="width:80px; text-align:right; font-weight:700; color:#3b82f6; font-size:0.8rem;">NVMe SSD</div>
-                        <div style="flex:1; height:40px; border:1px dashed #3b82f6; border-radius:8px; display:flex; align-items:center; justify-content:center;">
-                            <span style="font-size:0.75rem;">Cold Data (Infinite)</span>
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-        `
-    },
-
-    // --- Slide 6 (L3-2): KV 压缩 ---
-    {
-        title: "L3 存储 (2/2): KV-Cache 极致压缩",
-        subtitle: "量化、剪枝与稀疏化",
-        content: `
-            <div class="content-grid">
-                <div class="text-block">
-                    <h3 style="color:var(--text-main); margin-bottom:20px;">全生命周期的压缩策略</h3>
-                    <ul>
-                        <li style="margin-bottom:15px;">
-                            <strong class="highlight">1. 写入前 (Pre-write):</strong>
-                            利用 <strong>INT4/W4A8 量化</strong> 减少显存占用。研究表明，KV Cache 对精度不敏感，4-bit 量化仅带来 <1% 的 PPL 损失。
-                        </li>
-                        <li style="margin-bottom:15px;">
-                            <strong class="highlight">2. 维护中 (Runtime):</strong>
-                            <strong>Token Pruning (H2O):</strong> 动态丢弃注意力分数低的 Token（如生僻词、无意义介词），仅保留 Heavy Hitters。
-                        </li>
-                        <li style="margin-bottom:15px;">
-                            <strong class="highlight">3. 计算时 (On-the-fly):</strong>
-                            <strong>Dynamic Sparsity (MInference):</strong> 在 Attention 计算时只计算 Top-K 相关的 Head，跳过无关计算。
-                        </li>
-                    </ul>
-                </div>
-                <div class="chart-box" style="flex-direction: column; gap: 20px;">
-                    <div style="text-align:center; margin-bottom:10px; color:var(--text-sub);">Memory Usage per Token</div>
-                    
-                    <div class="waterfall-row" style="width:100%;">
-                        <div class="wf-label">FP16 (Baseline)</div>
-                        <div class="wf-bar" style="width: 100%; background: #4b5563;">100% (2B/token)</div>
-                    </div>
-                    <div class="waterfall-row" style="width:100%;">
-                        <div class="wf-label">INT8 Quant</div>
-                        <div class="wf-bar" style="width: 50%; background: var(--primary);">50% (1B/token)</div>
-                    </div>
-                    <div class="waterfall-row" style="width:100%;">
-                        <div class="wf-label">INT4 + Pruning</div>
-                        <div class="wf-bar" style="width: 25%; background: var(--success);">25% (0.5B/token)</div>
-                    </div>
-                    
-                    <div style="margin-top:20px; padding:15px; border:1px solid var(--accent); border-radius:8px; color:var(--accent);">
-                        <strong>Result:</strong> 128k Context @ RTX 4090 (24GB)
-                    </div>
-                </div>
-            </div>
-        `
-    },
-
-    // --- Slide 7 (L2-1): 投机采样 ---
-    {
-        group: "4. L2 计算层",
-        title: "L2 计算 (1/2): 投机采样原理",
-        subtitle: "Draft -> Verify: 用算力换带宽",
-        content: `
-            <div class="content-grid" style="grid-template-columns: 1fr; gap:20px;">
-                <!-- 原理图 -->
-                <div style="display:flex; gap:20px; align-items:stretch;">
-                    <div style="flex:1; background:rgba(255,255,255,0.02); padding:15px; border-radius:8px; border:1px dashed var(--border);">
-                        <div style="font-size:0.8rem; color:var(--text-sub); margin-bottom:10px;">传统模式 (Standard)</div>
-                        <div style="display:flex; align-items:center; gap:5px;">
-                            <span class="tag tag-blue">LLM</span> <i class="fa-solid fa-arrow-right arrow-r" style="font-size:0.8rem;"></i>
-                            <span class="node-token" style="font-size:0.7rem;">A</span> <i class="fa-solid fa-arrow-right arrow-r" style="font-size:0.8rem;"></i>
-                            <span class="tag tag-blue">LLM</span> <i class="fa-solid fa-arrow-right arrow-r" style="font-size:0.8rem;"></i>
-                            <span class="node-token" style="font-size:0.7rem;">B</span>
-                        </div>
-                        <p style="font-size:0.75rem; color:var(--text-sub); margin-top:10px;">串行生成，内存带宽受限 (Memory Bound)</p>
-                    </div>
-                    <div style="flex:1.2; background:rgba(16,185,129,0.05); padding:15px; border-radius:8px; border:1px solid var(--success);">
-                        <div style="font-size:0.8rem; color:var(--success); margin-bottom:10px; font-weight:bold;">投机模式 (Speculative)</div>
-                        <div style="margin-bottom:8px; display:flex; align-items:center; gap:5px;">
-                            <span style="font-size:0.75rem; width:50px;">Draft:</span>
-                            <span class="tag tag-orange">Small</span> <i class="fa-solid fa-arrow-right arrow-r" style="font-size:0.8rem;"></i>
-                            <span class="token tk-draft">a</span> <span class="token tk-draft">b</span> <span class="token tk-draft">c</span>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:5px;">
-                            <span style="font-size:0.75rem; width:50px;">Verify:</span>
-                            <span class="tag tag-blue">Large</span> <i class="fa-solid fa-arrow-right arrow-r" style="font-size:0.8rem;"></i>
-                            <div style="border:1px dashed var(--primary); padding:3px; border-radius:4px; display:flex; gap:3px;">
-                                <span class="token tk-verify">A</span> <span class="token tk-verify">B</span> <span class="token tk-verify">C</span>
-                            </div>
-                        </div>
-                        <p style="font-size:0.75rem; color:var(--success); margin-top:10px;">并行验证，2x-3x 加速</p>
-                    </div>
-                </div>
-
-                <!-- 批量验证实例 -->
-                <div style="display:grid; grid-template-columns: 1fr 1.5fr; gap:20px;">
-                    <div>
-                        <h4 style="font-size:0.9rem; color:var(--text-main); margin-bottom:10px;">Draft Candidates (γ=6)</h4>
-                        <div class="chart-box" style="display:block; padding:10px; text-align:left;">
-                            <div style="font-size:0.75rem; color:var(--text-sub); margin-bottom:5px;">Prefix: "The cat is on the"</div>
-                            <div style="display:flex; flex-direction:column; gap:4px; font-family:monospace; font-size:0.8rem;">
-                                <div>1. <span class="tk-draft">mat .</span></div>
-                                <div>2. <span class="tk-draft">sofa quietly .</span></div>
-                                <div>3. <span class="tk-draft">floor and sleeps .</span></div>
-                                <div>... (Padding to Max Len)</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 style="font-size:0.9rem; color:var(--text-main); margin-bottom:10px;">Batch Verification Tensor</h4>
-                        <div class="chart-box" style="padding:10px; overflow-x:auto; display:block;">
-                            <table class="matrix-table">
-                                <thead>
-                                    <tr><th>ID</th><th colspan="3" class="c-pre">Shared Prefix (Cached)</th><th colspan="3" class="c-draft">Draft Tokens</th></tr>
-                                </thead>
-                                <tbody>
-                                    <tr><td>1</td><td class="c-pre">...</td><td class="c-pre">on</td><td class="c-pre">the</td><td class="c-draft">mat</td><td class="c-draft">.</td><td class="c-pad">[P]</td></tr>
-                                    <tr><td>2</td><td class="c-pre">...</td><td class="c-pre">on</td><td class="c-pre">the</td><td class="c-draft">sofa</td><td class="c-draft">quiet</td><td class="c-draft">.</td></tr>
-                                    <tr><td>3</td><td class="c-pre">...</td><td class="c-pre">on</td><td class="c-pre">the</td><td class="c-draft">floor</td><td class="c-draft">and</td><td class="c-draft">...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `
-    },
-
-    // --- Slide 8 (L2-2): 算子优化 ---
-    {
-        title: "L2 计算 (2/2): 算子级加速",
-        subtitle: "FlashAttention 与线性注意力",
-        content: `
-            <div class="content-grid">
-                <div class="text-block">
-                    <h3 style="color:var(--text-main); margin-bottom:20px;">打破 O(N²) 的魔咒</h3>
-                    <ul>
-                        <li style="margin-bottom:20px;">
-                            <strong class="highlight">FlashAttention-V3/V4:</strong> 
-                            利用 GPU SRAM 进行 IO 感知的分块计算。V3 针对 Hopper 架构优化，利用 TMA (Tensor Memory Accelerator) 实现异步数据拷贝。
-                        </li>
-                        <li style="margin-bottom:20px;">
-                            <strong class="highlight">Linear Attention:</strong> 
-                            通过 Kernel Trick 将注意力机制的复杂度从平方级降低到线性 O(N)。适合超长序列的初筛。
-                        </li>
-                        <li style="margin-bottom:20px;">
-                            <strong class="highlight">FP8 精度:</strong> 
-                            在 H100/H800 上启用 FP8 Tensor Core，吞吐量相比 BF16 提升 2 倍。
-                        </li>
-                    </ul>
-                </div>
-                <div class="chart-box" style="flex-direction: column; gap: 20px;">
-                    <div style="font-size:1.2rem; font-weight:bold; color:var(--text-main);">Attention 复杂度对比</div>
-                    <div style="width:100%; display:flex; align-items:flex-end; height:150px; gap:20px; padding-bottom:10px; border-bottom:2px solid var(--border);">
-                        <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
-                            <div style="width:40px; height:120px; background:var(--danger); border-radius:4px;"></div>
-                            <span style="margin-top:10px; font-size:0.8rem;">Standard Attention<br>O(N²)</span>
-                        </div>
-                        <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
-                            <div style="width:40px; height:40px; background:var(--primary); border-radius:4px;"></div>
-                            <span style="margin-top:10px; font-size:0.8rem;">FlashAttention<br>O(N²) (Fast IO)</span>
-                        </div>
-                        <div style="flex:1; display:flex; flex-direction:column; align-items:center;">
-                            <div style="width:40px; height:10px; background:var(--success); border-radius:4px;"></div>
-                            <span style="margin-top:10px; font-size:0.8rem;">Linear Attention<br>O(N)</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `
-    },
-
-    // --- Slide 9: 落地与 KPI ---
-    {
-        group: "5. 落地实战",
-        title: "落地效果与 KPI",
-        subtitle: "1M Token 场景实战数据",
-        content: `
-            <div class="content-grid">
-                <div class="text-block">
-                    <h3 style="color:var(--text-main); margin-bottom:20px;">端到端收益</h3>
-                    <div class="stat-grid" style="grid-template-columns: 1fr 1fr; gap:20px;">
-                        <div class="stat-card">
-                            <div class="stat-value" style="color:var(--accent);">3s</div>
-                            <div class="stat-label">TTFT (原 20s) <span style="color:var(--success); font-size:0.7rem;">↓85%</span></div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value" style="color:var(--primary);">24G</div>
-                            <div class="stat-label">单卡显存 (原 80G) <span style="color:var(--success); font-size:0.7rem;">↓70%</span></div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value" style="color:var(--success);">+220%</div>
-                            <div class="stat-label">集群吞吐量</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value" style="color:var(--highlight);">-60%</div>
-                            <div class="stat-label">TCO (总成本)</div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="background:rgba(255,255,255,0.03); padding:30px; border-radius:12px; border:1px solid var(--border);">
-                    <h3 style="color:var(--text-main); margin-bottom:20px;"><i class="fa-solid fa-clipboard-check text-green"></i> 生产 Checklist</h3>
-                    <div class="checklist-item">
-                        <i class="fa-solid fa-check check-icon"></i>
-                        <span class="check-text">PD 实例配比自动调优 (Auto-Scaling)</span>
-                    </div>
-                    <div class="checklist-item">
-                        <i class="fa-solid fa-check check-icon"></i>
-                        <span class="check-text">语义路由灰度发布策略</span>
-                    </div>
-                    <div class="checklist-item">
-                        <i class="fa-solid fa-check check-icon"></i>
-                        <span class="check-text">分级缓存命中率监控与告警</span>
-                    </div>
-                    <div class="checklist-item">
-                        <i class="fa-solid fa-check check-icon"></i>
-                        <span class="check-text">量化模型精度回归测试 (PPL/Score)</span>
-                    </div>
-                    <div class="checklist-item">
-                        <i class="fa-solid fa-check check-icon"></i>
-                        <span class="check-text">24小时长稳定性压测 (Memory Leak)</span>
-                    </div>
-                </div>
-            </div>
-            <div class="center" style="margin-top:30px; font-size:1.1rem; color:var(--text-sub); text-align:center;">
-                - Thanks & QA -
-            </div>
-        `
-    }
-];
-
-// --- 初始化逻辑 ---
-const navItems = document.getElementById('navItems');
-const mainContent = document.getElementById('mainContent');
-let currentGroup = '';
-
-// 生成动画 CSS
-const styleSheet = document.createElement("style");
-styleSheet.innerText = `
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .text-green { color: var(--success); }
-    .text-blue { color: var(--primary); }
-    .text-highlight { color: var(--highlight); }
-    .text-accent { color: var(--accent); }
-`;
-document.head.appendChild(styleSheet);
-
-slides.forEach((slide, index) => {
-    // 导航分组
-    if (slide.group && slide.group !== currentGroup) {
-        currentGroup = slide.group;
-        const groupTitle = document.createElement('div');
-        groupTitle.className = 'nav-group';
-        groupTitle.textContent = slide.group;
-        navItems.appendChild(groupTitle);
-    }
-
-    // 导航链接
-    const navLink = document.createElement('a');
-    navLink.href = `#slide-${index}`;
-    navLink.className = 'nav-link';
-    navLink.innerHTML = `<i class="fa-solid fa-circle" style="font-size:6px; margin-right:10px; opacity:0.5;"></i> ${slide.title}`;
-    navItems.appendChild(navLink);
-
-    // 幻灯片内容
-    const slideEl = document.createElement('section');
-    slideEl.className = 'slide';
-    slideEl.id = `slide-${index}`;
-    slideEl.innerHTML = `
-        <div class="slide-header">
-            <div class="slide-title">
-                <h2>${slide.title}</h2>
-                <p>${slide.subtitle || ''}</p>
-            </div>
-            <div class="slide-number">${String(index + 1).padStart(2, '0')}</div>
+    <aside class="sidebar">
+        <div class="brand">
+            <i class="fa-solid fa-server"></i> AgentInfra
         </div>
-        ${slide.content}
-    `;
-    mainContent.appendChild(slideEl);
-});
+        <div class="nav-list" id="navList">
+            <!-- JS Generated -->
+        </div>
+    </aside>
 
-// 滚动监听
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-            const id = entry.target.id;
-            const activeLink = document.querySelector(`a[href="#${id}"]`);
-            if (activeLink) {
-                activeLink.classList.add('active');
-                activeLink.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    <main class="main-stage">
+        <!-- PDF Button -->
+        <div id="pdfBtn" class="pdf-btn-container">
+            <button class="pdf-btn" onclick="window.printAllSlides()">
+                <i class="fa-solid fa-file-pdf"></i> 转成 PDF (全量)
+            </button>
+            <div class="pdf-close" onclick="document.getElementById('pdfBtn').style.display='none'">
+                <i class="fa-solid fa-times"></i>
+            </div>
+        </div>
+
+        <!-- Interactive Slide Container -->
+        <div id="slideContainer" class="slide-container"></div>
+        
+        <!-- Hidden Container for Printing All Slides -->
+        <div id="printContainer"></div>
+
+        <!-- Page Number -->
+        <div id="pageNum" class="page-number"></div>
+    </main>
+
+    <script>
+    (function() {
+        const C = {
+            gateway: '#7c3aed',
+            prefill: '#2563eb',
+            decode: '#059669',
+            infra: '#d97706',
+            network: '#6366f1',
+            text: '#0f172a',
+            sub: '#64748b',
+            line: '#94a3b8',
+            bg: '#ffffff'
+        };
+
+        // Common SVG Definitions
+        const defs = `
+            <defs>
+                <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="${C.sub}" />
+                </marker>
+                <marker id="arrow-gateway" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="${C.gateway}" />
+                </marker>
+                <marker id="arrow-prefill" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="${C.prefill}" />
+                </marker>
+                <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+                    <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.15"/>
+                </filter>
+            </defs>
+        `;
+
+        const slides = [
+            // --- HOME ---
+            {
+                id: 'home',
+                group: '简介',
+                title: 'Agent LLM 推理全栈优化',
+                render: () => `
+                    <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+                        <div style="font-size: 6rem; margin-bottom: 2rem; background: linear-gradient(135deg, ${C.prefill}, ${C.gateway}); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </div>
+                        <h1 style="font-size: 3.5rem; font-weight: 900; margin-bottom: 1.5rem; color: ${C.text};">
+                            面向 Agent 的 LLM 推理全栈优化
+                        </h1>
+                        
+                    </div>
+                `
+            },
+
+            // --- INTRO: BACKGROUND (MERGED) ---
+            {
+                id: 'background',
+                group: '简介',
+                title: '背景：推理爆发与 Agent 负载特征',
+                meta: 'Context & Trends',
+                render: () => `
+                    <div class="content-split">
+                        <div class="diagram-area">
+                            <div class="diagram-badge">市场与负载全景图</div>
+                            <svg width="800" height="280" viewBox="0 0 800 280">
+                                ${defs}
+                                
+                                <!-- 1. The Flip (Left) -->
+                                <g transform="translate(30, 30)">
+                                    <text x="60" y="-10" text-anchor="middle" font-weight="bold" font-size="12">1. 算力结构翻转</text>
+                                    
+                                    <!-- 2023 -->
+                                    <rect x="20" y="20" width="30" height="120" fill="#e2e8f0"/>
+                                    <rect x="20" y="44" width="30" height="96" fill="${C.gateway}" opacity="0.6"/> 
+                                    <rect x="20" y="20" width="30" height="24" fill="${C.decode}"/>
+                                    <text x="35" y="155" text-anchor="middle" font-size="10">2023</text>
+                                    
+                                    <!-- Arrow -->
+                                    <path d="M 60 80 L 80 80" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)"/>
+                                    
+                                    <!-- 2026 -->
+                                    <rect x="90" y="20" width="30" height="120" fill="#e2e8f0"/>
+                                    <rect x="90" y="116" width="30" height="24" fill="${C.gateway}" opacity="0.6"/>
+                                    <rect x="90" y="20" width="30" height="96" fill="${C.decode}"/>
+                                    <text x="105" y="155" text-anchor="middle" font-size="10">2026</text>
+                                    
+                                    <text x="70" y="180" text-anchor="middle" font-size="9" fill="${C.sub}">推理 > 训练</text>
+                                </g>
+
+                                <line x1="160" y1="20" x2="160" y2="220" stroke="${C.line}" stroke-dasharray="4"/>
+
+                                <!-- 2. The Multiplier (Middle) -->
+                                <g transform="translate(200, 30)">
+                                    <text x="120" y="-10" text-anchor="middle" font-weight="bold" font-size="12">2. Agent 倍增效应</text>
+                                    
+                                    <circle cx="20" cy="80" r="12" fill="#f1f5f9" stroke="${C.text}"/>
+                                    <text x="20" y="110" text-anchor="middle" font-size="9">User</text>
+                                    
+                                    <path d="M 40 80 L 70 80" stroke="${C.text}" stroke-width="2" marker-end="url(#arrow)"/>
+                                    
+                                    <!-- Agent Box -->
+                                    <rect x="80" y="20" width="140" height="120" rx="8" fill="#f0fdf4" stroke="${C.decode}" stroke-width="2"/>
+                                    <text x="150" y="40" text-anchor="middle" font-weight="bold" font-size="10" fill="${C.decode}">ReAct Loop</text>
+                                    
+                                    <rect x="100" y="55" width="100" height="20" fill="#fff" stroke="${C.decode}"/><text x="150" y="69" text-anchor="middle" font-size="9">Thinking (CoT)</text>
+                                    <rect x="100" y="80" width="100" height="20" fill="#fff" stroke="${C.infra}"/><text x="150" y="94" text-anchor="middle" font-size="9">Tool Calls</text>
+                                    <rect x="100" y="105" width="100" height="20" fill="#fff" stroke="${C.decode}"/><text x="150" y="119" text-anchor="middle" font-size="9">Response</text>
+                                    
+                                    <text x="150" y="160" text-anchor="middle" font-size="11" font-weight="bold" fill="${C.decode}">x100 Compute</text>
+                                </g>
+
+                                <line x1="470" y1="20" x2="470" y2="220" stroke="${C.line}" stroke-dasharray="4"/>
+
+                                <!-- 3. Workload Shift (Right) - Enhanced -->
+                                <g transform="translate(500, 30)">
+                                    <text x="120" y="-10" text-anchor="middle" font-weight="bold" font-size="12">3. 负载特征变化 (瓶颈转移)</text>
+                                    
+                                    <!-- Chatbot: Decode Dominant -->
+                                    <g transform="translate(20, 20)">
+                                        <!-- Prefill (Small) -->
+                                        <rect x="10" y="110" width="40" height="10" fill="${C.prefill}" stroke="${C.text}" stroke-width="1"/>
+                                        <text x="30" y="118" text-anchor="middle" font-size="8" fill="#fff">Pre</text>
+                                        
+                                        <!-- Decode (Tall) -->
+                                        <rect x="10" y="10" width="40" height="95" fill="${C.decode}" opacity="0.8"/>
+                                        <text x="30" y="60" text-anchor="middle" font-size="9" fill="#fff" writing-mode="tb">Decode</text>
+                                        
+                                        <text x="30" y="135" text-anchor="middle" font-size="10" font-weight="bold">Chatbot</text>
+                                        <text x="30" y="150" text-anchor="middle" font-size="9" fill="${C.sub}">Memory Bound</text>
+                                        <text x="30" y="162" text-anchor="middle" font-size="8" fill="${C.sub}">(搬运权重)</text>
+                                    </g>
+                                    
+                                    <!-- Arrow -->
+                                    <path d="M 90 70 L 120 70" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)"/>
+                                    
+                                    <!-- Agent: Prefill Dominant -->
+                                    <g transform="translate(140, 20)">
+                                        <!-- Prefill (Huge Area) -->
+                                        <rect x="10" y="50" width="80" height="70" fill="${C.prefill}" stroke="${C.text}" stroke-width="1"/>
+                                        <text x="50" y="80" text-anchor="middle" font-size="10" font-weight="bold" fill="#fff">Prefill (Huge)</text>
+                                        <text x="50" y="95" text-anchor="middle" font-size="8" fill="#fff">System + RAG</text>
+                                        
+                                        <!-- Decode (Short) -->
+                                        <rect x="30" y="10" width="40" height="35" fill="${C.decode}" opacity="0.8"/>
+                                        <text x="50" y="30" text-anchor="middle" font-size="9" fill="#fff">Dec</text>
+                                        
+                                        <text x="50" y="135" text-anchor="middle" font-size="10" font-weight="bold" fill="${C.prefill}">Agent</text>
+                                        <text x="50" y="150" text-anchor="middle" font-size="9" fill="${C.sub}">Compute Bound</text>
+                                        <text x="50" y="162" text-anchor="middle" font-size="8" fill="${C.sub}">(矩阵运算)</text>
+                                    </g>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="details-grid">
+                            <div class="card">
+                                <div class="card-title" style="color:${C.gateway}"><i class="fa-solid fa-chart-pie"></i> 经济规律 (One-to-Many)</div>
+                                <div class="card-body">
+                                    <b>训练是"印书"，推理是"卖书"。</b><br>
+                                    模型训练是一次性投入，而推理服务需 7x24 响应。NVIDIA 数据显示，推理收入占比已达 40% (2024)，预计 2026 年将达 80%。
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title" style="color:${C.decode}"><i class="fa-solid fa-brain"></i> System 2 思考</div>
+                                <div class="card-body">
+                                    以 OpenAI o1 为代表，模型通过<b>增加推理时的计算量 (Test-time Compute)</b> 来换取更高智能。Agent 的多轮 Tool Use 和 CoT 使得单次交互的计算量激增 10-100 倍。
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title" style="color:${C.prefill}"><i class="fa-solid fa-weight-hanging"></i> 负载重心转移</div>
+                                <div class="card-body">
+                                    <b>传统 Chat:</b> 瓶颈在显存带宽 (Memory Bound)，因为主要是逐字生成。<br>
+                                    <b>Agent:</b> 巨型 Context 导致 <b>Prefill (预填充)</b> 占比激增。Prefill 是矩阵乘法密集型，瓶颈转向了 <b>GPU 算力 (Compute Bound)</b>。
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // --- LIFECYCLE ---
+            {
+                id: 'lifecycle',
+                group: '简介',
+                title: '全生命周期优化地图 (End-to-End Flow)',
+                meta: 'Request Processing Pipeline',
+                render: () => `
+                    <div style="height:100%; overflow-y:auto; padding:20px;">
+                        <div class="lc-container">
+                            <!-- L1 -->
+                            <div class="lc-step">
+                                <div class="lc-icon-box" style="border-color:${C.gateway}; color:${C.gateway};">
+                                    <i class="fa-solid fa-filter"></i>
+                                </div>
+                                <div class="lc-card" style="border-left: 5px solid ${C.gateway};">
+                                    <i class="fa-solid fa-network-wired lc-bg-icon"></i>
+                                    <div class="lc-title" style="color:${C.gateway}">L1. Gateway 网关层</div>
+                                    <div class="lc-desc">流量意图识别、智能路由分发与 Prompt 压缩</div>
+                                </div>
+                            </div>
+                            <!-- Connector -->
+                            <div style="height:15px; border-left:2px dashed ${C.line}; margin-left:-40px;"></div>
+
+                            <!-- L2 -->
+                            <div class="lc-step">
+                                <div class="lc-icon-box" style="border-color:${C.prefill}; color:${C.prefill};">
+                                    <i class="fa-solid fa-memory"></i>
+                                </div>
+                                <div class="lc-card" style="border-left: 5px solid ${C.prefill};">
+                                    <i class="fa-solid fa-microchip lc-bg-icon"></i>
+                                    <div class="lc-title" style="color:${C.prefill}">L2. Prefill 预填充层 (计算密集)</div>
+                                    <div class="lc-desc">长上下文加载、KV Cache 填充、分块调度</div>
+                                </div>
+                            </div>
+                            <!-- Connector -->
+                            <div style="height:15px; border-left:2px dashed ${C.line}; margin-left:-40px;"></div>
+
+                            <!-- L3 -->
+                            <div class="lc-step">
+                                <div class="lc-icon-box" style="border-color:${C.decode}; color:${C.decode};">
+                                    <i class="fa-solid fa-bolt"></i>
+                                </div>
+                                <div class="lc-card" style="border-left: 5px solid ${C.decode};">
+                                    <i class="fa-solid fa-pen-nib lc-bg-icon"></i>
+                                    <div class="lc-title" style="color:${C.decode}">L3. Decode 解码层 (访存密集)</div>
+                                    <div class="lc-desc">Token 逐字生成、采样策略、投机验证</div>
+                                </div>
+                            </div>
+                            <!-- Connector -->
+                            <div style="height:15px; border-left:2px dashed ${C.line}; margin-left:-40px;"></div>
+
+                            <!-- L4 Storage -->
+                            <div class="lc-step">
+                                <div class="lc-icon-box" style="border-color:${C.infra}; color:${C.infra};">
+                                    <i class="fa-solid fa-database"></i>
+                                </div>
+                                <div class="lc-card" style="border-left: 5px solid ${C.infra};">
+                                    <i class="fa-solid fa-hard-drive lc-bg-icon"></i>
+                                    <div class="lc-title" style="color:${C.infra}">L4. Storage 存储层</div>
+                                    <div class="lc-desc">虚拟显存管理 (VM)、分级存储卸载 (Offloading)</div>
+                                </div>
+                            </div>
+                            <!-- Connector -->
+                            <div style="height:15px; border-left:2px dashed ${C.line}; margin-left:-40px;"></div>
+
+                            <!-- L5 Network -->
+                            <div class="lc-step">
+                                <div class="lc-icon-box" style="border-color:${C.network}; color:${C.network};">
+                                    <i class="fa-solid fa-circle-nodes"></i>
+                                </div>
+                                <div class="lc-card" style="border-left: 5px solid ${C.network};">
+                                    <i class="fa-solid fa-share-nodes lc-bg-icon"></i>
+                                    <div class="lc-title" style="color:${C.network}">L5. Network 网络层</div>
+                                    <div class="lc-desc">RDMA 互联、NVLink、高速 KV 传输</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // --- GATEWAY: SMART ROUTING ---
+            {
+                id: 'smart-routing',
+                group: '1. 网关层',
+                title: 'Smart Routing 智能路由',
+                meta: '基于意图的大小模型分流',
+                color: C.gateway,
+                render: () => `
+                    <div class="content-split">
+                        <div class="diagram-area">
+                            <div class="diagram-badge">逻辑拓扑 (Logical Topology)</div>
+                            <svg width="800" height="280" viewBox="0 0 800 280">
+                                ${defs}
+                                <!-- Input -->
+                                <rect x="50" y="110" width="100" height="60" rx="4" fill="#fff" stroke="${C.text}" stroke-dasharray="4" />
+                                <text x="100" y="135" text-anchor="middle" font-size="12" fill="${C.text}">用户请求</text>
+                                <text x="100" y="150" text-anchor="middle" font-size="10" fill="${C.sub}">(Query)</text>
+                                
+                                <line x1="150" y1="140" x2="200" y2="140" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)" />
+
+                                <!-- Classifier -->
+                                <polygon points="250,100 300,140 250,180 200,140" fill="#f3e8ff" stroke="${C.gateway}" stroke-width="2" filter="url(#dropShadow)"/>
+                                <text x="250" y="135" text-anchor="middle" font-size="11" font-weight="bold" fill="${C.gateway}">BERT</text>
+                                <text x="250" y="150" text-anchor="middle" font-size="9" fill="${C.gateway}">分类器</text>
+
+                                <!-- Paths -->
+                                <path d="M300 140 L340 140 L340 80 L380 80" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)" fill="none" />
+                                <text x="345" y="70" font-size="10" fill="${C.sub}">简单 (分 > 0.8)</text>
+
+                                <path d="M300 140 L340 140 L340 200 L380 200" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)" fill="none" />
+                                <text x="345" y="190" font-size="10" fill="${C.sub}">复杂推理</text>
+
+                                <!-- Models -->
+                                <rect x="380" y="50" width="140" height="60" rx="4" fill="#fff" stroke="${C.decode}" stroke-width="2" filter="url(#dropShadow)"/>
+                                <text x="450" y="75" text-anchor="middle" font-weight="bold" fill="${C.decode}">小模型</text>
+                                <text x="450" y="90" text-anchor="middle" font-size="10" fill="${C.sub}">Llama-3-8B</text>
+
+                                <rect x="380" y="170" width="140" height="60" rx="4" fill="#fff" stroke="${C.gateway}" stroke-width="2" filter="url(#dropShadow)"/>
+                                <text x="450" y="195" text-anchor="middle" font-weight="bold" fill="${C.gateway}">大模型</text>
+                                <text x="450" y="210" text-anchor="middle" font-size="10" fill="${C.sub}">GPT-4 / 70B</text>
+
+                                <!-- Fallback -->
+                                <path d="M520 80 L550 80 L550 200 L530 200" stroke="${C.danger}" stroke-width="1.5" stroke-dasharray="4" marker-end="url(#arrow)" fill="none" />
+                                <text x="560" y="140" font-size="10" fill="${C.danger}" writing-mode="tb">降级 (置信度低)</text>
+                            </svg>
+                        </div>
+                        <div class="details-grid">
+                            <div class="card">
+                                <div class="card-title" style="color:${C.gateway}"><i class="fa-solid fa-book"></i> 原理 (Principle)</div>
+                                <div class="card-body">
+                                    在网关层部署轻量级模型作为前置分类器。通过分析 Prompt 的语义复杂度、意图类型（如闲聊 vs 编码），动态将流量分发至不同规模的推理模型，实现成本与效果的平衡。
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title" style="color:${C.gateway}"><i class="fa-solid fa-desktop"></i> 实例 (Example)</div>
+                                <div class="card-body">
+                                    <ul>
+                                        <li><b>Easy:</b> "将 '2024-01-01' 转为时间戳" -> 路由至 8B 模型。</li>
+                                        <li><b>Hard:</b> "分析这 20 份财报的潜在风险" -> 路由至 70B+ 模型。</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card challenge-card">
+                                <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> 挑战 (Challenges)</div>
+                                <div class="card-body">
+                                    <ol style="padding-left:20px; margin:0;">
+                                        <li><b>路由延迟：</b>分类器必须极快（<5ms），否则会抵消小模型的速度优势。</li>
+                                        <li><b>准确性权衡：</b>如果误将复杂任务分给小模型，会导致用户体验崩塌。必须设计<b>自动降级 (Fallback)</b> 机制。</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // --- GATEWAY: AFFINITY ---
+            {
+                id: 'affinity',
+                group: '1. 网关层',
+                title: 'Cache Affinity 缓存亲和性',
+                meta: '用户粘性路由',
+                color: C.gateway,
+                render: () => `
+                    <div class="content-split">
+                        <div class="diagram-area">
+                            <div class="diagram-badge">UML 部署视图 (Deployment View)</div>
+                            <svg width="800" height="280" viewBox="0 0 800 280">
+                                ${defs}
+                                <!-- Users -->
+                                <circle cx="60" cy="60" r="20" fill="#f3e8ff" stroke="${C.gateway}" stroke-width="2"/>
+                                <text x="60" y="65" text-anchor="middle" font-size="12" font-weight="bold" fill="${C.gateway}">U1</text>
+                                <text x="60" y="100" text-anchor="middle" font-size="10" fill="${C.sub}">会话 A</text>
+
+                                <circle cx="60" cy="200" r="20" fill="#fff" stroke="${C.sub}" stroke-width="2"/>
+                                <text x="60" y="205" text-anchor="middle" font-size="12" font-weight="bold" fill="${C.sub}">U2</text>
+                                <text x="60" y="240" text-anchor="middle" font-size="10" fill="${C.sub}">会话 B</text>
+
+                                <!-- LB -->
+                                <rect x="200" y="40" width="120" height="200" rx="8" fill="#fff" stroke="${C.text}" stroke-width="2" filter="url(#dropShadow)"/>
+                                <text x="260" y="70" text-anchor="middle" font-weight="bold">负载均衡 (LB)</text>
+                                <line x1="220" y1="90" x2="300" y2="90" stroke="${C.line}" stroke-width="1"/>
+                                <text x="260" y="120" text-anchor="middle" font-size="11" fill="${C.gateway}">Map<ID, Node></text>
+                                <text x="260" y="140" text-anchor="middle" font-size="10" fill="${C.sub}" font-family="monospace">Hash(User_ID)</text>
+
+                                <!-- Connections In -->
+                                <path d="M90 60 L200 100" stroke="${C.gateway}" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrow-gateway)"/>
+                                <path d="M90 200 L200 160" stroke="${C.sub}" stroke-width="2" marker-end="url(#arrow)"/>
+
+                                <!-- Nodes -->
+                                <g transform="translate(450, 40)">
+                                    <rect x="0" y="0" width="160" height="80" rx="4" fill="#f3e8ff" stroke="${C.gateway}" stroke-width="2"/>
+                                    <text x="10" y="20" font-weight="bold" fill="${C.gateway}" font-size="12">Worker #1</text>
+                                    <rect x="10" y="35" width="140" height="35" fill="#fff" stroke="${C.gateway}" stroke-dasharray="2"/>
+                                    <text x="80" y="55" text-anchor="middle" font-size="10" fill="${C.sub}">KV Cache: U1</text>
+                                </g>
+
+                                <g transform="translate(450, 160)">
+                                    <rect x="0" y="0" width="160" height="80" rx="4" fill="#fff" stroke="${C.sub}" stroke-width="2"/>
+                                    <text x="10" y="20" font-weight="bold" fill="${C.sub}" font-size="12">Worker #2</text>
+                                    <rect x="10" y="35" width="140" height="35" fill="#fff" stroke="${C.sub}" stroke-dasharray="2"/>
+                                    <text x="80" y="55" text-anchor="middle" font-size="10" fill="${C.sub}">KV Cache: U2</text>
+                                </g>
+
+                                <!-- Connections Out -->
+                                <path d="M320 100 L450 80" stroke="${C.gateway}" stroke-width="2" marker-end="url(#arrow-gateway)"/>
+                                <text x="385" y="85" text-anchor="middle" font-size="10" fill="${C.gateway}" font-weight="bold">粘性连接</text>
+                                
+                                <path d="M320 160 L450 200" stroke="${C.sub}" stroke-width="2" marker-end="url(#arrow)"/>
+
+                            </svg>
+                        </div>
+                        <div class="details-grid">
+                            <div class="card">
+                                <div class="card-title" style="color:${C.gateway}"><i class="fa-solid fa-book"></i> 原理 (Principle)</div>
+                                <div class="card-body">
+                                    在云服务多实例场景中，负载均衡器 (LB) 维护 <b>Session Sticky (会话粘性)</b> 策略。基于 UserID 或 ConversationID 进行哈希路由，确保同一用户的连续请求总是被分发到同一台 Worker 实例，从而命中本地 KV Cache。
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title" style="color:${C.gateway}"><i class="fa-solid fa-desktop"></i> 实例 (Example)</div>
+                                <div class="card-body">
+                                    <b>多轮对话场景：</b>
+                                    <ul>
+                                        <li><b>Round 1:</b> 路由到 Worker-A，计算并缓存 Context。</li>
+                                        <li><b>Round 2:</b> 再次路由到 Worker-A。直接复用 Round 1 的 KV Cache，仅需计算新增 Query，首字延迟降低 80%。</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card challenge-card">
+                                <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> 挑战 (Challenges)</div>
+                                <div class="card-body">
+                                    <ol style="padding-left:20px; margin:0;">
+                                        <li><b>负载倾斜 (Load Skew)：</b>若某用户是"话痨"（高频长文），会导致对应 Worker 过载。需设计<b>"Affinity + Least Loaded"</b> 混合策略（如：负载 > 80% 时打破亲和性）。</li>
+                                        <li><b>扩缩容失效：</b>Worker 扩容时，Hash 环改变导致缓存大面积失效。</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // --- GATEWAY: COMPRESSION ---
+            {
+                id: 'compression',
+                group: '1. 网关层',
+                title: 'Prompt Compression 提示词压缩',
+                meta: '选择性上下文压缩',
+                color: C.gateway,
+                render: () => `
+                    <div class="content-split">
+                        <div class="diagram-area">
+                            <div class="diagram-badge">Token Importance Scoring & Pruning</div>
+                            <svg width="800" height="280" viewBox="0 0 800 280">
+                                ${defs}
+                                <!-- Step 1: Input -->
+                                <g transform="translate(50, 120)">
+                                    <text x="0" y="-40" font-weight="bold" font-size="11">1. 原始 Prompt</text>
+                                    <g>
+                                        <rect x="0" y="0" width="20" height="20" fill="#e2e8f0" stroke="#94a3b8"/>
+                                        <text x="10" y="14" text-anchor="middle" font-size="8">The</text>
+                                        
+                                        <rect x="25" y="0" width="30" height="20" fill="#e2e8f0" stroke="#94a3b8"/>
+                                        <text x="40" y="14" text-anchor="middle" font-size="8">quick</text>
+                                        
+                                        <rect x="60" y="0" width="30" height="20" fill="#e2e8f0" stroke="#94a3b8"/>
+                                        <text x="75" y="14" text-anchor="middle" font-size="8">brown</text>
+                                        
+                                        <rect x="95" y="0" width="25" height="20" fill="#e2e8f0" stroke="#94a3b8"/>
+                                        <text x="107" y="14" text-anchor="middle" font-size="8">fox</text>
+                                    </g>
+                                </g>
+
+                                <line x1="140" y1="130" x2="180" y2="130" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)"/>
+
+                                <!-- Step 2: Scoring -->
+                                <g transform="translate(190, 80)">
+                                    <text x="0" y="0" font-weight="bold" font-size="11">2. 重要性评分 (Perplexity/Attn)</text>
+                                    
+                                    <!-- The (Low) -->
+                                    <rect x="0" y="40" width="20" height="20" fill="#e2e8f0" opacity="0.3"/>
+                                    <rect x="0" y="35" width="20" height="5" fill="${C.sub}"/>
+                                    <text x="10" y="55" text-anchor="middle" font-size="8" fill="${C.sub}">The</text>
+
+                                    <!-- quick (High) -->
+                                    <rect x="25" y="40" width="30" height="20" fill="#f3e8ff"/>
+                                    <rect x="25" y="10" width="30" height="30" fill="${C.gateway}"/>
+                                    <text x="40" y="55" text-anchor="middle" font-size="8" font-weight="bold">quick</text>
+
+                                    <!-- brown (Med) -->
+                                    <rect x="60" y="40" width="30" height="20" fill="#f3e8ff"/>
+                                    <rect x="60" y="20" width="30" height="20" fill="${C.gateway}" opacity="0.8"/>
+                                    <text x="75" y="55" text-anchor="middle" font-size="8" font-weight="bold">brown</text>
+                                    
+                                    <!-- fox (High) -->
+                                    <rect x="95" y="40" width="25" height="20" fill="#f3e8ff"/>
+                                    <rect x="95" y="10" width="25" height="30" fill="${C.gateway}"/>
+                                    <text x="107" y="55" text-anchor="middle" font-size="8" font-weight="bold">fox</text>
+                                    
+                                    <!-- Threshold Line -->
+                                    <line x1="-10" y1="30" x2="140" y2="30" stroke="${C.danger}" stroke-dasharray="4"/>
+                                    <text x="145" y="33" font-size="9" fill="${C.danger}">阈值</text>
+                                </g>
+
+                                <line x1="360" y1="130" x2="400" y2="130" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)"/>
+
+                                <!-- Step 3: Result -->
+                                <g transform="translate(410, 120)">
+                                    <text x="0" y="-40" font-weight="bold" font-size="11">3. 压缩结果 (Pruned)</text>
+                                    <g>
+                                        <rect x="0" y="0" width="30" height="20" fill="#f3e8ff" stroke="${C.gateway}"/>
+                                        <text x="15" y="14" text-anchor="middle" font-size="8">quick</text>
+                                        
+                                        <rect x="35" y="0" width="30" height="20" fill="#f3e8ff" stroke="${C.gateway}"/>
+                                        <text x="50" y="14" text-anchor="middle" font-size="8">brown</text>
+                                        
+                                        <rect x="70" y="0" width="25" height="20" fill="#f3e8ff" stroke="${C.gateway}"/>
+                                        <text x="82" y="14" text-anchor="middle" font-size="8">fox</text>
+                                    </g>
+                                </g>
+                                
+                                <!-- Info Box -->
+                                <g transform="translate(600, 100)">
+                                    <rect x="0" y="0" width="140" height="60" rx="4" fill="#f0fdf4" stroke="${C.decode}"/>
+                                    <text x="70" y="25" text-anchor="middle" font-weight="bold" fill="${C.decode}" font-size="12">3倍 提速</text>
+                                    <text x="70" y="45" text-anchor="middle" fill="${C.decode}" font-size="10">PPL Loss < 1%</text>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="details-grid">
+                            <div class="card">
+                                <div class="card-title" style="color:${C.gateway}"><i class="fa-solid fa-book"></i> 原理 (Principle)</div>
+                                <div class="card-body">
+                                    基于信息论。使用一个小模型（如 LLMLingua）计算 Prompt 中每个 Token 的 <b>困惑度 (Perplexity)</b> 或 <b>注意力权重 (Self-Attention)</b>。
+                                    保留携带核心语义的高分 Token，剪枝掉停用词、修饰语等低分 Token。
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title" style="color:${C.gateway}"><i class="fa-solid fa-desktop"></i> 实例 (Example)</div>
+                                <div class="card-body">
+                                    <b>RAG 场景：</b> 检索回来 10 篇文档，总计 15k Tokens。
+                                    <br><b>压缩：</b> 去除冗余的页眉页脚、客套话、无关段落。
+                                    <br><b>结果：</b> 变为 6k Tokens，直接塞入 8k 上下文窗口，无需分片，且推理速度提升 2.5 倍。
+                                </div>
+                            </div>
+                            <div class="card challenge-card">
+                                <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> 挑战 (Challenges)</div>
+                                <div class="card-body">
+                                    <ol style="padding-left:20px; margin:0;">
+                                        <li><b>关键信息丢失：</b>可能误删 "not" 等改变句义的词。需要引入 <b>Coarse-to-Fine (粗粒度到细粒度)</b> 的保护机制。</li>
+                                        <li><b>额外延迟：</b>压缩本身也是一次推理。只适用于 <b>Prefill 耗时 >> 压缩耗时</b> 的超长文本场景。</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // --- PREFILL: PD SEP ---
+            {
+                id: 'pd-sep',
+                group: '2. 预填充层',
+                title: 'PD Disaggregation (分离架构)',
+                meta: 'Prefill-Decode 分离',
+                color: C.prefill,
+                render: () => `
+                    <div class="content-split">
+                        <div class="diagram-area">
+                            <div class="diagram-badge">分离层级视图 (Layered Architecture)</div>
+                            <svg width="800" height="280" viewBox="0 0 800 280">
+                                ${defs}
+                                
+                                <!-- 1. User/Router Layer (Top) -->
+                                <g transform="translate(50, 30)">
+                                    <rect x="0" y="0" width="700" height="40" rx="8" fill="#f3e8ff" stroke="${C.gateway}" stroke-width="2"/>
+                                    <text x="350" y="25" text-anchor="middle" font-weight="bold" fill="${C.gateway}">用户请求入口层 (Gateway / Router)</text>
+                                </g>
+
+                                <!-- Arrows -->
+                                <line x1="200" y1="70" x2="200" y2="90" stroke="${C.gateway}" stroke-width="2" marker-end="url(#arrow-gateway)"/>
+                                <line x1="600" y1="70" x2="600" y2="90" stroke="${C.gateway}" stroke-width="2" marker-end="url(#arrow-gateway)"/>
+
+                                <!-- 2. Compute Layer (Middle) -->
+                                <g transform="translate(50, 90)">
+                                    <!-- Prefill Cluster -->
+                                    <rect x="0" y="0" width="300" height="70" rx="8" fill="#eff6ff" stroke="${C.prefill}" stroke-width="2"/>
+                                    <text x="150" y="30" text-anchor="middle" font-weight="bold" fill="${C.prefill}">Prefill Cluster (高算力)</text>
+                                    <text x="150" y="50" text-anchor="middle" font-size="10" fill="${C.sub}">A100/H100 Nodes</text>
+
+                                    <!-- Decode Cluster -->
+                                    <rect x="400" y="0" width="300" height="70" rx="8" fill="#ecfdf5" stroke="${C.decode}" stroke-width="2"/>
+                                    <text x="550" y="30" text-anchor="middle" font-weight="bold" fill="${C.decode}">Decode Cluster (大显存)</text>
+                                    <text x="550" y="50" text-anchor="middle" font-size="10" fill="${C.sub}">L20/L40 Nodes</text>
+                                </g>
+
+                                <!-- 3. Network Layer (Separate) -->
+                                <g transform="translate(50, 180)">
+                                    <rect x="0" y="0" width="700" height="30" rx="15" fill="#f3e8ff" stroke="${C.network}" stroke-width="2"/>
+                                    <text x="350" y="20" text-anchor="middle" font-weight="bold" fill="${C.network}" font-size="11">高速网络层 (RDMA / InfiniBand / 400Gbps Fabric)</text>
+                                    
+                                    <!-- Connectors -->
+                                    <line x1="150" y1="-20" x2="150" y2="0" stroke="${C.prefill}" stroke-width="2"/>
+                                    <line x1="550" y1="-20" x2="550" y2="0" stroke="${C.decode}" stroke-width="2"/>
+                                </g>
+
+                                <!-- 4. Storage Layer (Separate) -->
+                                <g transform="translate(50, 230)">
+                                    <rect x="0" y="0" width="700" height="40" rx="4" fill="#fffbeb" stroke="${C.infra}" stroke-width="2"/>
+                                    <text x="350" y="25" text-anchor="middle" font-weight="bold" fill="${C.infra}">存储层 (Global KV Cache Pool / HBM / DDR / NVMe)</text>
+                                    
+                                    <!-- Connectors -->
+                                    <line x1="150" y1="-20" x2="150" y2="0" stroke="${C.infra}" stroke-width="2" stroke-dasharray="4"/>
+                                    <line x1="550" y1="-20" x2="550" y2="0" stroke="${C.infra}" stroke-width="2" stroke-dasharray="4"/>
+                                </g>
+
+                            </svg>
+                        </div>
+                        <div class="details-grid">
+                            <div class="card">
+                                <div class="card-title" style="color:${C.prefill}"><i class="fa-solid fa-book"></i> 原理 (Principle)</div>
+                                <div class="card-body">
+                                    将推理过程拆解。<b>Prefill 阶段</b>是计算密集型，使用高算力实例；<b>Decode 阶段</b>是访存密集型，使用高显存带宽实例。中间通过独立的高速网络层传输数据。
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title" style="color:${C.infra}"><i class="fa-solid fa-database"></i> Global KV Pool</div>
+                                <div class="card-body">
+                                    <b>定义：</b>逻辑上统一的显存池，跨越所有计算节点，通过 RDMA 互联。<br>
+                                    <b>机制：</b>Prefill 计算完的 KV 不留在本地，而是直接写入目标 Decode 节点的地址空间（或共享存储），实现<b>零拷贝传输</b>与状态解耦。
+                                </div>
+                            </div>
+                            <div class="card challenge-card">
+                                <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> 挑战 (Challenges)</div>
+                                <div class="card-body">
+                                    <ol style="padding-left:20px; margin:0;">
+                                        <li><b>网络带宽瓶颈：</b>KV Cache 数据量极大（几百 MB 到 GB 级）。必须依赖 400Gbps+ 的 InfiniBand/RDMA 网络。</li>
+                                        <li><b>状态一致性：</b>需实现分布式协议来管理 KV Block 的生命周期、引用计数和驱逐策略。</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            // --- PREFILL: BLOCK SPARSE ---
+            {
+                id: 'block-sparse',
+                group: '2. 预填充层',
+                title: 'Block Sparse Attention (块稀疏注意力)',
+                meta: '长文本计算优化',
+                color: C.prefill,
+                render: () => `
+                    <div class="content-split">
+                        <div class="diagram-area">
+                            <div class="diagram-badge">Block-wise Computation Flow</div>
+                            <svg width="800" height="280" viewBox="0 0 800 280">
+                                ${defs}
+                                
+                                <!-- 1. Grid Partitioning -->
+                                <g transform="translate(50, 40)">
+                                    <text x="75" y="-15" text-anchor="middle" font-weight="bold" fill="${C.text}" font-size="11">1. 块划分 (Partitioning)</text>
+                                    <!-- Q Matrix -->
+                                    <rect x="0" y="0" width="20" height="150" fill="#fff" stroke="${C.text}"/>
+                                    <text x="10" y="165" text-anchor="middle" font-size="10">Q</text>
+                                    
+                                    <text x="35" y="75" text-anchor="middle" font-size="14">×</text>
+                                    
+                                    <!-- K^T Matrix (Grid) -->
+                                    <g transform="translate(50, 0)">
+                                        <rect x="0" y="0" width="150" height="20" fill="#fff" stroke="${C.text}"/>
+                                        <text x="75" y="165" text-anchor="middle" font-size="10">Kᵀ</text>
+                                        
+                                        <!-- Visualizing Grid on a Matrix representation -->
+                                        <rect x="0" y="30" width="150" height="120" fill="#f8fafc" stroke="${C.sub}" stroke-dasharray="2"/>
+                                        <!-- Horizontal Lines -->
+                                        <line x1="0" y1="60" x2="150" y2="60" stroke="${C.sub}" stroke-opacity="0.3"/>
+                                        <line x1="0" y1="90" x2="150" y2="90" stroke="${C.sub}" stroke-opacity="0.3"/>
+                                        <line x1="0" y1="120" x2="150" y2="120" stroke="${C.sub}" stroke-opacity="0.3"/>
+                                        <!-- Vertical Lines -->
+                                        <line x1="30" y1="30" x2="30" y2="150" stroke="${C.sub}" stroke-opacity="0.3"/>
+                                        <line x1="60" y1="30" x2="60" y2="150" stroke="${C.sub}" stroke-opacity="0.3"/>
+                                        <line x1="90" y1="30" x2="90" y2="150" stroke="${C.sub}" stroke-opacity="0.3"/>
+                                        <line x1="120" y1="30" x2="120" y2="150" stroke="${C.sub}" stroke-opacity="0.3"/>
+                                        
+                                        <!-- Highlight one block -->
+                                        <rect x="60" y="60" width="30" height="30" fill="${C.prefill}" fill-opacity="0.2" stroke="${C.prefill}" stroke-width="2"/>
+                                        <text x="75" y="78" text-anchor="middle" font-size="8" fill="${C.prefill}">Block(i,j)</text>
+                                    </g>
+                                </g>
+
+                                <!-- Arrow -->
+                                <line x1="280" y1="100" x2="320" y2="100" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)"/>
+
+                                <!-- 2. Mask Generation -->
+                                <g transform="translate(340, 40)">
+                                    <text x="75" y="-15" text-anchor="middle" font-weight="bold" fill="${C.text}" font-size="11">2. 掩码判定 (Determination)</text>
+                                    <rect x="0" y="0" width="150" height="150" fill="#fff" stroke="${C.text}"/>
+                                    
+                                    <!-- Global (Sink) -->
+                                    <rect x="0" y="0" width="30" height="150" fill="${C.gateway}" opacity="0.6"/>
+                                    <text x="15" y="165" text-anchor="middle" font-size="9" fill="${C.gateway}">Global</text>
+                                    <!-- Logic Text Global -->
+                                    <text x="-5" y="10" text-anchor="end" font-size="8" fill="${C.gateway}" font-family="monospace">if col < S</text>
+
+                                    <!-- Local (Diagonal) -->
+                                    <rect x="0" y="0" width="30" height="30" fill="${C.decode}"/>
+                                    <rect x="30" y="30" width="30" height="30" fill="${C.decode}"/>
+                                    <rect x="60" y="60" width="30" height="30" fill="${C.decode}"/>
+                                    <rect x="90" y="90" width="30" height="30" fill="${C.decode}"/>
+                                    <rect x="120" y="120" width="30" height="30" fill="${C.decode}"/>
+                                    <!-- Logic Text Local -->
+                                    <text x="160" y="140" font-size="8" fill="${C.decode}" font-family="monospace">if |i-j| < W</text>
+                                    
+                                    <!-- Skipped -->
+                                    <text x="100" y="50" font-size="10" fill="${C.sub}" opacity="0.5">0</text>
+                                    <text x="50" y="120" font-size="10" fill="${C.sub}" opacity="0.5">0</text>
+                                </g>
+
+                                <!-- Arrow -->
+                                <line x1="510" y1="100" x2="550" y2="100" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)"/>
+
+                                <!-- 3. Computation -->
+                                <g transform="translate(570, 60)">
+                                    <text x="80" y="-35" text-anchor="middle" font-weight="bold" fill="${C.text}" font-size="11">3. 稀疏计算 (Compute)</text>
+                                    
+                                    <!-- SRAM/Tensor Core -->
+                                    <rect x="0" y="0" width="160" height="100" rx="8" fill="#f0fdf4" stroke="${C.decode}"/>
+                                    <text x="80" y="20" text-anchor="middle" font-weight="bold" font-size="10" fill="${C.decode}">GPU SRAM / Tensor Core</text>
+                                    
+                                    <!-- Pseudo Code Logic -->
+                                    <g transform="translate(20, 35)">
+                                        <text x="0" y="0" font-family="monospace" font-size="9">for block(i,j):</text>
+                                        <text x="10" y="12" font-family="monospace" font-size="9" fill="${C.danger}">if mask[i,j] == 0: skip</text>
+                                        <text x="10" y="24" font-family="monospace" font-size="9">else:</text>
+                                        <text x="20" y="36" font-family="monospace" font-size="9">load Q[i], K[j]</text>
+                                        <text x="20" y="48" font-family="monospace" font-size="9">S = Q[i] @ K[j].T</text>
+                                    </g>
+                                </g>
+
+                            </svg>
+                        </div>
+                        <div class="details-grid">
+                            <div class="card">
+                                <div class="card-title" style="color:${C.prefill}"><i class="fa-solid fa-th-large"></i> 掩码判定逻辑 (Logic)</div>
+                                <div class="card-body">
+                                    对 B x B 的块 M(i,j)，Mask 值为 1 (计算) 若满足以下任一条件，否则为 0 (跳过)：
+                                    <ul style="padding-left:15px; margin-top:5px;">
+                                        <li><b>Local (滑动窗口):</b> |i - j| < W (保留对角线附近的上下文)</li>
+                                        <li><b>Global (全局锚点):</b> j < S (保留 System Prompt 等关键首部)</li>
+                                        <li><b>Random:</b> 以概率 P 随机保留 (非必须)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title" style="color:${C.prefill}"><i class="fa-solid fa-microchip"></i> 计算流 (Pipeline)</div>
+                                <div class="card-body">
+                                    基于 Triton/CUDA Kernel 实现：<br>
+                                    1. <b>Skip:</b> 线程块 (Thread Block) 读取 Mask，若为 0 直接退出。<br>
+                                    2. <b>Load:</b> 仅将有效块从 HBM 加载到 SRAM。<br>
+                                    3. <b>MMA:</b> 利用 Tensor Core 进行矩阵乘法。
+                                </div>
+                            </div>
+                            <div class="card challenge-card">
+                                <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> 挑战 (Challenges)</div>
+                                <div class="card-body">
+                                    <ol style="padding-left:20px; margin:0;">
+                                        <li><b>负载均衡 (Load Balance)：</b>不同行的非零块数量差异大，简单并行会导致 GPU 线程空闲等待。需动态分配线程块。</li>
+                                        <li><b>精度恢复：</b>稀疏化可能导致长程信息丢失，需通过微调 (Fine-tuning) 适应。</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'radix',
+                group: '2. 预填充层',
+                title: 'Radix Attention (前缀树)',
+                meta: 'KV Cache 复用',
+                color: C.prefill,
+                render: () => `
+                    <div class="content-split">
+                        <div class="diagram-area">
+                            <div class="diagram-badge">Radix Tree Structure</div>
+                            <svg width="800" height="280" viewBox="0 0 800 280">
+                                ${defs}
+                                <!-- Root -->
+                                <g transform="translate(300, 20)">
+                                    <rect x="0" y="0" width="200" height="60" rx="4" fill="#eff6ff" stroke="${C.prefill}" stroke-width="2"/>
+                                    <text x="100" y="25" text-anchor="middle" font-weight="bold" fill="${C.prefill}">根节点: System Prompt</text>
+                                    <text x="100" y="45" text-anchor="middle" font-size="10" fill="${C.sub}" font-family="monospace">"You are an assistant..."</text>
+                                </g>
+
+                                <!-- Lines -->
+                                <path d="M400 80 L200 130" stroke="${C.line}" stroke-width="2" />
+                                <path d="M400 80 L600 130" stroke="${C.line}" stroke-width="2" />
+
+                                <!-- Nodes L1 -->
+                                <g transform="translate(100, 130)">
+                                    <rect x="0" y="0" width="200" height="60" rx="4" fill="#fff" stroke="${C.sub}" stroke-width="2"/>
+                                    <text x="100" y="25" text-anchor="middle" font-weight="bold" fill="${C.text}">用户 A 历史</text>
+                                    <text x="100" y="45" text-anchor="middle" font-size="10" fill="${C.sub}" font-family="monospace">"Analyze this PDF"</text>
+                                    <text x="180" y="75" font-size="10" fill="${C.decode}" font-weight="bold">Hit!</text>
+                                </g>
+
+                                <g transform="translate(500, 130)">
+                                    <rect x="0" y="0" width="200" height="60" rx="4" fill="#fff" stroke="${C.sub}" stroke-width="2" stroke-dasharray="4"/>
+                                    <text x="100" y="25" text-anchor="middle" font-weight="bold" fill="${C.sub}">用户 B 历史</text>
+                                    <text x="100" y="45" text-anchor="middle" font-size="10" fill="${C.sub}" font-family="monospace">"Write a snake game"</text>
+                                    <text x="180" y="75" font-size="10" fill="${C.sub}">Cold</text>
+                                </g>
+
+                                <!-- Leaf -->
+                                <path d="M200 190 L200 220" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)"/>
+                                <g transform="translate(120, 220)">
+                                    <rect x="0" y="0" width="160" height="40" rx="4" fill="#ecfdf5" stroke="${C.decode}" stroke-width="2"/>
+                                    <text x="80" y="25" text-anchor="middle" font-weight="bold" fill="${C.decode}">新请求 Query</text>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="details-grid">
+                            <div class="card">
+                                <div class="card-title" style="color:${C.prefill}"><i class="fa-solid fa-book"></i> 原理 (Principle)</div>
+                                <div class="card-body">
+                                    将 KV Cache 维护为一棵<b>基数树 (Radix Tree)</b>。树的节点代表 Token 序列片段。当新请求的前缀（如 System Prompt + 几轮对话）与树中路径匹配时，直接映射到已有的物理显存块。
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title" style="color:${C.prefill}"><i class="fa-solid fa-desktop"></i> 举个例子 (Example)</div>
+                                <div class="card-body">
+                                    <b>多轮对话 Agent：</b><br>
+                                    用户问："解释量子力学" (生成 Cache A)。<br>
+                                    用户追问："用简单的语言"。<br>
+                                    系统识别到前缀 "解释量子力学" 已存在，直接复用 Cache A，仅需计算 "用简单的语言" 这 6 个 Token，<b>Prefill 耗时接近 0ms</b>。
+                                </div>
+                            </div>
+                            <div class="card challenge-card">
+                                <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> 挑战 (Challenges)</div>
+                                <div class="card-body">
+                                    <ol style="padding-left:20px; margin:0;">
+                                        <li><b>前缀敏感性：</b>如果 Prompt 头部包含随机 ID 或时间戳，会导致无法匹配根节点，缓存完全失效。</li>
+                                        <li><b>复杂的驱逐策略：</b>树形结构的 LRU 驱逐比线性结构复杂，需要维护父子节点的引用关系，防止误删被共享的父节点。</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'chunked',
+                group: '2. 预填充层',
+                title: 'Chunked Prefill (分块预填充)',
+                meta: 'GPU 调度优化',
+                color: C.prefill,
+                render: () => `
+                    <div class="content-split">
+                        <div class="diagram-area">
+                            <div class="diagram-badge">GPU Timeline Comparison</div>
+                            <svg width="800" height="280" viewBox="0 0 800 280">
+                                ${defs}
+                                
+                                <!-- Scenario 1: Without Chunking -->
+                                <text x="30" y="30" font-weight="bold" fill="${C.text}" font-size="12">🔴 传统模式 (无分块)</text>
+                                <line x1="30" y1="80" x2="750" y2="80" stroke="${C.line}" stroke-width="1"/>
+                                
+                                <!-- Long Job -->
+                                <rect x="30" y="50" width="400" height="30" fill="#fecaca" stroke="${C.danger}"/>
+                                <text x="230" y="70" text-anchor="middle" font-size="10" fill="${C.danger}">长文档 Prefill (2000ms)</text>
+                                
+                                <!-- Short Job Arrives -->
+                                <line x1="150" y1="40" x2="150" y2="90" stroke="${C.text}" stroke-dasharray="2"/>
+                                <text x="150" y="35" text-anchor="middle" font-size="9" fill="${C.text}">短请求到达</text>
+                                
+                                <!-- Short Job Waiting -->
+                                <rect x="150" y="85" width="280" height="10" fill="#cbd5e1" opacity="0.5"/>
+                                <text x="290" y="105" text-anchor="middle" font-size="9" fill="${C.sub}">排队等待 (Head-of-Line Blocking)</text>
+                                
+                                <!-- Short Job Exec -->
+                                <rect x="440" y="50" width="50" height="30" fill="#d1fae5" stroke="${C.decode}"/>
+                                <text x="465" y="70" text-anchor="middle" fill="${C.decode}" font-size="10">Decode</text>
+
+                                <!-- TTFT Arrow 1 -->
+                                <line x1="150" y1="110" x2="440" y2="110" stroke="${C.danger}" stroke-width="2" marker-end="url(#arrow)"/>
+                                <text x="300" y="125" text-anchor="middle" font-size="10" fill="${C.danger}" font-weight="bold">TTFT: > 1800ms (卡顿)</text>
+
+
+                                <!-- Scenario 2: With Chunking -->
+                                <text x="30" y="160" font-weight="bold" fill="${C.text}" font-size="12">🟢 Chunked Prefill (分块交错)</text>
+                                <line x1="30" y1="210" x2="750" y2="210" stroke="${C.line}" stroke-width="1"/>
+
+                                <!-- Chunk 1 -->
+                                <rect x="30" y="180" width="100" height="30" fill="#dbeafe" stroke="${C.prefill}"/>
+                                <text x="80" y="200" text-anchor="middle" font-size="10" fill="${C.prefill}">Chunk 1</text>
+
+                                <!-- Short Job Arrives -->
+                                <line x1="150" y1="170" x2="150" y2="220" stroke="${C.text}" stroke-dasharray="2"/>
+                                <text x="150" y="165" text-anchor="middle" font-size="9" fill="${C.text}">短请求到达</text>
+
+                                <!-- Interleaved Decode -->
+                                <rect x="155" y="180" width="50" height="30" fill="#d1fae5" stroke="${C.decode}"/>
+                                <text x="180" y="200" text-anchor="middle" font-size="10" fill="${C.decode}">插队 Decode</text>
+
+                                <!-- Chunk 2 -->
+                                <rect x="210" y="180" width="100" height="30" fill="#dbeafe" stroke="${C.prefill}"/>
+                                <text x="260" y="200" text-anchor="middle" font-size="10" fill="${C.prefill}">Chunk 2</text>
+
+                                <!-- Chunk 3 -->
+                                <rect x="315" y="180" width="100" height="30" fill="#dbeafe" stroke="${C.prefill}"/>
+                                <text x="365" y="200" text-anchor="middle" font-size="10" fill="${C.prefill}">Chunk 3</text>
+
+                                <!-- TTFT Arrow 2 -->
+                                <line x1="150" y1="240" x2="155" y2="240" stroke="${C.decode}" stroke-width="2" marker-end="url(#arrow)"/>
+                                <text x="180" y="255" text-anchor="middle" font-size="10" fill="${C.decode}" font-weight="bold">TTFT: ~50ms (流畅)</text>
+                            </svg>
+                        </div>
+                        <div class="details-grid">
+                            <div class="card">
+                                <div class="card-title" style="color:${C.prefill}"><i class="fa-solid fa-book"></i> 原理 (Principle)</div>
+                                <div class="card-body">
+                                    将超长的 Prefill 任务切分成多个小块 (Chunk，例如 512 tokens)。在 GPU 执行完一个 Chunk 后，调度器会暂停该任务，插入处理其他高优先级的 Decode 任务（如聊天生成），然后再恢复执行下一个 Chunk。
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title" style="color:${C.prefill}"><i class="fa-solid fa-desktop"></i> 举个例子 (Example)</div>
+                                <div class="card-body">
+                                    <b>混合负载场景：</b><br>
+                                    用户 A 上传了一本 10万字的小说（长任务）；<br>
+                                    用户 B 发了一句 "你好"（短任务）。<br>
+                                    <b>效果：</b>系统将小说切分处理，在处理间隙快速响应用户 B。用户 B 感觉不到卡顿，就像用户 A 不存在一样。
+                                </div>
+                            </div>
+                            <div class="card challenge-card">
+                                <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> 挑战 (Challenges)</div>
+                                <div class="card-body">
+                                    <ol style="padding-left:20px; margin:0;">
+                                        <li><b>KV 状态开销：</b>频繁切换任务需要保存/恢复 KV Cache 状态，如果显存带宽不足，切换开销会很大。</li>
+                                        <li><b>总吞吐下降：</b>虽然降低了延迟 (Latency)，但由于切分带来的 Overhead，处理完长任务的绝对总时间 (Make-span) 会略微增加。</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // --- DECODE: STRUCT GEN ---
+            {
+                id: 'struct-gen',
+                group: '3. 解码层',
+                title: 'Structured Gen 结构化生成',
+                meta: 'JSON Schema 约束',
+                color: C.decode,
+                render: () => `
+                    <div class="content-split">
+                        <div class="diagram-area">
+                            <div class="diagram-badge">基于 Trie-FSM 的采样掩码 (Enum 约束)</div>
+                            <svg width="800" height="280" viewBox="0 0 800 280">
+                                ${defs}
+                                
+                                <!-- 1. Context -->
+                                <g transform="translate(30, 40)">
+                                    <text x="0" y="20" font-weight="bold" font-size="11" fill="${C.text}">当前生成状态:</text>
+                                    <rect x="0" y="30" width="160" height="60" rx="4" fill="#fff" stroke="${C.text}" stroke-width="1"/>
+                                    <text x="10" y="55" font-family="monospace" font-size="11">"mode": <tspan fill="${C.decode}" font-weight="bold">"s_</tspan></text>
+                                    <text x="10" y="80" font-family="monospace" font-size="9" fill="${C.sub}">(Schema: "safe" | "speed")</text>
+                                </g>
+
+                                <!-- Arrow -->
+                                <line x1="170" y1="60" x2="210" y2="60" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)"/>
+
+                                <!-- 2. FSM / Trie -->
+                                <g transform="translate(220, 20)">
+                                    <rect x="0" y="0" width="240" height="200" rx="8" fill="#f0fdf4" stroke="${C.decode}" stroke-width="2"/>
+                                    <text x="120" y="25" text-anchor="middle" font-weight="bold" fill="${C.decode}" font-size="12">约束状态机 (Trie FSM)</text>
+                                    
+                                    <!-- Root -->
+                                    <circle cx="40" cy="100" r="15" fill="#fff" stroke="${C.decode}"/>
+                                    <text x="40" y="104" text-anchor="middle" font-size="10">Start</text>
+
+                                    <!-- 's' -->
+                                    <path d="M 55 100 L 95 100" stroke="${C.decode}" stroke-width="2" marker-end="url(#arrow)"/>
+                                    <circle cx="110" cy="100" r="15" fill="#d1fae5" stroke="${C.decode}" stroke-width="3"/>
+                                    <text x="110" y="104" text-anchor="middle" font-size="10" font-weight="bold">s</text>
+                                    <text x="110" y="135" text-anchor="middle" font-size="9" fill="${C.decode}">当前状态</text>
+
+                                    <!-- Branch 'a' (safe) -->
+                                    <path d="M 120 90 L 160 60" stroke="${C.decode}" stroke-width="1" stroke-dasharray="2"/>
+                                    <circle cx="170" cy="55" r="12" fill="#fff" stroke="${C.decode}"/>
+                                    <text x="170" y="59" text-anchor="middle" font-size="9">a</text>
+                                    <text x="200" y="59" font-size="9" fill="${C.sub}">...fe</text>
+
+                                    <!-- Branch 'p' (speed) -->
+                                    <path d="M 120 110 L 160 140" stroke="${C.decode}" stroke-width="1" stroke-dasharray="2"/>
+                                    <circle cx="170" cy="145" r="12" fill="#fff" stroke="${C.decode}"/>
+                                    <text x="170" y="149" text-anchor="middle" font-size="9">p</text>
+                                    <text x="200" y="149" font-size="9" fill="${C.sub}">...eed</text>
+                                    
+                                    <text x="120" y="180" text-anchor="middle" font-size="10" font-weight="bold" fill="${C.decode}">Next Allowed: {'a', 'p'}</text>
+                                </g>
+
+                                <!-- Arrow -->
+                                <line x1="470" y1="120" x2="510" y2="120" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)"/>
+
+                                <!-- 3. Logit Masking -->
+                                <g transform="translate(520, 20)">
+                                    <text x="100" y="15" text-anchor="middle" font-weight="bold" fill="${C.text}">Logit 掩码操作</text>
+                                    
+                                    <!-- Vocabulary Stack -->
+                                    <g transform="translate(20, 30)">
+                                        <!-- Token 'a' -->
+                                        <rect x="0" y="0" width="160" height="25" fill="#d1fae5" stroke="${C.decode}"/>
+                                        <text x="10" y="17" font-family="monospace" font-size="11">"a"</text>
+                                        <text x="130" y="17" font-size="11" fill="${C.decode}" font-weight="bold">OK</text>
+                                        
+                                        <!-- Token 'b' -->
+                                        <rect x="0" y="30" width="160" height="25" fill="#fee2e2" stroke="${C.danger}"/>
+                                        <text x="10" y="47" font-family="monospace" font-size="11">"b"</text>
+                                        <text x="100" y="47" font-size="10" fill="${C.danger}">Mask (-inf)</text>
+
+                                        <!-- Token 'p' -->
+                                        <rect x="0" y="60" width="160" height="25" fill="#d1fae5" stroke="${C.decode}"/>
+                                        <text x="10" y="77" font-family="monospace" font-size="11">"p"</text>
+                                        <text x="130" y="77" font-size="11" fill="${C.decode}" font-weight="bold">OK</text>
+                                        
+                                        <!-- Token 's' -->
+                                        <rect x="0" y="90" width="160" height="25" fill="#fee2e2" stroke="${C.danger}"/>
+                                        <text x="10" y="107" font-family="monospace" font-size="11">"s"</text>
+                                        <text x="100" y="107" font-size="10" fill="${C.danger}">Mask (-inf)</text>
+                                        
+                                        <!-- Others -->
+                                        <rect x="0" y="120" width="160" height="20" fill="#f1f5f9" stroke="none"/>
+                                        <text x="80" y="134" text-anchor="middle" font-size="9" fill="${C.sub}">... other tokens ...</text>
+                                    </g>
+                                    
+                                    <!-- Result Arrow -->
+                                    <line x1="100" y1="160" x2="100" y2="180" stroke="${C.text}" stroke-width="2" marker-end="url(#arrow)"/>
+                                    
+                                    <g transform="translate(50, 190)">
+                                        <rect x="0" y="0" width="100" height="40" rx="4" fill="#fff" stroke="${C.decode}" stroke-width="2"/>
+                                        <text x="50" y="25" text-anchor="middle" font-weight="bold" fill="${C.decode}">Sample("a")</text>
+                                    </g>
+                                </g>
+
+                            </svg>
+                        </div>
+                        <div class="details-grid">
+                            <div class="card">
+                                <div class="card-title" style="color:${C.decode}"><i class="fa-solid fa-book"></i> 原理 (Principle)</div>
+                                <div class="card-body">
+                                    将 JSON Schema 或 Regex 编译为 <b>Trie (字典树)</b> 或 <b>PDA (下推自动机)</b>。在每一步生成时，根据当前前缀在自动机中的状态，计算合法的下一跳字符集合，构建掩码。
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title" style="color:${C.decode}"><i class="fa-solid fa-desktop"></i> 复杂实例 (Example)</div>
+                                <div class="card-body">
+                                    <b>Schema:</b> <code>mode: Enum["safe", "speed"]</code><br>
+                                    <b>当前前缀:</b> <code>"s"</code><br>
+                                    <b>FSM 状态:</b> 已匹配 "s"，分支为 "safe"('a') 或 "speed"('p')。<br>
+                                    <b>动作:</b> Mask 掉除 "a" 和 "p" 以外的所有 50,000+ 个 Token。
+                                </div>
+                            </div>
+                            <div class="card challenge-card">
+                                <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> 挑战 (Challenges)</div>
+                                <div class="card-body">
+                                    <ol style="padding-left:20px; margin:0;">
+                                        <li><b>Token 匹配歧义：</b>Tokenizer 可能将 "safe" 编码为 单个Token，也可能切分为 "sa"+"fe"。FSM 必须能够处理 Byte 级的子词匹配。</li>
+                                        <li><b>动态 Schema：</b>如果 Schema 中包含递归定义（如树结构），FSM 状态空间可能无限大，需动态懒加载构建。</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // --- DECODE: SPECULATIVE (FINAL) ---
+            {
+                id: 'speculative',
+                group: '3. 解码层',
+                title: 'Speculative Decoding 投机采样',
+                meta: 'Draft & Verify 机制',
+                color: C.decode,
+                render: () => `
+                    <div class="content-split">
+                        <div class="diagram-area">
+                            <div class="diagram-badge">Context: "The cat is on"</div>
+                            <svg width="800" height="280" viewBox="0 0 800 280">
+                                ${defs}
+                                
+                                <!-- Draft Phase -->
+                                <g transform="translate(20, 80)">
+                                    <text x="60" y="-10" text-anchor="middle" font-weight="bold" fill="${C.sub}">Draft Model (小模型)</text>
+                                    <rect x="0" y="0" width="120" height="70" rx="4" fill="#f0fdf4" stroke="${C.decode}" stroke-dasharray="4"/>
+                                    <text x="60" y="20" text-anchor="middle" fill="${C.decode}" font-size="11">生成 4 Tokens</text>
+                                    
+                                    <!-- Tokens -->
+                                    <g transform="translate(10, 35)">
+                                        <rect x="0" y="0" width="22" height="20" fill="#fff" stroke="${C.decode}"/><text x="11" y="14" text-anchor="middle" font-size="9">the</text>
+                                        <rect x="25" y="0" width="22" height="20" fill="#fff" stroke="${C.decode}"/><text x="36" y="14" text-anchor="middle" font-size="9">mat</text>
+                                        <rect x="50" y="0" width="22" height="20" fill="#fff" stroke="${C.decode}"/><text x="61" y="14" text-anchor="middle" font-size="8">sleep</text>
+                                        <rect x="75" y="0" width="22" height="20" fill="#fff" stroke="${C.decode}"/><text x="86" y="14" text-anchor="middle" font-size="9">now</text>
+                                    </g>
+                                </g>
+
+                                <!-- Arrow to Matrix -->
+                                <line x1="140" y1="115" x2="170" y2="115" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)"/>
+
+                                <!-- Matrix Construction -->
+                                <g transform="translate(180, 70)">
+                                    <rect x="0" y="0" width="90" height="90" fill="#f8fafc" stroke="${C.line}" stroke-width="1"/>
+                                    <text x="45" y="-10" text-anchor="middle" font-size="10" fill="${C.sub}">构造输入矩阵</text>
+                                    
+                                    <!-- Matrix visual -->
+                                    <g transform="translate(15, 15)">
+                                        <rect x="0" y="0" width="60" height="12" fill="#e2e8f0"/><text x="30" y="9" text-anchor="middle" font-size="8" font-family="monospace">..on the</text>
+                                        <rect x="0" y="15" width="60" height="12" fill="#e2e8f0"/><text x="30" y="24" text-anchor="middle" font-size="8" font-family="monospace">..on the mat</text>
+                                        <rect x="0" y="30" width="60" height="12" fill="#e2e8f0"/><text x="30" y="39" text-anchor="middle" font-size="8" font-family="monospace">..mat sleep</text>
+                                        <rect x="0" y="45" width="60" height="12" fill="#e2e8f0"/><text x="30" y="54" text-anchor="middle" font-size="8" font-family="monospace">..sleep now</text>
+                                        <text x="30" y="70" text-anchor="middle" font-size="8" fill="${C.sub}">(Tree/Pads)</text>
+                                    </g>
+                                </g>
+
+                                <line x1="270" y1="115" x2="300" y2="115" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)"/>
+
+                                <!-- Verify Process -->
+                                <g transform="translate(310, 40)">
+                                    <rect x="0" y="0" width="340" height="160" rx="8" fill="#fff" stroke="${C.decode}" stroke-width="2"/>
+                                    <text x="170" y="20" text-anchor="middle" font-weight="bold" fill="${C.decode}">Target Model (大模型)</text>
+                                    <text x="170" y="35" text-anchor="middle" font-size="10" fill="${C.sub}">一次 Forward Pass (并行评分)</text>
+
+                                    <!-- Internal Logic -->
+                                    <g transform="translate(20, 50)">
+                                        <line x1="0" y1="45" x2="300" y2="45" stroke="#e2e8f0" stroke-width="1"/>
+                                        
+                                        <!-- Step 1: Input -->
+                                        <text x="0" y="10" font-size="10" fill="${C.sub}">Input:</text>
+                                        <g transform="translate(40, 0)">
+                                            <rect x="0" y="0" width="20" height="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="10" y="11" text-anchor="middle" font-size="9">the</text>
+                                            <rect x="25" y="0" width="20" height="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="35" y="11" text-anchor="middle" font-size="9">mat</text>
+                                            <rect x="50" y="0" width="25" height="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="62" y="11" text-anchor="middle" font-size="9">sleep</text>
+                                            <rect x="80" y="0" width="20" height="15" fill="#f1f5f9" stroke="#94a3b8"/><text x="90" y="11" text-anchor="middle" font-size="9">now</text>
+                                        </g>
+
+                                        <!-- Step 2: Scores -->
+                                        <text x="0" y="35" font-size="10" fill="${C.sub}">Score:</text>
+                                        <g transform="translate(40, 25)">
+                                            <text x="10" y="10" text-anchor="middle" font-size="9" fill="${C.decode}">0.99</text>
+                                            <text x="35" y="10" text-anchor="middle" font-size="9" fill="${C.decode}">0.95</text>
+                                            <text x="62" y="10" text-anchor="middle" font-size="9" fill="${C.decode}">0.88</text>
+                                            <text x="90" y="10" text-anchor="middle" font-size="9" fill="${C.danger}">0.01</text>
+                                        </g>
+
+                                        <!-- Step 3: Check -->
+                                        <text x="0" y="70" font-size="10" fill="${C.sub}">Check:</text>
+                                        <g transform="translate(40, 60)">
+                                            <!-- T1 -->
+                                            <circle cx="10" cy="10" r="8" fill="#d1fae5"/><text x="10" y="14" text-anchor="middle" fill="${C.decode}" font-size="10">✓</text>
+                                            <line x1="20" y1="10" x2="30" y2="10" stroke="${C.decode}"/>
+                                            
+                                            <!-- T2 -->
+                                            <circle cx="35" cy="10" r="8" fill="#d1fae5"/><text x="35" y="14" text-anchor="middle" fill="${C.decode}" font-size="10">✓</text>
+                                            <line x1="45" y1="10" x2="55" y2="10" stroke="${C.decode}"/>
+
+                                            <!-- T3 -->
+                                            <circle cx="62" cy="10" r="8" fill="#d1fae5"/><text x="62" y="14" text-anchor="middle" fill="${C.decode}" font-size="10">✓</text>
+                                            <line x1="72" y1="10" x2="82" y2="10" stroke="${C.decode}"/>
+
+                                            <!-- T4 -->
+                                            <circle cx="90" cy="10" r="8" fill="#fee2e2"/><text x="90" y="14" text-anchor="middle" fill="${C.danger}" font-size="10">✗</text>
+                                            
+                                            <text x="140" y="14" font-size="10" fill="${C.sub}">拒绝 "now"</text>
+                                            <text x="140" y="26" font-size="10" fill="${C.decode}" font-weight="bold">重采样: "sound"</text>
+                                        </g>
+                                    </g>
+                                </g>
+
+                                <line x1="650" y1="115" x2="680" y2="115" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)"/>
+
+                                <!-- Result -->
+                                <g transform="translate(690, 85)">
+                                    <text x="50" y="-10" text-anchor="middle" font-weight="bold" fill="${C.sub}">最终接受</text>
+                                    <rect x="0" y="0" width="100" height="60" rx="4" fill="#f0fdf4" stroke="${C.decode}" stroke-width="2"/>
+                                    <text x="50" y="25" text-anchor="middle" font-weight="bold" fill="${C.decode}">3 Tokens</text>
+                                    <text x="50" y="45" text-anchor="middle" font-size="10" fill="${C.sub}">+ 1 修正</text>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="details-grid">
+                            <div class="card">
+                                <div class="card-title" style="color:${C.decode}"><i class="fa-solid fa-book"></i> 原理 (Principle)</div>
+                                <div class="card-body">
+                                    <b>Draft-Verify 机制：</b><br>
+                                    1. <b>Draft:</b> 小模型快速串行生成 N 个 Token。<br>
+                                    2. <b>Verify:</b> 大模型将这 N 个 Token 拼成矩阵（或树），进行<b>一次 Forward Pass</b>，并行计算所有位置的概率分布，验证 Draft 是否正确。
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title" style="color:${C.decode}"><i class="fa-solid fa-desktop"></i> 实例 (Example)</div>
+                                <div class="card-body">
+                                    <b>Context:</b> "The cat is on"<br>
+                                    <b>Draft:</b> "the", "mat", "sleep", "now"<br>
+                                    <b>Target:</b> 接受前3个("the mat sleep")，拒绝"now" (大模型修正为"sound")。<br>
+                                    <b>收益:</b> 1次大模型推理，生成了3个Token。
+                                </div>
+                            </div>
+                            <div class="card challenge-card">
+                                <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> 挑战 (Challenges)</div>
+                                <div class="card-body">
+                                    <ol style="padding-left:20px; margin:0;">
+                                        <li><b>模型对齐：</b>Draft Model 必须与 Target Model 的分布足够接近，否则接受率低，反而拖慢速度。</li>
+                                        <li><b>动态调整：</b>需实时监控接受率。若任务很难（高熵），自动关闭投机模式。</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // --- INFRA: OFFLOAD ---
+            {
+                id: 'offload',
+                group: '4. 基础设施层',
+                title: 'KV Offloading 分级存储',
+                meta: 'Swap In/Out 机制',
+                color: C.infra,
+                render: () => `
+                    <div class="content-split">
+                        <div class="diagram-area">
+                            <div class="diagram-badge">Memory Hierarchy & Data Flow</div>
+                            <svg width="800" height="280" viewBox="0 0 800 280">
+                                ${defs}
+                                <!-- GPU -->
+                                <g transform="translate(100, 40)">
+                                    <rect x="0" y="0" width="160" height="200" rx="8" fill="#fffbeb" stroke="${C.infra}" stroke-width="2"/>
+                                    <text x="80" y="30" text-anchor="middle" font-weight="bold" fill="${C.infra}">GPU VRAM (L1)</text>
+                                    <text x="80" y="45" text-anchor="middle" font-size="10" fill="${C.sub}">HBM3 (Active/Hot)</text>
+                                    
+                                    <!-- Blocks -->
+                                    <rect x="20" y="60" width="120" height="20" fill="${C.infra}" opacity="0.9"/>
+                                    <rect x="20" y="85" width="120" height="20" fill="${C.infra}" opacity="0.9"/>
+                                    <rect x="20" y="110" width="120" height="20" fill="#fff" stroke="${C.infra}" stroke-dasharray="2"/>
+                                    <text x="80" y="125" text-anchor="middle" font-size="10" fill="${C.sub}">Swap Victim</text>
+                                </g>
+
+                                <!-- Channel -->
+                                <g transform="translate(300, 120)">
+                                    <line x1="0" y1="0" x2="200" y2="0" stroke="${C.text}" stroke-width="4"/>
+                                    <text x="100" y="-15" text-anchor="middle" font-size="11" font-weight="bold">PCIe Gen5 x16 (64GB/s)</text>
+                                    
+                                    <path d="M50 10 L150 10" stroke="${C.sub}" marker-end="url(#arrow)"/>
+                                    <text x="100" y="25" text-anchor="middle" font-size="10">Evict (LRU Policy)</text>
+                                    
+                                    <path d="M150 40 L50 40" stroke="${C.sub}" marker-end="url(#arrow)"/>
+                                    <text x="100" y="55" text-anchor="middle" font-size="10">Prefetch (Async)</text>
+                                </g>
+
+                                <!-- CPU -->
+                                <g transform="translate(540, 40)">
+                                    <rect x="0" y="0" width="160" height="200" rx="8" fill="#f8fafc" stroke="${C.text}" stroke-width="2"/>
+                                    <text x="80" y="30" text-anchor="middle" font-weight="bold" fill="${C.text}">CPU Memory (L2)</text>
+                                    <text x="80" y="45" text-anchor="middle" font-size="10" fill="${C.sub}">Pinned DRAM (Warm)</text>
+                                    
+                                    <!-- Blocks -->
+                                    <rect x="20" y="60" width="120" height="20" fill="${C.sub}" opacity="0.2"/>
+                                    <rect x="20" y="85" width="120" height="20" fill="${C.sub}" opacity="0.2"/>
+                                    <rect x="20" y="110" width="120" height="20" fill="${C.infra}" opacity="0.4"/>
+                                    <rect x="20" y="135" width="120" height="20" fill="${C.sub}" opacity="0.2"/>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="details-grid">
+                            <div class="card">
+                                <div class="card-title" style="color:${C.infra}"><i class="fa-solid fa-microchip"></i> 核心技术细节 (Details)</div>
+                                <div class="card-body">
+                                    <ul style="padding-left:15px; margin:0;">
+                                        <li><b>Pinned Memory:</b> 在 CPU 端分配锁页内存，避免 OS 分页，实现 GPU Direct DMA 高速传输。</li>
+                                        <li><b>流水线并行:</b> 将计算 (Compute) 与 传输 (Transfer) 重叠，在计算 Layer N 的同时预取 Layer N+1 的 KV。</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title" style="color:${C.infra}"><i class="fa-solid fa-filter"></i> 更新与驱逐 (Policy)</div>
+                                <div class="card-body">
+                                    <ul style="padding-left:15px; margin:0;">
+                                        <li><b>LRU 驱逐:</b> 优先换出最久未使用的 Block。</li>
+                                        <li><b>预测性预取:</b> 监听 "User Typing" 事件，提前触发 Swap In，掩盖 PCIe 延迟。</li>
+                                        <li><b>稀疏卸载:</b> 仅卸载 Attention Score 较低的非关键 Token (需模型支持)。</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="card challenge-card" style="border-color:${C.infra}; background-color:#fffbeb;">
+                                <div class="card-title" style="color:${C.infra}"><i class="fa-solid fa-crosshairs"></i> 适用场景 (Scenarios)</div>
+                                <div class="card-body">
+                                    <ul style="padding-left:15px; margin:0;">
+                                        <li><b>✅ 适用:</b> 超长上下文 (128k+)、多轮对话中用户思考时间长、并发突发高。</li>
+                                        <li><b>❌ 不适用:</b> 对延迟极其敏感的高频短对话 (PCIe 延迟不可忽略)。</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 'paged',
+                group: '4. 基础设施层',
+                title: 'PagedAttention 内存分页',
+                meta: '非连续显存管理',
+                color: C.infra,
+                render: () => `
+                    <div class="content-split">
+                        <div class="diagram-area">
+                            <div class="diagram-badge">Virtual Memory Mapping</div>
+                            <svg width="800" height="280" viewBox="0 0 800 280">
+                                ${defs}
+                                <!-- Logical KV -->
+                                <g transform="translate(50, 60)">
+                                    <text x="50" y="-10" text-anchor="middle" font-weight="bold">逻辑 KV</text>
+                                    <rect x="0" y="0" width="100" height="160" fill="#fff" stroke="${C.text}"/>
+                                    <rect x="0" y="0" width="100" height="40" fill="#fef3c7" stroke="${C.infra}"/>
+                                    <text x="50" y="25" text-anchor="middle" font-size="10">Block 0</text>
+                                    <rect x="0" y="40" width="100" height="40" fill="#fef3c7" stroke="${C.infra}"/>
+                                    <text x="50" y="65" text-anchor="middle" font-size="10">Block 1</text>
+                                    <rect x="0" y="80" width="100" height="40" fill="#fef3c7" stroke="${C.infra}"/>
+                                    <text x="50" y="105" text-anchor="middle" font-size="10">Block 2</text>
+                                </g>
+
+                                <!-- Arrow -->
+                                <line x1="160" y1="140" x2="220" y2="140" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)"/>
+
+                                <!-- Table -->
+                                <g transform="translate(230, 80)">
+                                    <text x="60" y="-10" text-anchor="middle" font-weight="bold">页表 (Block Table)</text>
+                                    <rect x="0" y="0" width="120" height="120" fill="#fff" stroke="${C.infra}" stroke-width="2"/>
+                                    <text x="60" y="30" text-anchor="middle" font-family="monospace" font-size="12">0 -> 0x4A</text>
+                                    <text x="60" y="50" text-anchor="middle" font-family="monospace" font-size="12">1 -> 0x1C</text>
+                                    <text x="60" y="70" text-anchor="middle" font-family="monospace" font-size="12">2 -> 0x8B</text>
+                                </g>
+
+                                <!-- Arrow -->
+                                <line x1="360" y1="140" x2="420" y2="140" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)"/>
+
+                                <!-- Physical -->
+                                <g transform="translate(430, 40)">
+                                    <text x="100" y="-10" text-anchor="middle" font-weight="bold">物理显存 (不连续)</text>
+                                    <rect x="0" y="0" width="200" height="200" fill="#f8fafc" stroke="${C.text}"/>
+                                    <!-- Scattered Blocks -->
+                                    <rect x="20" y="20" width="60" height="30" fill="#fef3c7" stroke="${C.infra}"/>
+                                    <text x="50" y="40" text-anchor="middle" font-size="10">0x4A (B0)</text>
+
+                                    <rect x="120" y="80" width="60" height="30" fill="#fef3c7" stroke="${C.infra}"/>
+                                    <text x="150" y="100" text-anchor="middle" font-size="10">0x1C (B1)</text>
+
+                                    <rect x="40" y="150" width="60" height="30" fill="#fef3c7" stroke="${C.infra}"/>
+                                    <text x="70" y="170" text-anchor="middle" font-size="10">0x8B (B2)</text>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="details-grid">
+                            <div class="card">
+                                <div class="card-title" style="color:${C.infra}"><i class="fa-solid fa-book"></i> 原理 (Principle)</div>
+                                <div class="card-body">
+                                    借鉴操作系统的虚拟内存分页技术。将连续的逻辑 KV Cache 离散存储在非连续的物理显存块 (Block) 中，消除内存碎片。
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title" style="color:${C.infra}"><i class="fa-solid fa-desktop"></i> 实例 (Example)</div>
+                                <div class="card-body">
+                                    vLLM 的基石技术。它将显存利用率从 <50% 提升到了接近 100%，从而支持了更大的 Batch Size 和吞吐量。
+                                </div>
+                            </div>
+                            <div class="card challenge-card">
+                                <div class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> 挑战 (Challenges)</div>
+                                <div class="card-body">
+                                    <ol style="padding-left:20px; margin:0;">
+                                        <li><b>Kernel 复杂度：</b>所有 Attention 算子都必须重写以支持非连续内存访问，开发难度极大。</li>
+                                        <li><b>Block Size 调优：</b>块太小导致元数据开销大，块太大导致尾部碎片浪费。</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+
+            // --- NEXT GEN: RUBIN & FUTURE ---
+            {
+                id: 'next-gen',
+                group: '5. 未来展望',
+                title: '下一代演进：Rubin 架构与 Agent-Native',
+                meta: 'Hardware-Software Co-Design',
+                color: C.network, 
+                render: () => `
+                    <div class="content-split">
+                        <div class="diagram-area">
+                            <div class="diagram-badge">软硬协同演进图谱 (Co-Evolution Pillars)</div>
+                            <svg width="800" height="280" viewBox="0 0 800 280">
+                                ${defs}
+                                
+                                <!-- Background Layer -->
+                                <rect x="30" y="30" width="740" height="220" fill="#fff" stroke="${C.network}" stroke-width="1" rx="8" stroke-dasharray="4"/>
+                                <text x="400" y="20" text-anchor="middle" font-weight="bold" fill="${C.network}" font-size="12">Next-Gen Agent Infrastructure</text>
+
+                                <!-- Pillar 1: Memory (Left) -->
+                                <g transform="translate(60, 60)">
+                                    <text x="100" y="-10" text-anchor="middle" font-weight="bold" fill="${C.prefill}">1. 内存革命</text>
+                                    
+                                    <!-- Top: Software -->
+                                    <rect x="0" y="0" width="200" height="60" rx="4" fill="#eff6ff" stroke="${C.prefill}" stroke-width="2"/>
+                                    <text x="100" y="25" text-anchor="middle" font-weight="bold" fill="${C.prefill}" font-size="11">无限上下文 (Infinite Context)</text>
+                                    <text x="100" y="45" text-anchor="middle" font-size="9" fill="${C.sub}">Ring Attention / Compress</text>
+
+                                    <!-- Arrow -->
+                                    <path d="M 100 130 L 100 70" stroke="${C.prefill}" stroke-width="3" marker-end="url(#arrow-prefill)"/>
+                                    <text x="110" y="100" font-size="9" fill="${C.sub}">Unlocks</text>
+
+                                    <!-- Bottom: Hardware -->
+                                    <rect x="0" y="130" width="200" height="40" rx="4" fill="#1e293b"/>
+                                    <text x="100" y="155" text-anchor="middle" font-weight="bold" fill="#fff">Rubin: HBM4</text>
+                                    <text x="210" y="155" font-size="9" fill="${C.sub}">更高带宽/堆叠</text>
+                                </g>
+
+                                <!-- Pillar 2: Interconnect (Middle) -->
+                                <g transform="translate(300, 60)">
+                                    <text x="100" y="-10" text-anchor="middle" font-weight="bold" fill="${C.infra}">2. 极致互联</text>
+
+                                    <!-- Top: Software -->
+                                    <rect x="0" y="0" width="200" height="60" rx="4" fill="#fffbeb" stroke="${C.infra}" stroke-width="2"/>
+                                    <text x="100" y="25" text-anchor="middle" font-weight="bold" fill="${C.infra}" font-size="11">全局显存池 (Memory Fabric)</text>
+                                    <text x="100" y="45" text-anchor="middle" font-size="9" fill="${C.sub}">Disaggregated KV Store</text>
+
+                                    <!-- Arrow -->
+                                    <path d="M 100 130 L 100 70" stroke="${C.infra}" stroke-width="3"/>
+                                    <polygon points="100,60 95,70 105,70" fill="${C.infra}"/>
+
+                                    <!-- Bottom: Hardware -->
+                                    <rect x="0" y="130" width="200" height="40" rx="4" fill="#1e293b"/>
+                                    <text x="100" y="155" text-anchor="middle" font-weight="bold" fill="#fff">NVLink 6 Switch</text>
+                                    <text x="210" y="155" font-size="9" fill="${C.sub}">跨节点零拷贝</text>
+                                </g>
+
+                                <!-- Pillar 3: Compute (Right) -->
+                                <g transform="translate(540, 60)">
+                                    <text x="100" y="-10" text-anchor="middle" font-weight="bold" fill="${C.decode}">3. 算力爆发</text>
+
+                                    <!-- Top: Software -->
+                                    <rect x="0" y="0" width="200" height="60" rx="4" fill="#ecfdf5" stroke="${C.decode}" stroke-width="2"/>
+                                    <text x="100" y="25" text-anchor="middle" font-weight="bold" fill="${C.decode}" font-size="11">System 2 慢思考</text>
+                                    <text x="100" y="45" text-anchor="middle" font-size="9" fill="${C.sub}">Speculative Tree Search</text>
+
+                                    <!-- Arrow -->
+                                    <path d="M 100 130 L 100 70" stroke="${C.decode}" stroke-width="3"/>
+                                    <polygon points="100,60 95,70 105,70" fill="${C.decode}"/>
+
+                                    <!-- Bottom: Hardware -->
+                                    <rect x="0" y="130" width="200" height="40" rx="4" fill="#1e293b"/>
+                                    <text x="100" y="155" text-anchor="middle" font-weight="bold" fill="#fff">Native FP4 Core</text>
+                                    <text x="210" y="155" font-size="9" fill="${C.sub}">2-4x 吞吐提升</text>
+                                </g>
+                            </svg>
+                        </div>
+                        <div class="details-grid">
+                            <div class="card">
+                                <div class="card-title" style="color:${C.prefill}"><i class="fa-solid fa-hard-drive"></i> 内存墙突破 (HBM4)</div>
+                                <div class="card-body">
+                                    <b>硬件:</b> Rubin 搭载 HBM4，带宽与容量双重飞跃。<br>
+                                    <b>软件演进:</b> 支持 <b>Ring Attention</b>，将 Context 扩展至 1M+ Token。Agent 可以“记住”整本技术手册或全部历史对话。
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title" style="color:${C.infra}"><i class="fa-solid fa-network-wired"></i> 互联墙突破 (NVLink 6)</div>
+                                <div class="card-body">
+                                    <b>硬件:</b> NVLink 6 提供超高带宽，使跨卡访问像访问本地显存一样快。<br>
+                                    <b>软件演进:</b> <b>PD 分离架构</b> 将升级为“全局显存网络”，计算节点可无感访问远端 KV Cache。
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-title" style="color:${C.decode}"><i class="fa-solid fa-microchip"></i> 算力墙突破 (FP4)</div>
+                                <div class="card-body">
+                                    <b>硬件:</b> 原生支持 FP4 低精度计算。<br>
+                                    <b>软件演进:</b> 算力的富余将用于 <b>System 2 (o1-like)</b> 推理。Agent 不再是“单次生成”，而是通过“树状搜索”和“自我反思”来保证任务成功率。
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
             }
+        ];
+
+        // --- Core Logic ---
+        const navList = document.getElementById('navList');
+        const slideContainer = document.getElementById('slideContainer');
+        const pageNum = document.getElementById('pageNum'); // Get page number element
+        let currentIndex = 0;
+
+        function initNav() {
+            let currentGroup = '';
+            navList.innerHTML = slides.map((slide, idx) => {
+                let html = '';
+                if (slide.group && slide.group !== currentGroup) {
+                    currentGroup = slide.group;
+                    html += `<div class="nav-group-title">${currentGroup}</div>`;
+                }
+                
+                let iconColor = 'inherit';
+                if (slide.color && slide.group !== 'Intro') iconColor = slide.color;
+
+                html += `
+                    <div class="nav-item" id="nav-${idx}" onclick="window.nav(${idx})">
+                        <div style="width:6px; height:6px; border-radius:50%; background:${iconColor}; opacity:0.7;"></div>
+                        ${slide.title}
+                    </div>
+                `;
+                return html;
+            }).join('');
         }
-    });
-}, { threshold: 0.3 });
 
-document.querySelectorAll('.slide').forEach(slide => observer.observe(slide));
+        function renderSlide(idx) {
+            const slide = slides[idx];
+            
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            const activeNav = document.getElementById(`nav-${idx}`);
+            if (activeNav) activeNav.classList.add('active');
 
-// PDF 导出
-function generatePDF() {
-    const element = document.getElementById('mainContent');
-    const btn = document.getElementById('pdf-btn');
-    
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
-    btn.disabled = true;
-    btn.style.opacity = '0'; // 截图时隐藏按钮
+            // Update Page Number
+            if (pageNum) {
+                pageNum.innerText = `${idx + 1} / ${slides.length}`;
+            }
 
-    const opt = {
-        margin: 0,
-        filename: 'Agent_Long_Context_Optimization.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: '#0b0e14' },
-        jsPDF: { unit: 'px', format: [1200, 800], orientation: 'landscape' }, // 这里的尺寸对应宽屏 PPT
-        pagebreak: { mode: ['css', 'legacy'] }
-    };
+            let header = '';
+            if (slide.group !== 'Intro') {
+                header = `
+                    <div class="slide-header">
+                        <div class="slide-title">
+                            <span style="color:${slide.color}"><i class="fa-solid fa-square"></i></span>
+                            ${slide.title}
+                        </div>
+                        <div class="slide-meta">${slide.meta}</div>
+                    </div>
+                `;
+            } else if (slide.id === 'lifecycle') {
+                header = `
+                     <div class="slide-header">
+                        <div class="slide-title">${slide.title}</div>
+                        <div class="slide-meta">${slide.meta}</div>
+                    </div>
+                `;
+            } else if (slide.id === 'background') { // Update for merged slide
+                 header = `
+                     <div class="slide-header">
+                        <div class="slide-title">${slide.title}</div>
+                        <div class="slide-meta">${slide.meta}</div>
+                    </div>
+                `;
+            }
 
-    html2pdf().set(opt).from(element).save().then(() => {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        btn.style.opacity = '1';
-    });
-}
-</script>
+            slideContainer.innerHTML = `${header}${slide.render()}`;
+            slideContainer.style.animation = 'none';
+            slideContainer.offsetHeight;
+            slideContainer.style.animation = 'fadeUp 0.3s ease-out';
+        }
+
+        // 显式挂载到 window，确保 HTML 中的 onclick 可以调用
+        window.nav = function(idx) {
+            if (idx >= 0 && idx < slides.length) {
+                currentIndex = idx;
+                renderSlide(currentIndex);
+            }
+        };
+        
+        // Print All Slides Function
+        window.printAllSlides = function() {
+            const printContainer = document.getElementById('printContainer');
+            printContainer.innerHTML = ''; // Clear previous content
+            
+            // Loop through all slides and render them
+            slides.forEach((slide, index) => {
+                const pageDiv = document.createElement('div');
+                pageDiv.className = 'print-page';
+                
+                // Add header manually for print view since renderSlide does it dynamically
+                let headerHTML = '';
+                if (slide.group !== 'Intro') {
+                    headerHTML = `
+                        <div class="slide-header">
+                            <div class="slide-title" style="color: #0f172a;">
+                                <span style="color:${slide.color}"><i class="fa-solid fa-square"></i></span>
+                                ${slide.title}
+                            </div>
+                            <div class="slide-meta" style="color: #475569;">${slide.meta || ''}</div>
+                        </div>
+                    `;
+                } else {
+                     headerHTML = `
+                         <div class="slide-header">
+                            <div class="slide-title" style="color: #0f172a;">${slide.title}</div>
+                            <div class="slide-meta" style="color: #475569;">${slide.meta || ''}</div>
+                        </div>
+                    `;
+                }
+
+                // Combine header and slide content
+                pageDiv.innerHTML = headerHTML + slide.render();
+                printContainer.appendChild(pageDiv);
+            });
+            
+            // Trigger browser print
+            window.print();
+        };
+
+        // Init
+        initNav();
+        window.nav(0);
+
+        // Keyboard support
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight') window.nav(currentIndex + 1);
+            else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') window.nav(currentIndex - 1);
+        });
+
+    })();
+    </script>
 </body>
 </html>
