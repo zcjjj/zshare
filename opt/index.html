@@ -1304,7 +1304,7 @@
 
             <!-- 文字说明（底部栏） -->
             <div style="margin-top:10px; font-size:13px; color:#475569; line-height:1.6;">
-                <b>冷热块切换机制（文字版）：</b><br/>
+                <b>冷热块切换机制：</b><br/>
                 ① <span style="color:#d97706;">判定</span> - 维护访问计数器 + LRU 链表，尾节点即冷块<br/>
                 ② <span style="color:#ffcc00;">调度</span> - Scheduler 摘尾节点并发起异步 DMA；同时根据前缀/typing 预测提前 prefetch<br/>
                 ③ <span style="color:#64748b;">搬运</span> - 零拷贝 DMA 双通道：Evict（GPU→CPU）与 Prefetch（CPU→GPU）与计算流并发<br/>
