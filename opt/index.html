@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>面向 Agent 的 LLM 推理全栈优化</title>
+    <title>面向 Agent应用的 LLM 推理全栈优化</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -417,7 +417,7 @@
                             <i class="fa-solid fa-layer-group"></i>
                         </div>
                         <h1 style="font-size: 6vh; font-weight: 900; margin-bottom: 3vh; color: ${C.text}; letter-spacing: -1px;">
-                            面向 Agent 的 LLM 推理全栈优化
+                            面向 Agent应用的 LLM 推理全栈优化
                         </h1>
                         <p style="font-size: 2.5vh; color: ${C.sub}; max-width: 800px; margin-bottom: 8vh; line-height: 1.6; font-weight: 300;">
                             从网关到显存的深度架构重构<br>
@@ -497,17 +497,17 @@
                                     <!-- Agent: Compute Bound -->
                                     <g transform="translate(250, 40)">
                                         <!-- Same Width: 80, but different internal distribution -->
-                                        <rect x="0" y="0" width="80" height="200" fill="#eff6ff" stroke="${C.prefill}" stroke-width="2"/> <!-- Taller to show total compute increase -->
+                                        <rect x="0" y="0" width="80" height="160" fill="#eff6ff" stroke="${C.prefill}" stroke-width="2"/> <!-- Taller to show total compute increase -->
                                         
                                         <!-- Huge Prefill -->
-                                        <rect x="5" y="5" width="70" height="150" fill="${C.prefill}"/>
+                                        <rect x="5" y="5" width="70" height="120" fill="${C.prefill}"/>
                                         <text x="40" y="80" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff" writing-mode="tb">PREFILL</text>
                                         
                                         <!-- Small Decode -->
-                                        <rect x="5" y="160" width="70" height="35" fill="${C.decode}"/>
+                                        <rect x="5" y="120" width="70" height="35" fill="${C.decode}"/>
                                         
-                                        <text x="40" y="225" text-anchor="middle" font-size="14" font-weight="bold">Agent</text>
-                                        <text x="40" y="245" text-anchor="middle" font-size="12" fill="${C.sub}">Compute Bound</text>
+                                        <text x="40" y="185" text-anchor="middle" font-size="14" font-weight="bold">Agent</text>
+                                        <text x="40" y="205" text-anchor="middle" font-size="12" fill="${C.sub}">Compute Bound</text>
                                     </g>
                                     
                                     <!-- Annotations -->
@@ -551,12 +551,12 @@
             {
                 id: 'lifecycle',
                 group: '简介',
-                title: '全生命周期优化地图 (End-to-End Flow)',
+                title: '全生命周期优化路线 (End-to-End Flow)',
                 meta: 'Request Processing Pipeline',
                 render: () => `
                     <div class="content-split">
                         <div class="diagram-area">
-                            <div class="diagram-badge">全生命周期优化地图</div>
+                            <div class="diagram-badge">全生命周期优化路线</div>
                             <svg viewBox="0 0 900 320" preserveAspectRatio="xMidYMid meet">
                                 ${defs}
                                 
@@ -587,7 +587,7 @@
                                 <!-- Arrow to Compute -->
                                 <path d="M 270 110 L 310 110" stroke="${C.line}" stroke-width="2" marker-end="url(#arrow)"/>
 
-                                <!-- 3. Compute Layer (PD Separation) -->
+                                <!-- 3. Compute Layer (PD Disaggregation) -->
                                 <g transform="translate(320, 20)">
                                     <!-- Prefill Cluster -->
                                     <g transform="translate(0, 20)">
@@ -597,7 +597,7 @@
                                         
                                         <g transform="translate(10, 60)">
                                             <rect x="0" y="0" width="140" height="25" rx="4" fill="#fff" stroke="${C.prefill}"/>
-                                            <text x="70" y="17" text-anchor="middle" font-size="10">Radix Attention</text>
+                                            <text x="70" y="17" text-anchor="middle" font-size="10">Prefix Cache</text>
                                             <rect x="0" y="35" width="140" height="25" rx="4" fill="#fff" stroke="${C.prefill}"/>
                                             <text x="70" y="52" text-anchor="middle" font-size="10">Chunked Prefill</text>
                                         </g>
@@ -633,11 +633,11 @@
                                     
                                     <g transform="translate(20, 40)">
                                         <rect x="0" y="0" width="170" height="30" rx="4" fill="#fff" stroke="${C.infra}"/>
-                                        <text x="85" y="20" text-anchor="middle" font-size="11">L4 Storage (PagedAttn/Offload)</text>
+                                        <text x="85" y="20" text-anchor="middle" font-size="11">Storage (PagedAttn/Offload)</text>
                                     </g>
                                     <g transform="translate(210, 40)">
-                                        <rect x="0" y="0" width="170" height="30" rx="4" fill="#f5f3ff" stroke="${C.network}"/>
-                                        <text x="85" y="20" text-anchor="middle" font-size="11">L5 Network (RDMA/NVLink)</text>
+                                        <rect x="0" y="0" width="170" height="30" rx="4" fill="#fff" stroke="${C.network}"/>
+                                        <text x="85" y="20" text-anchor="middle" font-size="11">Network (RDMA/NVLink)</text>
                                     </g>
                                 </g>
 
@@ -723,7 +723,7 @@
                                 <div class="card-body">
                                     <ol>
                                         <li><b>路由延迟：</b>分类器必须极快（<5ms）。</li>
-                                        <li><b>准确性：</b>误判会导致用户体验崩塌，需设计自动降级机制。</li>
+                                        <li><b>准确性：</b>误判会导致用户体验崩塌，需设计自动降级机制。（比如低置信度直接调用大模型）</li>
                                     </ol>
                                 </div>
                             </div>
@@ -737,7 +737,7 @@
                 render: () => `
                     <div class="content-split">
                         <div class="diagram-area">
-                            <div class="diagram-badge">UML 部署视图 (Deployment View)</div>
+                            <div class="diagram-badge">部署视图 (Deployment View)</div>
                             <svg viewBox="0 0 800 300" preserveAspectRatio="xMidYMid meet">
                                 ${defs}
                                 <circle cx="80" cy="80" r="25" fill="#f3e8ff" stroke="${C.gateway}" stroke-width="2"/>
@@ -783,6 +783,12 @@
                                     <ol>
                                         <li><b>负载倾斜：</b>若某用户是"话痨"，会导致对应 Worker 过载。需设计混合策略。</li>
                                         <li><b>扩缩容失效：</b>Worker 扩容时，Hash 环改变导致缓存大面积失效。</li>
+                                        用户分布：
+哈希值 0-499 的用户 → Worker-A（50%流量）
+哈希值 500-999 的用户 → Worker-B（50%流量）。
+错误扩容： 简单重哈希将Worker-A中哈希值333-499的用户强制迁移到新Worker-C，导致其缓存全部丢失。
+
+解决方案： 按访问频率排序，优先迁移低频用户（冷数据），减少对活跃用户的影响。</li>
                                     </ol>
                                 </div>
                             </div>
@@ -827,11 +833,7 @@
                                     <rect x="45" y="0" width="40" height="30" fill="#f3e8ff" stroke="${C.gateway}"/><text x="65" y="20" text-anchor="middle" font-size="12">brown</text>
                                     <rect x="90" y="0" width="30" height="30" fill="#f3e8ff" stroke="${C.gateway}"/><text x="105" y="20" text-anchor="middle" font-size="12">fox</text>
                                 </g>
-                                <g transform="translate(680, 115)">
-                                    <rect x="0" y="0" width="100" height="60" rx="4" fill="#f0fdf4" stroke="${C.decode}"/>
-                                    <text x="50" y="25" text-anchor="middle" font-weight="bold" fill="${C.decode}" font-size="14">3x Speedup</text>
-                                    <text x="50" y="45" text-anchor="middle" fill="${C.decode}" font-size="12">Loss < 1%</text>
-                                </g>
+                                
                             </svg>
                         </div>
                         <div class="details-grid">
@@ -856,9 +858,9 @@
                     </div>`
             },
 
-            // 7. PD SEPARATION
+            // 7. PD Disaggregation
             {
-                id: 'pd-sep', group: '2. 预填充层', title: 'PD Separation (分离架构)', meta: 'Prefill-Decode 分离', color: C.prefill,
+                id: 'pd-sep', group: '2. 预填充层', title: 'PD Disaggregation (分离架构)', meta: 'Prefill-Decode 分离', color: C.prefill,
                 render: () => `
                     <div class="content-split">
                         <div class="diagram-area">
@@ -918,7 +920,8 @@
                             </div>
                             <div class="card" style="color:${C.infra}">
                                 <div class="card-title">Global KV Pool</div>
-                                <div class="card-body">Prefill 计算完的 KV 不留在本地，而是直接写入目标 Decode 节点的地址空间（或共享存储），实现<b>零拷贝传输</b>与状态解耦。</div>
+                                <div class="card-body">Prefill 计算完的 KV 不留在本地，而是直接写入目标 Decode 节点的地址空间（或共享存储），实现<b>零拷贝传输</b>与状态解耦。
+                                <br />命中率提升：保存大量前缀树</div>
                             </div>
                             <div class="card challenge-card">
                                 <div class="card-title">挑战 (Challenges)</div>
@@ -1002,7 +1005,7 @@
 
             // 9. RADIX ATTENTION
             {
-                id: 'radix', group: '2. 预填充层', title: 'Radix Attention (前缀树)', meta: 'KV Cache 复用', color: C.prefill,
+                id: 'radix', group: '2. 预填充层', title: 'Prefix Cache', meta: 'KV Cache 复用', color: C.prefill,
                 render: () => `
                     <div class="content-split">
                         <div class="diagram-area">
@@ -1220,7 +1223,7 @@
                         <div class="details-grid">
                             <div class="card" style="color:${C.decode}">
                                 <div class="card-title">原理 (Principle)</div>
-                                <div class="card-body"><b>Draft-Verify:</b> 小模型串行生成 N 个 Token，大模型进行<b>一次 Forward Pass</b> 并行验证。</div>
+                                <div class="card-body"><b>Draft-Verify:</b> 小模型串行生成 N 个 Token，大模型进行<b>一次 Forward Pass</b> 并行验证。<br ><b>加速效果</b>：预测长度，接受率</div>
                             </div>
                             <div class="card" style="color:${C.decode}">
                                 <div class="card-title">实例 (Example)</div>
@@ -1304,6 +1307,8 @@
 
             <!-- 文字说明（底部栏） -->
             <div style="margin-top:10px; font-size:13px; color:#475569; line-height:1.6;">
+                <b>作用</b>：上下文更长、并发更多、命中率更高
+                <br/>
                 <b>冷热块切换机制：</b><br/>
                 ① <span style="color:#d97706;">判定</span> - 维护访问计数器 + LRU 链表，尾节点即冷块<br/>
                 ② <span style="color:#ffcc00;">调度</span> - Scheduler 摘尾节点并发起异步 DMA；同时根据前缀/typing 预测提前 prefetch<br/>
