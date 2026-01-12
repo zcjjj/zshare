@@ -427,7 +427,7 @@
                 `
             },
 
-            // 2. BACKGROUND
+  // 2. BACKGROUND (Merged & Enlarged)
             {
                 id: 'background',
                 group: '简介',
@@ -468,40 +468,55 @@
                                     <text x="110" y="210" text-anchor="middle" font-size="12" fill="${C.sub}">Source: SemiAnalysis</text>
                                 </g>
 
-                                <line x1="280" y1="20" x2="280" y2="260" stroke="${C.line}" stroke-width="2" stroke-dasharray="6"/>
+                                <line x1="280" y1="20" x2="280" y2="280" stroke="${C.line}" stroke-width="2" stroke-dasharray="6"/>
 
                                 <!-- Right: Agent Workload -->
                                 <g transform="translate(320, 40)">
-                                    <text x="260" y="-10" text-anchor="middle" font-weight="bold" font-size="16" fill="${C.text}">2. Agent 时代的负载变迁</text>
+                                    <text x="260" y="-15" text-anchor="middle" font-weight="bold" font-size="16" fill="${C.text}">2. Agent 时代的负载变迁</text>
                                     
-                                    <!-- Chatbot -->
+                                    <!-- Chatbot: Memory Bound -->
                                     <g transform="translate(50, 40)">
-                                        <rect x="0" y="0" width="70" height="140" fill="#f1f5f9" stroke="${C.line}" stroke-width="2"/>
-                                        <rect x="0" y="110" width="70" height="30" fill="${C.decode}"/>
-                                        <text x="35" y="165" text-anchor="middle" font-size="14" font-weight="bold">Chatbot</text>
-                                        <text x="35" y="185" text-anchor="middle" font-size="12" fill="${C.sub}">Memory Bound</text>
+                                        <!-- Same Width: 80 -->
+                                        <rect x="0" y="0" width="80" height="160" fill="#f1f5f9" stroke="${C.line}" stroke-width="2"/>
+                                        
+                                        <!-- Small Prefill -->
+                                        <rect x="5" y="5" width="70" height="15" fill="${C.prefill}" opacity="0.6"/>
+                                        
+                                        <!-- Large Decode -->
+                                        <rect x="5" y="25" width="70" height="130" fill="${C.decode}"/>
+                                        <text x="40" y="90" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff" writing-mode="tb">DECODE</text>
+                                        
+                                        <text x="40" y="185" text-anchor="middle" font-size="14" font-weight="bold">Chatbot</text>
+                                        <text x="40" y="205" text-anchor="middle" font-size="12" fill="${C.sub}">Memory Bound</text>
                                     </g>
 
                                     <!-- Arrow -->
-                                    <path d="M 140 100 L 220 100" stroke="${C.text}" stroke-width="3" marker-end="url(#arrow)"/>
-                                    <text x="180" y="90" text-anchor="middle" font-size="12" font-weight="bold" fill="${C.danger}">System 2</text>
+                                    <path d="M 160 100 L 220 100" stroke="${C.text}" stroke-width="3" marker-end="url(#arrow)"/>
+                                    <text x="190" y="90" text-anchor="middle" font-size="12" font-weight="bold" fill="${C.danger}">System 2</text>
 
-                                    <!-- Agent -->
+                                    <!-- Agent: Compute Bound -->
                                     <g transform="translate(250, 40)">
-                                        <rect x="0" y="0" width="140" height="100" fill="${C.prefill}" stroke="${C.text}" stroke-width="2"/>
-                                        <text x="70" y="55" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff" writing-mode="tb">PREFILL</text>
+                                        <!-- Same Width: 80, but different internal distribution -->
+                                        <rect x="0" y="0" width="80" height="200" fill="#eff6ff" stroke="${C.prefill}" stroke-width="2"/> <!-- Taller to show total compute increase -->
                                         
-                                        <rect x="30" y="100" width="80" height="40" fill="${C.decode}" opacity="0.9"/>
-                                        <text x="70" y="125" text-anchor="middle" font-size="12" fill="#fff">Decode</text>
+                                        <!-- Huge Prefill -->
+                                        <rect x="5" y="5" width="70" height="150" fill="${C.prefill}"/>
+                                        <text x="40" y="80" text-anchor="middle" font-size="14" font-weight="bold" fill="#fff" writing-mode="tb">PREFILL</text>
                                         
-                                        <text x="70" y="165" text-anchor="middle" font-size="14" font-weight="bold" fill="${C.prefill}">Agent</text>
-                                        <text x="70" y="185" text-anchor="middle" font-size="12" fill="${C.sub}">Compute Bound</text>
+                                        <!-- Small Decode -->
+                                        <rect x="5" y="160" width="70" height="35" fill="${C.decode}"/>
+                                        
+                                        <text x="40" y="225" text-anchor="middle" font-size="14" font-weight="bold">Agent</text>
+                                        <text x="40" y="245" text-anchor="middle" font-size="12" fill="${C.sub}">Compute Bound</text>
                                     </g>
                                     
-                                    <g transform="translate(420, 60)">
-                                        <text x="0" y="0" font-size="14" font-weight="bold" fill="${C.danger}">1 Query</text>
-                                        <text x="0" y="25" font-size="14" font-weight="bold" fill="${C.danger}">⬇</text>
-                                        <text x="0" y="50" font-size="14" font-weight="bold" fill="${C.danger}">100x 推理</text>
+                                    <!-- Annotations -->
+                                    <g transform="translate(380, 60)">
+                                        <text x="0" y="0" font-size="12" fill="${C.prefill}">• 巨型 Prompt (RAG)</text>
+                                        <text x="0" y="20" font-size="12" fill="${C.prefill}">• 多轮工具定义</text>
+                                        <text x="0" y="40" font-size="12" fill="${C.prefill}">• 矩阵运算密集</text>
+                                        
+                                        <text x="0" y="120" font-size="14" font-weight="bold" fill="${C.danger}">算力需求 ↑10x</text>
                                     </g>
                                 </g>
                             </svg>
@@ -511,7 +526,7 @@
                                 <div class="card-title"><i class="fa-solid fa-chart-pie"></i> 经济规律 (One-to-Many)</div>
                                 <div class="card-body">
                                     <b>训练是"印书"，推理是"卖书"。</b><br>
-                                    模型训练是一次性投入，而推理服务需 7x24 响应。NVIDIA 数据显示，推理收入占比已达 40% (2024)，预计 2026 年将达 80%。
+                                    模型训练是一次性投入，而推理服务需 7x24 响应。NVIDIA 数据显示，推理收入占比已达 40% (2024)，预计 2026 年将达 80% (SemiAnalysis)。
                                 </div>
                             </div>
                             <div class="card" style="color: ${C.decode};">
@@ -1226,68 +1241,75 @@
 
             // 13. OFF-LOADING
             {
-                id: 'offload', group: '4. 基础设施层', title: 'KV Offloading 分级存储', meta: 'Swap In/Out 机制', color: C.infra,
+                id: 'offload', group: '4. 基础设施层', title: 'KV  Cache Offloading 分级存储', meta: 'Swap In/Out 机制', color: C.infra,
                 render: () => `
                     <div class="content-split">
-                        <div class="diagram-area">
-                            <div class="diagram-badge">Memory Hierarchy & Data Flow</div>
-                            <svg viewBox="0 0 800 280" preserveAspectRatio="xMidYMid meet">
-                                ${defs}
-                                <g transform="translate(100, 40)">
-                                    <rect x="0" y="0" width="160" height="200" rx="8" fill="#fffbeb" stroke="${C.infra}" stroke-width="2"/>
-                                    <text x="80" y="30" text-anchor="middle" font-weight="bold" fill="${C.infra}" font-size="16">GPU VRAM</text>
-                                    <text x="80" y="50" text-anchor="middle" font-size="12" fill="${C.sub}">HBM3 (Active)</text>
-                                    <rect x="20" y="70" width="120" height="20" fill="${C.infra}" opacity="0.9"/>
-                                    <rect x="20" y="95" width="120" height="20" fill="${C.infra}" opacity="0.9"/>
-                                    <rect x="20" y="120" width="120" height="20" fill="#fff" stroke="${C.infra}" stroke-dasharray="2"/>
-                                    <text x="80" y="135" text-anchor="middle" font-size="12" fill="${C.sub}">Swap Victim</text>
-                                </g>
-                                <g transform="translate(300, 120)">
-                                    <line x1="0" y1="0" x2="200" y2="0" stroke="${C.text}" stroke-width="4"/>
-                                    <text x="100" y="-15" text-anchor="middle" font-size="14" font-weight="bold">PCIe Gen5 x16</text>
-                                    <path d="M50 10 L150 10" stroke="${C.sub}" marker-end="url(#arrow)"/>
-                                    <text x="100" y="25" text-anchor="middle" font-size="12">Evict</text>
-                                    <path d="M150 40 L50 40" stroke="${C.sub}" marker-end="url(#arrow)"/>
-                                    <text x="100" y="55" text-anchor="middle" font-size="12">Prefetch</text>
-                                </g>
-                                <g transform="translate(540, 40)">
-                                    <rect x="0" y="0" width="160" height="200" rx="8" fill="#f8fafc" stroke="${C.text}" stroke-width="2"/>
-                                    <text x="80" y="30" text-anchor="middle" font-weight="bold" fill="${C.text}" font-size="16">CPU Memory</text>
-                                    <text x="80" y="50" text-anchor="middle" font-size="12" fill="${C.sub}">Pinned DRAM</text>
-                                    <rect x="20" y="70" width="120" height="20" fill="${C.sub}" opacity="0.2"/>
-                                    <rect x="20" y="95" width="120" height="20" fill="${C.sub}" opacity="0.2"/>
-                                </g>
-                            </svg>
-                        </div>
-                        <div class="details-grid">
-                            <div class="card" style="color:${C.infra}">
-                                <div class="card-title">核心技术 (Details)</div>
-                                <div class="card-body">
-                                    <ul>
-                                        <li><b>Pinned Memory:</b> CPU 锁页内存，实现 GPU Direct DMA。</li>
-                                        <li><b>流水线:</b> 计算与传输重叠，掩盖延迟。</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="card" style="color:${C.infra}">
-                                <div class="card-title">策略 (Policy)</div>
-                                <div class="card-body">
-                                    <ul>
-                                        <li><b>LRU 驱逐:</b> 优先换出最久未使用。</li>
-                                        <li><b>预测性预取:</b> 监听 "Typing" 事件，提前 Swap In。</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="card challenge-card">
-                                <div class="card-title">适用场景 (Scenarios)</div>
-                                <div class="card-body">
-                                    <ul>
-                                        <li><b>✅ 适用:</b> 超长上下文、长思考时间。</li>
-                                        <li><b>❌ 不适用:</b> 高频低延时短对话。</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
+            <div class="diagram-area">
+                <div class="diagram-badge">Memory Hierarchy & Data Flow</div>
+                <svg viewBox="0 0 820 320" style="max-height:100%;">
+                    <defs>
+                        <marker id="arr" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><polygon points="0 0,10 3,0 6" fill="#64748b"/></marker>
+                        <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#d97706" flood-opacity="0.55"/></filter>
+                    </defs>
+
+                    <!-- GPU 区域 -->
+                    <g>
+                        <rect x="40" y="60" width="300" height="200" rx="8" fill="#ffffff" stroke="#d97706" stroke-width="2"/>
+                        <text x="190" y="90" fill="#d97706" font-size="16" font-weight="bold">GPU VRAM</text>
+                        <!-- 活跃块 -->
+                        <g fill="#d97706" filter="url(#glow)">
+                            <rect x="70" y="120" width="50" height="25" rx="4"/><text x="95" y="137" text-anchor="middle" font-size="12" fill="#fff">K0</text>
+                            <rect x="130" y="120" width="50" height="25" rx="4"/><text x="155" y="137" text-anchor="middle" font-size="12" fill="#fff">K1</text>
+                            <rect x="190" y="120" width="50" height="25" rx="4"/><text x="215" y="137" text-anchor="middle" font-size="12" fill="#fff">K2</text>
+                            <rect x="250" y="120" width="50" height="25" rx="4"/><text x="275" y="137" text-anchor="middle" font-size="12" fill="#fff">K3</text>
+                        </g>
+                        <!-- 待驱逐块 -->
+                        <g fill="none" stroke="#d97706" stroke-dasharray="4">
+                            <rect x="70" y="165" width="50" height="25" rx="4"/><text x="95" y="179" text-anchor="middle" font-size="12" fill="#64748b">冷块</text>
+                            <rect x="130" y="165" width="50" height="25" rx="4"/><text x="155" y="179" text-anchor="middle" font-size="12" fill="#64748b">冷块</text>
+                        </g>
+                    </g>
+
+                    <!-- CPU 区域 -->
+                    <g>
+                        <rect x="480" y="60" width="300" height="200" rx="8" fill="#ffffff" stroke="#059669" stroke-width="2"/>
+                        <text x="630" y="90" fill="#059669" font-size="16" font-weight="bold">CPU Memory</text>
+                        <!-- 冷数据块 -->
+                        <g fill="none" stroke="#059669">
+                            <rect x="500" y="120" width="50" height="25" rx="4"/><text x="525" y="137" text-anchor="middle" font-size="12" fill="#059669">P0</text>
+                            <rect x="560" y="120" width="50" height="25" rx="4"/><text x="585" y="137" text-anchor="middle" font-size="12" fill="#059669">P1</text>
+                            <rect x="620" y="120" width="50" height="25" rx="4"/><text x="645" y="137" text-anchor="middle" font-size="12" fill="#059669">P2</text>
+                            <rect x="680" y="120" width="50" height="25" rx="4"/><text x="705" y="137" text-anchor="middle" font-size="12" fill="#059669">P3</text>
+                            <rect x="500" y="165" width="50" height="25" rx="4"/><text x="525" y="179" text-anchor="middle" font-size="12" fill="#059669">P4</text>
+                            <rect x="560" y="165" width="50" height="25" rx="4"/><text x="585" y="179" text-anchor="middle" font-size="12" fill="#059669">P5</text>
+                        </g>
+                    </g>
+
+                    <!-- PCIe 双向通道 + Scheduler -->
+                    <g>
+                        <line x1="340" y1="160" x2="480" y2="160" stroke="#64748b" stroke-width="3" marker-end="url(#arr)"/>
+                        <line x1="480" y1="190" x2="340" y2="190" stroke="#64748b" stroke-width="3" marker-end="url(#arr)"/>
+                        <circle cx="410" cy="175" r="30" fill="#ffcc00" stroke="#fff" stroke-width="3"/><text x="410" y="182" text-anchor="middle" font-size="13" font-weight="bold" fill="#000">Scheduler</text>
+                        <text x="410" y="220" text-anchor="middle" font-size="12" fill="#64748b">PCIe Gen5</text>
+                    </g>
+
+                    <!-- 图例 -->
+                    <g font-size="12" fill="#64748b">
+                        <rect x="70" y="280" width="12" height="12" rx="2" fill="#d97706"/><text x="90" y="289">活跃 KV</text>
+                        <rect x="200" y="280" width="12" height="12" rx="2" fill="none" stroke="#d97706" stroke-dasharray="3"/><text x="220" y="289">待驱逐</text>
+                        <rect x="350" y="280" width="12" height="12" rx="2" fill="none" stroke="#059669"/><text x="370" y="289">冷数据</text>
+                    </g>
+                </svg>
+            </div>
+
+            <!-- 文字说明（底部栏） -->
+            <div style="margin-top:10px; font-size:13px; color:#475569; line-height:1.6;">
+                <b>冷热块切换机制（文字版）：</b><br/>
+                ① <span style="color:#d97706;">判定</span> - 维护访问计数器 + LRU 链表，尾节点即冷块<br/>
+                ② <span style="color:#ffcc00;">调度</span> - Scheduler 摘尾节点并发起异步 DMA；同时根据前缀/typing 预测提前 prefetch<br/>
+                ③ <span style="color:#64748b;">搬运</span> - 零拷贝 DMA 双通道：Evict（GPU→CPU）与 Prefetch（CPU→GPU）与计算流并发<br/>
+                ④ <span style="color:#059669;">回填</span> - 页表重映射，逻辑块号不变，GPU 计算零感知，毫秒级完成
+            </div>
                     </div>`
             },
             
