@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技术调研报告：下一代时空原生与AI自治数据基础设施</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9fafb;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            color: #1e3a8a;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 30px;
+            font-size: 18px;
+            font-weight: normal;
+        }
+        
+        .meta-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 40px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .meta-table th {
+            background-color: #f8fafc;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+            width: 150px;
+        }
+        
+        .meta-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #475569;
+        }
+        
+        h2 {
+            color: #1e40af;
+            margin: 40px 0 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 22px;
+        }
+        
+        h3 {
+            color: #374151;
+            margin: 25px 0 15px;
+            font-size: 18px;
+        }
+        
+        p {
+            margin-bottom: 16px;
+            color: #4b5563;
+        }
+        
+        ul {
+            margin-bottom: 20px;
+            padding-left: 24px;
+        }
+        
+        li {
+            margin-bottom: 8px;
+            color: #4b5563;
+        }
+        
+        .highlight {
+            color: #dc2626;
+            font-weight: 500;
+        }
+        
+        .figure {
+            border: 1px solid #e5e7eb;
+            padding: 20px;
+            background: #fff;
+            margin: 30px 0;
+            border-radius: 6px;
+        }
+        
+        .figcaption {
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        
+        .code-block {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 6px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        .tech-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'PingFang SC', sans-serif;
+            font-size: 14px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin: 20px 0;
+        }
+        
+        .tech-table th {
+            background-color: #1e3a8a;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .tech-table td {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 12px;
+            color: #334155;
+        }
+        
+        .tech-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        
+        .tech-table tr:hover {
+            background-color: #f1f5f9;
+        }
+        
+        .highlight-cell {
+            color: #dc2626;
+            font-weight: 500;
+        }
+        
+        .section-divider {
+            border-top: 2px solid #e2e8f0;
+            margin: 40px 0;
+        }
+        
+        .phase-section {
+            background-color: #f8fafc;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 25px 0;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .phase-title {
+            color: #1e40af;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .milestone-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .milestone-table th {
+            background-color: #e2e8f0;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .milestone-table td {
+            border-bottom: 1px solid #e2e8f0;
+            padding: 12px;
+        }
+        
+        .milestone-table tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+            
+            .meta-table {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>技术调研报告：下一代时空原生与 AI 自治数据基础设施</h1>
+        <div class="subtitle">Technical Survey: Next-Gen Spatio-Temporal Native & AI-Autonomous Data Infrastructure</div>
+        
+        <table class="meta-table">
+            <tr>
+                <th>维度</th>
+                <td>内容</td>
+            </tr>
+            <tr>
+                <th>版本</th>
+                <td>v3.0</td>
+            </tr>
+            <tr>
+                <th>日期</th>
+                <td>2026-01</td>
+            </tr>
+            <tr>
+                <th>关键词</th>
+                <td>物理世界模型, STEU 硬件, 源头对齐, Agent DBA, 无人机协同</td>
+            </tr>
+        </table>
+        
+        <h2>1. 背景与需求分析 (Background & Requirements)</h2>
+        
+        <h3>1.1 核心痛点：透明战场的"实时性悖论"</h3>
+        <p>在现代"透明战场"或大规模无人机集群作业中，指挥控制系统面临极端的实时性挑战：</p>
+        <ul>
+            <li><span class="highlight">全域感知难</span>： 战场数据呈爆炸式增长，且多源异构（视频、点云、文本）。</li>
+            <li><span class="highlight">融合延迟高</span>： 传统架构采用 "Late Materialization" (后置对齐) 模式，即 采集 -> 传输 -> 存储 -> 索引 -> 融合。在面对毫秒级打击或高速机动目标时，数据库的 Join 计算与磁盘 I/O 成为致命瓶颈。</li>
+            <li><span class="highlight">通信脆弱性</span>： 在强电磁干扰环境下，依赖宽带传输视频流回云端计算的模式不可行，必须实现"低带宽、去中心化"的协同。</li>
+        </ul>
+        
+        <div class="figure">
+            <svg width="100%" height="300" viewBox="0 0 800 300" xmlns="http://www.w3.org/2000/svg" style="font-family: 'PingFang SC', sans-serif;">
+                <defs>
+                    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker>
+                </defs>
+
+                <g transform="translate(50, 50)">
+                    <text x="60" y="-10" text-anchor="middle" font-weight="bold" fill="#1e3a8a">全域感知输入</text>
+                    <rect x="0" y="0" width="120" height="140" rx="8" fill="#f1f5f9" stroke="#94a3b8" stroke-dasharray="4,2"/>
+                    
+                    <rect x="20" y="20" width="30" height="20" fill="#cbd5e1"/><text x="60" y="35" font-size="12">视频流</text>
+                    <rect x="20" y="50" width="30" height="20" fill="#cbd5e1"/><text x="60" y="65" font-size="12">点云</text>
+                    <rect x="20" y="80" width="30" height="20" fill="#cbd5e1"/><text x="60" y="95" font-size="12">多源文本</text>
+                    <text x="60" y="125" text-anchor="middle" font-size="10" fill="#ef4444">爆炸式增长</text>
+                </g>
+
+                <g transform="translate(220, 80)">
+                    <rect x="0" y="0" width="80" height="40" rx="4" fill="#fff" stroke="#334155"/>
+                    <text x="40" y="25" text-anchor="middle" font-size="12">采集</text>
+
+                    <line x1="80" y1="20" x2="110" y2="20" stroke="#64748b" marker-end="url(#arrow)"/>
+
+                    <rect x="110" y="0" width="80" height="40" rx="4" fill="#fff" stroke="#334155"/>
+                    <text x="150" y="25" text-anchor="middle" font-size="12">传输</text>
+
+                    <line x1="190" y1="20" x2="220" y2="20" stroke="#64748b" marker-end="url(#arrow)"/>
+
+                    <rect x="220" y="0" width="80" height="40" rx="4" fill="#fff" stroke="#334155"/>
+                    <text x="260" y="25" text-anchor="middle" font-size="12">存储</text>
+
+                    <line x1="300" y1="20" x2="330" y2="20" stroke="#64748b" marker-end="url(#arrow)"/>
+
+                    <rect x="330" y="0" width="80" height="40" rx="4" fill="#fff" stroke="#334155"/>
+                    <text x="370" y="25" text-anchor="middle" font-size="12">索引</text>
+
+                    <line x1="410" y1="20" x2="440" y2="20" stroke="#64748b" marker-end="url(#arrow)"/>
+
+                    <g>
+                        <rect x="440" y="-10" width="100" height="60" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="2"/>
+                        <text x="490" y="25" text-anchor="middle" font-size="12" font-weight="bold" fill="#991b1b">融合 (Join)</text>
+                        <circle cx="530" cy="0" r="10" fill="#dc2626"/>
+                        <text x="530" y="4" text-anchor="middle" fill="white" font-weight="bold" font-size="12">!</text>
+                        <text x="490" y="75" text-anchor="middle" font-size="10" fill="#dc2626">瓶颈: 磁盘 I/O & 计算</text>
+                    </g>
+                </g>
+
+                <g transform="translate(220, 200)">
+                    <line x1="0" y1="0" x2="540" y2="0" stroke="#64748b" stroke-width="2"/>
+                    <line x1="0" y1="-5" x2="0" y2="5" stroke="#64748b" stroke-width="2"/>
+                    <line x1="540" y1="-5" x2="540" y2="5" stroke="#64748b" stroke-width="2"/> <path d="M535,-5 L545,0 L535,5" fill="#64748b"/>
+                    
+                    <text x="0" y="25" text-anchor="middle" font-size="12">T0: 光子产生</text>
+                    <text x="540" y="25" text-anchor="end" font-size="12" font-weight="bold" fill="#ef4444">累积延迟: 数百毫秒 ~ 秒级 (不可用)</text>
+                </g>
+            </svg>
+            <div class="figcaption">图1 - 透明战场"实时性悖论"与传统数据处理延迟链条</div>
+        </div>
+        
+        <h3>1.2 关键需求指标</h3>
+        <ol>
+            <li><span class="highlight">端到端延迟</span>： 从传感器光子进入到指挥决策 < 10ms。</li>
+            <li><span class="highlight">源头对齐</span>： 数据在产生瞬间即具备时空属性，消除系统与网络引入的非确定性延迟。</li>
+            <li><span class="highlight">智能预测</span>： 系统需具备从当前状态推演未来的能力（即世界模型能力）。</li>
+        </ol>
+        
+        <div class="section-divider"></div>
+        
+        <h2>2. 现状与竞品调研 (Status Quo)</h2>
+        <p>针对"源头数据对齐"，目前技术呈现层级分化：</p>
+        
+        <div class="figure">
+            <table class="tech-table">
+                <thead>
+                    <tr>
+                        <th>方案层级</th>
+                        <th>代表产品</th>
+                        <th>技术特征</th>
+                        <th>核心局限性</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>消费级</strong></td>
+                        <td>DJI Mini</td>
+                        <td>无源头对齐</td>
+                        <td class="highlight-cell">录像与 GPS 分离，无法用于战术协同</td>
+                    </tr>
+                    <tr>
+                        <td><strong>工业测绘级</strong></td>
+                        <td>Phantom 4 RTK</td>
+                        <td>硬件级时间同步</td>
+                        <td class="highlight-cell">产出物仍是原始图片，需后期三维重建，非实时</td>
+                    </tr>
+                    <tr>
+                        <td><strong>端侧 SLAM</strong></td>
+                        <td>Skydio / Shield AI</td>
+                        <td>端侧网格化</td>
+                        <td class="highlight-cell">用于避障的封闭系统，缺乏对外协同标准接口</td>
+                    </tr>
+                    <tr>
+                        <td><strong>美军路线</strong></td>
+                        <td>Project Maven</td>
+                        <td>智能传感器</td>
+                        <td class="highlight-cell">虽回传结构化数据，但尚未普及专用硬件编码</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="figcaption">表1 - "源头数据对齐"技术方案层级与局限性对比</div>
+        </div>
+        
+        <div class="section-divider"></div>
+        
+        <h2>3. 核心硬件方案：STEU 时空编码单元 (Hardware Architecture)</h2>
+        <p>本报告提出的 STEU (Spatio-Temporal Encoding Unit) 并非传统的边缘计算盒子，而是一种基于 FPGA 的硬件级源头对齐 (Source-Side Alignment) 引擎。它旨在解决传统软件融合带来的"非确定性延迟"与"时空错位"痛点。</p>
+        
+        <h3>3.1 设计哲学：硬件定义时空 (Hardware-Defined Spatio-Temporal)</h3>
+        <p>传统架构采用"先采集存储、后软件对齐 (Late Materialization)"模式，受限于 CPU 操作系统调度，不可避免地产生 50ms~200ms 的随机抖动。</p>
+        <p>STEU 的核心理念是 "近传感器计算 (Near-Sensor Computing)"：</p>
+        <ul>
+            <li><span class="highlight">去 CPU 化</span>： 剥夺通用 CPU 处理底层时空映射的权利。</li>
+            <li><span class="highlight">确定性延迟</span>： 利用 FPGA 的并行流水线，将"信号采集"到"网格生成"的延时锁定在 < 1ms 的固定物理时间内。</li>
+        </ul>
+        
+        <h3>3.2 信号整合图谱 (Signal Integration Spectrum)</h3>
+        <p>STEU 具备多模态异构信号的纳秒级并发吞吐能力，支持以下四类战术信号的物理层融合：</p>
+        <ol>
+            <li><span class="highlight">时空基准</span>： GNSS (NMEA/RTCM), IMU (9-DoF), PPS/PTP 高精授时。</li>
+            <li><span class="highlight">环境感知</span>： 可见光/红外视频 (MIPI), LiDAR 点云, 毫米波雷达 (CAN)。</li>
+            <li><span class="highlight">战术告警</span>： LWR 激光告警 (GPIO中断), 频谱侦测 (RF Sniffing)。</li>
+            <li><span class="highlight">平台状态</span>： 载具姿态, 武器挂载状态, 剩余弹量。</li>
+        </ol>
+        
+        <h3>3.3 传感器接入与集成拓扑 (Sensor Integration Topology)</h3>
+        <p>鉴于商用无人机生态封闭性与军用场景的高即时性要求，STEU 提供两种物理集成模式：</p>
+        <ul>
+            <li><span class="highlight">模式 A：独立载荷架构 (Independent Payload Mode)</span>
+                <ul>
+                    <li><span class="highlight">适用</span>： 大疆行业机、存量安防无人机。</li>
+                    <li><span class="highlight">机制</span>： STEU 作为独立吊舱挂载，自带 经过光机标定的双目相机与战术 IMU。不依赖宿主飞机的传感器，仅获取电源，实现"开箱即用"的物理隔离。</li>
+                    <li><span class="highlight">优势</span>： 规避了商用飞控数据滤波带来的未知延迟。</li>
+                </ul>
+            </li>
+            <li><span class="highlight">模式 B：中枢接管架构 (Hub/Proxy Mode)</span>
+                <ul>
+                    <li><span class="highlight">适用</span>： 巡飞弹、蜂群、定制军用机。</li>
+                    <li><span class="highlight">机制</span>： 采用 Sensor-First 拓扑。所有传感器（雷达、导引头）优先接入 STEU。STEU 完成时空编码后，通过总线将导航数据转发给飞控。</li>
+                    <li><span class="highlight">优势</span>： STEU 掌握感知最高权限，系统响应速度最快。</li>
+                </ul>
+            </li>
+        </ul>
+        
+        <div class="figure">
+            <svg width="100%" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" style="font-family: 'PingFang SC', sans-serif;">
+                <defs>
+                    <marker id="arrow3" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#333"/></marker>
+                </defs>
+
+                <g transform="translate(50, 50)">
+                    <text x="150" y="-20" text-anchor="middle" font-weight="bold" font-size="16" fill="#1e3a8a">模式 A：独立载荷架构</text>
+                    <text x="150" y="0" text-anchor="middle" font-size="12" fill="#64748b">物理隔离 (Power Only)</text>
+                    
+                    <path d="M50,60 L250,60 L230,80 L70,80 Z" fill="#cbd5e1" stroke="#64748b"/>
+                    <text x="150" y="75" text-anchor="middle" fill="#333">通用/行业无人机</text>
+
+                    <line x1="150" y1="80" x2="150" y2="150" stroke="#ef4444" stroke-width="3"/>
+                    <text x="160" y="115" font-size="10" fill="#ef4444">仅电源连接</text>
+
+                    <rect x="80" y="150" width="140" height="120" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+                    <text x="150" y="175" text-anchor="middle" font-weight="bold" fill="#1d4ed8">STEU 独立吊舱</text>
+                    
+                    <rect x="90" y="190" width="120" height="70" fill="#fff" stroke="#bfdbfe" stroke-dasharray="4,2"/>
+                    <text x="150" y="210" text-anchor="middle" font-size="10" fill="#666">内置传感器</text>
+                    <rect x="100" y="220" width="40" height="20" fill="#ddd"/><text x="120" y="235" text-anchor="middle" font-size="8">Cam</text>
+                    <rect x="160" y="220" width="40" height="20" fill="#ddd"/><text x="180" y="235" text-anchor="middle" font-size="8">IMU</text>
+
+                    <line x1="150" y1="270" x2="150" y2="320" stroke="#b45309" stroke-width="3" marker-end="url(#arrow3)"/>
+                    <text x="160" y="300" font-size="12" fill="#b45309" font-weight="bold">ST-Stream</text>
+                </g>
+
+                <line x1="400" y1="20" x2="400" y2="350" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5"/>
+
+                <g transform="translate(450, 50)">
+                    <text x="150" y="-20" text-anchor="middle" font-weight="bold" font-size="16" fill="#1e3a8a">模式 B：中枢接管架构</text>
+                    <text x="150" y="0" text-anchor="middle" font-size="12" fill="#64748b">Sensor-First (信号拦截)</text>
+
+                    <rect x="50" y="40" width="40" height="30" fill="#e2e8f0" stroke="#333"/><text x="70" y="60" text-anchor="middle" font-size="10">雷达</text>
+                    <rect x="130" y="40" width="40" height="30" fill="#e2e8f0" stroke="#333"/><text x="150" y="60" text-anchor="middle" font-size="10">Cam</text>
+                    <rect x="210" y="40" width="40" height="30" fill="#e2e8f0" stroke="#333"/><text x="230" y="60" text-anchor="middle" font-size="10">LWR</text>
+
+                    <line x1="70" y1="70" x2="150" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrow3)"/>
+                    <line x1="150" y1="70" x2="150" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrow3)"/>
+                    <line x1="230" y1="70" x2="150" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrow3)"/>
+
+                    <rect x="70" y="120" width="160" height="60" rx="8" fill="#1e40af" stroke="#000"/>
+                    <text x="150" y="155" text-anchor="middle" font-weight="bold" fill="#fff">STEU (中枢)</text>
+
+                    <line x1="120" y1="180" x2="120" y2="240" stroke="#333" stroke-width="2" marker-end="url(#arrow3)"/>
+                    <text x="110" y="210" text-anchor="end" font-size="10">导航数据</text>
+
+                    <rect x="80" y="240" width="80" height="40" fill="#cbd5e1" stroke="#64748b"/>
+                    <text x="120" y="265" text-anchor="middle" fill="#333">飞控</text>
+
+                    <line x1="180" y1="180" x2="180" y2="320" stroke="#b45309" stroke-width="3" marker-end="url(#arrow3)"/>
+                    <text x="190" y="300" font-size="12" fill="#b45309" font-weight="bold">ST-Stream</text>
+                </g>
+            </svg>
+            <div class="figcaption">图3 - 传感器集成拓扑模式对比</div>
+        </div>
+        
+        <h3>3.4 内部并行流水线 (FPGA Internal Pipeline)</h3>
+        <p>数据在 FPGA (如 Xilinx Zynq / 复旦微 FMQL) 内部的处理流程如下：</p>
+        <ol>
+            <li><span class="highlight">硬触发锁存 (Time-Space Latch):</span>
+                <ul>
+                    <li>利用 PPS 信号触发全局快门。在像素曝光的同一微秒，硬件寄存器锁死当前的 RTK 坐标 $P_{gps}$ 和 IMU 姿态 $R_{imu}$。</li>
+                </ul>
+            </li>
+            <li><span class="highlight">坐标变换引擎 (Transform Engine):</span>
+                <ul>
+                    <li>利用 DSP Slice 进行大规模并行矩阵运算。</li>
+                    <li>Ray Casting 算子： 结合深度 $Z$，将图像平面的像素 $(u,v)$ 转化为物理世界坐标 $P_{world}$：
+                        $$P_{world} = P_{gps} + R_{imu} \cdot (R_{cam} \cdot \frac{Z \cdot (u - c_x, v - c_y, f)}{f} + T_{cam})$$</li>
+                </ul>
+            </li>
+            <li><span class="highlight">网格编码器 (Voxelizer):</span>
+                <ul>
+                    <li>通过查找表 (LUT) 实时将物理坐标 $P_{world}$ 映射为全球唯一的 GeoSOT / H3 Grid ID。</li>
+                </ul>
+            </li>
+            <li><span class="highlight">战术状态挂载:</span>
+                <ul>
+                    <li>若此刻 LWR 引脚检测到告警，立即将 Threat_Level: High 写入该网格属性。</li>
+                </ul>
+            </li>
+        </ol>
+        
+        <div class="figure">
+            <svg width="100%" height="450" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg" style="font-family: 'PingFang SC', sans-serif;">
+                <defs>
+                    <linearGradient id="fpgaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#dbeafe;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#bfdbfe;stop-opacity:1" />
+                    </linearGradient>
+                    <marker id="arrow2" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#333"/></marker>
+                </defs>
+
+                <text x="20" y="30" font-weight="bold" fill="#333" font-size="14">A. 硬件逻辑拓扑</text>
+                
+                <g transform="translate(50, 60)">
+                    <rect x="0" y="0" width="80" height="120" rx="5" fill="#f8fafc" stroke="#94a3b8"/>
+                    <text x="40" y="-10" text-anchor="middle" font-size="12" fill="#64748b">多源传感器</text>
+                    <text x="40" y="25" text-anchor="middle" font-size="10">GNSS/IMU</text>
+                    <text x="40" y="50" text-anchor="middle" font-size="10">Camera</text>
+                    <text x="40" y="75" text-anchor="middle" font-size="10">LiDAR</text>
+                    <text x="40" y="100" text-anchor="middle" font-size="10">LWR告警</text>
+                </g>
+
+                <g transform="translate(250, 40)">
+                    <rect x="0" y="0" width="300" height="160" rx="10" fill="url(#fpgaGrad)" stroke="#2563eb" stroke-width="2"/>
+                    <text x="150" y="25" text-anchor="middle" font-weight="bold" fill="#1e40af">FPGA (STEU 核心)</text>
+                    
+                    <rect x="30" y="50" width="70" height="80" fill="#fff" stroke="#1d4ed8"/><text x="65" y="85" text-anchor="middle" font-size="10">硬触发<tspan x="65" dy="12">锁存</tspan></text>
+                    <line x1="100" y1="90" x2="115" y2="90" stroke="#1d4ed8" marker-end="url(#arrow2)"/>
+                    
+                    <rect x="115" y="50" width="70" height="80" fill="#fff" stroke="#1d4ed8"/><text x="150" y="85" text-anchor="middle" font-size="10">坐标变换<tspan x="150" dy="12">引擎</tspan></text>
+                    <line x1="185" y1="90" x2="200" y2="90" stroke="#1d4ed8" marker-end="url(#arrow2)"/>
+                    
+                    <rect x="200" y="50" width="70" height="80" fill="#fff" stroke="#1d4ed8"/><text x="235" y="85" text-anchor="middle" font-size="10">网格<tspan x="235" dy="12">编码器</tspan></text>
+                </g>
+
+                <g transform="translate(650, 80)">
+                    <polygon points="0,0 80,0 90,40 80,80 0,80 -10,40" fill="#fef3c7" stroke="#d97706"/>
+                    <text x="40" y="45" text-anchor="middle" font-weight="bold" fill="#b45309" font-size="12">ST-Stream</text>
+                </g>
+
+                <line x1="130" y1="120" x2="250" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+                <line x1="550" y1="120" x2="640" y2="120" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+
+
+                <line x1="20" y1="230" x2="780" y2="230" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5"/>
+                <text x="20" y="260" font-weight="bold" fill="#333" font-size="14">B. 并行流水线时序 (Timeline)</text>
+
+                <g transform="translate(50, 320)">
+                    <line x1="0" y1="0" x2="700" y2="0" stroke="#333" stroke-width="3" marker-end="url(#arrow2)"/>
+
+                    <circle cx="0" cy="0" r="6" fill="#ef4444"/>
+                    <text x="0" y="-20" text-anchor="middle" font-size="12" font-weight="bold">PPS硬触发</text>
+                    <text x="0" y="20" text-anchor="middle" font-size="10" fill="#666">T=0</text>
+
+                    <circle cx="100" cy="0" r="4" fill="#333"/>
+                    <text x="100" y="-20" text-anchor="middle" font-size="12">信号锁存</text>
+                    <text x="50" y="15" text-anchor="middle" font-size="10" fill="#059669">&lt; 1μs</text>
+
+                    <circle cx="250" cy="0" r="4" fill="#333"/>
+                    <text x="250" y="-20" text-anchor="middle" font-size="12">坐标变换</text>
+                    <text x="175" y="15" text-anchor="middle" font-size="10" fill="#059669">~100μs (并行)</text>
+
+                    <circle cx="400" cy="0" r="4" fill="#333"/>
+                    <text x="400" y="-20" text-anchor="middle" font-size="12">网格编码</text>
+                    <text x="325" y="15" text-anchor="middle" font-size="10" fill="#059669">LUT映射</text>
+
+                    <circle cx="550" cy="0" r="4" fill="#333"/>
+                    <text x="550" y="-20" text-anchor="middle" font-size="12">状态挂载</text>
+                    
+                    <circle cx="680" cy="0" r="6" fill="#2563eb"/>
+                    <text x="680" y="-20" text-anchor="middle" font-size="12" font-weight="bold" fill="#2563eb">ST-Packet输出</text>
+                    <text x="680" y="30" text-anchor="middle" font-size="12" font-weight="bold" fill="#2563eb">端到端 &lt; 1ms</text>
+                </g>
+            </svg>
+            <div class="figcaption">图2 - STEU硬件逻辑拓扑与并行流水线</div>
+        </div>
+        
+        <h3>3.5 数据产出：ST-Stream</h3>
+        <p>STEU 不输出庞大的视频流，而是输出极轻量化的<strong>"时空网格流 (ST-Stream)"</strong>，带宽占用降低 90% 以上。</p>
+        <p>数据结构定义 (C++ 伪代码):</p>
+        
+        <div class="code-block">
+// ST-Stream 数据结构定义<br>
+struct ST_Packet {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;uint64_t GridID;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 64-bit 空间编码 (H3 index)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;uint64_t Timestamp;&nbsp;&nbsp;&nbsp;&nbsp; // 纳秒级原子时间 (PTP)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;uint8_t&nbsp; ObjClass;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// 目标类型 (如: 0x01坦克, 0x02步兵)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;uint8_t&nbsp; ThreatLevel;&nbsp;&nbsp; // 威胁等级 (融合 LWR/RF 信号)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;float&nbsp;&nbsp;&nbsp; Velocity[3];&nbsp;&nbsp; // 速度矢量 (Vx, Vy, Vz)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;uint16_t AttrFlags;&nbsp;&nbsp;&nbsp;&nbsp; // 状态位 (如: 友军/敌军, 锁定状态)<br>
+};<br>
+// Payload Size: &lt; 64 bytes per object
+        </div>
+        
+        <div class="section-divider"></div>
+        
+        <h2>4. 软件与系统架构 (System Architecture)</h2>
+        
+        <h3>4.1 数据层：面向对象的时空网格体</h3>
+        <ul>
+            <li><span class="highlight">存储范式</span>： 以"网格 ID"为 Key 进行物理存储，空间相邻即物理相邻，查询复杂度 $O(1)$。</li>
+        </ul>
+        
+        <div class="figure">
+            <svg width="100%" height="350" viewBox="0 0 800 350" xmlns="http://www.w3.org/2000/svg" style="font-family: 'PingFang SC', sans-serif;">
+                
+                <g transform="translate(100, 50)">
+                    <text x="100" y="-10" text-anchor="middle" font-weight="bold" fill="#333" font-size="14">非结构化视频流</text>
+                    
+                    <g transform="rotate(-10, 100, 100)">
+                        <rect x="20" y="20" width="160" height="100" fill="#fff" stroke="#94a3b8" stroke-width="2"/>
+                        <path d="M40,80 L80,40 L120,90" fill="none" stroke="#ccc"/>
+                    </g>
+                    <g transform="rotate(5, 100, 100)">
+                        <rect x="20" y="40" width="160" height="100" fill="#f8fafc" stroke="#94a3b8" stroke-width="2"/>
+                        <path d="M50,90 L90,50 L130,100" fill="none" stroke="#ccc"/>
+                    </g>
+                    <rect x="20" y="80" width="160" height="100" fill="#e2e8f0" stroke="#64748b" stroke-width="2"/>
+                    <text x="100" y="130" text-anchor="middle" fill="#64748b">Raw Pixels</text>
+
+                    <text x="100" y="220" text-anchor="middle" font-size="12" fill="#dc2626">高带宽 / 需后处理</text>
+                </g>
+
+                <text x="400" y="150" text-anchor="middle" font-size="24" font-weight="bold" fill="#94a3b8">VS</text>
+
+                <g transform="translate(500, 50)">
+                    <text x="100" y="-10" text-anchor="middle" font-weight="bold" fill="#333" font-size="14">结构化时空网格体</text>
+                    
+                    <g stroke="#15803d" stroke-width="1">
+                        <path d="M30,0 L60,15 L60,45 L30,60 L0,45 L0,15 Z" fill="#dcfce7" transform="translate(50, 40)"/>
+                        <path d="M30,0 L60,15 L60,45 L30,60 L0,45 L0,15 Z" fill="#dcfce7" transform="translate(110, 40)"/>
+                        <path d="M30,0 L60,15 L60,45 L30,60 L0,45 L0,15 Z" fill="#dcfce7" transform="translate(20, 85)"/>
+                        
+                        <path d="M30,0 L60,15 L60,45 L30,60 L0,45 L0,15 Z" fill="#fca5a5" stroke="#dc2626" transform="translate(80, 85)"/>
+                    </g>
+
+                    <g transform="translate(150, 100)">
+                        <rect x="0" y="0" width="120" height="60" rx="4" fill="#1e293b" opacity="0.9"/>
+                        <text x="10" y="20" fill="#fff" font-size="10" font-family="monospace">ID: H3:8a2a...</text>
+                        <text x="10" y="35" fill="#4ade80" font-size="10" font-family="monospace">Obj: Tank</text>
+                        <text x="10" y="50" fill="#f87171" font-size="10" font-family="monospace">Threat: High</text>
+                        <line x1="-10" y1="30" x2="0" y2="30" stroke="#1e293b"/>
+                    </g>
+
+                    <text x="100" y="220" text-anchor="middle" font-size="12" fill="#15803d">低带宽 / 已索引可查询</text>
+                </g>
+            </svg>
+            <div class="figcaption">图4 - 数据范式对比：非结构化视频流 vs. 结构化时空网格体</div>
+        </div>
+        
+        <h3>4.2 软件层：自主代理 DBA</h3>
+        <ul>
+            <li><span class="highlight">Conversational API</span>: 指挥官通过自然语言交互（"显示 A 区敌情"），系统直接返回渲染好的三维网格态势图。</li>
+        </ul>
+        
+        <div class="section-divider"></div>
+        
+        <h2>5. 典型应用场景 (Use Cases)</h2>
+        <ol>
+            <li><span class="highlight">无人机蜂群协同</span>： 基于 STEU 生成局部网格，利用 DDS 协议仅广播"变化的网格 ID"，带宽降低 99%，实现断网环境下的去中心化协同。</li>
+            <li><span class="highlight">低空经济管控</span>： 城市空域网格化，雷达发现非合作目标直接锁定 Grid ID，系统毫秒级广播禁飞区。</li>
+            <li><span class="highlight">工业数字孪生</span>： 矿山/港口实时更新地形网格，AGV 基于网格状态机自动避障。</li>
+            <li><span class="highlight">低轨卫星处理</span>： 星上 STEU 直接处理遥感图像，通过激光链路仅回传高价值目标的网格坐标。</li>
+        </ol>
+        
+        <div class="section-divider"></div>
+        
+        <h2>6. 理论深度延伸：物理世界模型的基座 (Theoretical Depth)</h2>
+        <p>本方案不仅是数据处理架构的优化，更是具身智能 (Embodied AI) 理解物理世界的关键基础设施。</p>
+        
+        <h3>6.1 物理世界的 "Token 化"</h3>
+        <p>如同大语言模型 (LLM) 需要将文本切分为 Token，物理世界模型 (World Model) 需要将模拟世界切分为离散单元。STEU 是物理世界的 Tokenizer。</p>
+        
+        <h3>6.2 从"反应"到"预测"</h3>
+        <p>基于时空网格，系统能够构建类似 JEPA 架构的世界模型。</p>
+        
+        <div class="figure">
+            <svg width="100%" height="450" viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg" style="font-family: 'PingFang SC', sans-serif;">
+                <defs>
+                    <path id="drone" d="M-15,-5 L0,15 L15,-5 L0,0 Z" fill="#3b82f6"/>
+                </defs>
+
+                <text x="20" y="30" font-weight="bold" fill="#333">A. 去中心化网格协同</text>
+                
+                <g transform="translate(100, 80)">
+                    <use href="#drone" transform="translate(100, 0) scale(1.5)"/>
+                    <use href="#drone" transform="translate(300, 0) scale(1.5)"/>
+                    <use href="#drone" transform="translate(200, 100) scale(1.5)"/>
+
+                    <line x1="100" y1="0" x2="300" y2="0" stroke="#94a3b8" stroke-dasharray="4,2"/>
+                    <rect x="190" y="-10" width="20" height="20" fill="#fca5a5" stroke="#dc2626"/> <line x1="100" y1="0" x2="200" y2="100" stroke="#94a3b8" stroke-dasharray="4,2"/>
+                    <rect x="140" y="40" width="20" height="20" fill="#86efac" stroke="#16a34a"/> <line x1="300" y1="0" x2="200" y2="100" stroke="#94a3b8" stroke-dasharray="4,2"/>
+
+                    <text x="450" y="50" fill="#64748b" font-size="12">共享战术网格地图</text>
+                    <g transform="translate(450, 60) scale(0.5)">
+                        <path d="M0,0 h50 v50 h-50 z" fill="#fee2e2" stroke="#ccc"/>
+                        <path d="M50,0 h50 v50 h-50 z" fill="#dcfce7" stroke="#ccc"/>
+                        <path d="M0,50 h50 v50 h-50 z" fill="#f1f5f9" stroke="#ccc"/>
+                        <path d="M50,50 h50 v50 h-50 z" fill="#f1f5f9" stroke="#ccc"/>
+                    </g>
+                </g>
+
+                <text x="20" y="240" font-weight="bold" fill="#333">B. 物理世界模型 (JEPA 闭环)</text>
+                
+                <g transform="translate(50, 280)">
+                    <rect x="0" y="20" width="120" height="60" rx="5" fill="#dbeafe" stroke="#2563eb"/>
+                    <text x="60" y="55" text-anchor="middle" font-weight="bold" fill="#1e40af">STEU (感知)</text>
+
+                    <rect x="200" y="0" width="140" height="100" rx="5" fill="#f3e8ff" stroke="#7e22ce" stroke-width="2"/>
+                    <text x="270" y="40" text-anchor="middle" font-weight="bold" fill="#6b21a8">世界模型</text>
+                    <text x="270" y="65" text-anchor="middle" font-size="12" fill="#6b21a8">(预测器)</text>
+
+                    <rect x="420" y="20" width="120" height="60" rx="5" fill="#dcfce7" stroke="#16a34a"/>
+                    <text x="480" y="55" text-anchor="middle" font-weight="bold" fill="#15803d">行动 (控制)</text>
+
+                    <line x1="120" y1="50" x2="200" y2="50" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <text x="160" y="45" text-anchor="middle" font-size="24" fill="#dc2626" font-weight="bold">×</text>
+                    <text x="160" y="70" text-anchor="middle" font-size="10" fill="#dc2626">视觉丢失</text>
+
+                    <line x1="340" y1="50" x2="420" y2="50" stroke="#333" stroke-width="2" marker-end="url(#arrow2)"/>
+                    <path d="M300,80 Q350,120 450,100" fill="none" stroke="#7e22ce" stroke-width="2" stroke-dasharray="4,2"/>
+                    <text x="360" y="130" fill="#7e22ce" font-size="10">基于历史网格推演轨迹</text>
+                </g>
+            </svg>
+            <div class="figcaption">图5 - 去中心化蜂群协同与物理世界模型预测</div>
+        </div>
+        
+        <h3>6.3 真正的"可计算孪生"</h3>
+        <p>本方案构建的网格体包含物理属性（如摩擦力、硬度），AI 可直接在数据库层面进行物理仿真。</p>
+        
+        <div class="section-divider"></div>
+        
+        <h2>7. 意义与价值 (Significance)</h2>
+        <ul>
+            <li><span class="highlight">军事价值</span>: 将 OODA 循环压缩至毫秒级，确保单点生存能力。</li>
+            <li><span class="highlight">商业价值</span>: 掌握物理世界数字化的 "TCP/IP" 协议，将带宽成本降低 99%。</li>
+        </ul>
+        
+        <div class="section-divider"></div>
+        
+        <h2>8. 实施计划：无人机"源头对齐"系统落地路线图</h2>
+        <p><em>Implementation Roadmap: From Soft-Simulation to Hard-Realtime STEU</em></p>
+        <p>本计划采用 "虚实结合、软硬解耦" 的敏捷开发策略，旨在 24 个月内打造出符合军工标准的时空编码单元 (STEU)。</p>
+        
+        <div class="phase-section">
+            <div class="phase-title">阶段一：全数字仿真与算法内核验证 (Digital Twin & POC)</div>
+            <p><strong>周期</strong>： 第 0 - 6 个月</p>
+            <p><strong>状态</strong>： TRL-3 (关键功能验证)</p>
+            <p><strong>核心目标</strong>： 在不购买昂贵硬件的前提下，验证 Pixel2Grid 算法逻辑与协同协议的数学完备性。</p>
+            <ul>
+                <li><strong>1. 仿真环境构建 (The Sandbox):</strong>
+                    <ul>
+                        <li>利用 Gazebo 或 AirSim 搭建高保真物理环境（含光照、遮挡）。</li>
+                        <li>部署多架虚拟无人机（Digital Drone），配置虚拟深度相机与虚拟 IMU。</li>
+                    </ul>
+                </li>
+                <li><strong>2. 虚拟 STEU 开发 (Soft-STEU):</strong>
+                    <ul>
+                        <li>开发 ROS 2 节点（C++），模拟 STEU 行为。</li>
+                        <li>算法核心： 跑通 输入(RGB-D + Pose) -> 映射 -> 输出(Grid ID) 的全流程。</li>
+                        <li>验证指标： 确保在虚拟环境中，网格生成的空间误差 < 10cm。</li>
+                    </ul>
+                </li>
+                <li><strong>3. 树莓派接入测试:</strong>
+                    <ul>
+                        <li>将 树莓派 5 接入仿真网络，作为"虚拟任务计算机"。</li>
+                        <li>验证树莓派能否解析 Soft-STEU 发出的网格流，并反向控制虚拟飞机。</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="phase-section">
+            <div class="phase-title">阶段二：COTS 硬件原型机 (MVP Phase)</div>
+            <p><strong>周期</strong>： 第 6 - 12 个月</p>
+            <p><strong>状态</strong>： TRL-5 (相关环境验证)</p>
+            <p><strong>核心目标</strong>： 跑通物理链路，解决"光电信号"与"物理时间"的同步难题。</p>
+            <p><strong>硬件架构</strong>： 采用"模拟器 + 宿主"的双板架构。</p>
+            <ul>
+                <li><strong>1. 硬件选型:</strong>
+                    <ul>
+                        <li>STEU 模拟器: NVIDIA Jetson Orin NX (利用 GPU 模拟 FPGA 的并行计算能力)。</li>
+                        <li>任务计算机: 树莓派 5 / 香橙派 5 (负责接收网格，运行路径规划)。</li>
+                        <li>传感器: Intel RealSense D435i (支持硬触发)。</li>
+                    </ul>
+                </li>
+                <li><strong>2. 核心攻关 —— 硬同步 (Hard Sync):</strong>
+                    <ul>
+                        <li>制作专用同步线，将飞控的 PPS (秒脉冲) 信号同时引脚连接到 Jetson 和相机的 Trigger 口。</li>
+                        <li>目标： 强制将图像采集与 IMU 采样的时间偏差压缩至 < 1ms。</li>
+                    </ul>
+                </li>
+                <li><strong>3. 实飞验证:</strong>
+                    <ul>
+                        <li>在 5m/s 飞行速度下，验证生成的"时空轨迹"是否与 RTK 轨迹重合。</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="phase-section">
+            <div class="phase-title">阶段三：FPGA 算力迁移与国产化 (The "Hard" Leap)</div>
+            <p><strong>周期</strong>： 第 12 - 18 个月</p>
+            <p><strong>状态</strong>： TRL-6 (真实环境模型演示)</p>
+            <p><strong>核心目标</strong>： 脱离 GPU，进入 FPGA。 实现微秒级延迟、低功耗，并启动国产化替代。</p>
+            <ul>
+                <li><strong>1. 算力迁移 (RTL Porting):</strong>
+                    <ul>
+                        <li>首选平台: Xilinx Kria K26 SOM (便于快速开发)。</li>
+                        <li>任务: 使用 HLS (High-Level Synthesis) 将 C++ 算法转化为 Verilog 硬件逻辑。</li>
+                        <li>指标: 功耗从 Jetson 的 15W 降至 FPGA 的 < 5W；处理延迟 < 1ms。</li>
+                    </ul>
+                </li>
+                <li><strong>2. 国产化并行预研 (Plan B):</strong>
+                    <ul>
+                        <li>启动基于 复旦微 FMQL45T 或 紫光同创 PGT180 的板级支持包 (BSP) 开发。</li>
+                        <li>确保关键代码的可移植性，为军工定型做准备。</li>
+                    </ul>
+                </li>
+                <li><strong>3. 战术信号整合:</strong>
+                    <ul>
+                        <li>接入 LWR (激光告警) 和 Microhard 电台。</li>
+                        <li>在 FPGA 内部实现"威胁信号"与"网格数据"的纳秒级对齐。</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="phase-section">
+            <div class="phase-title">阶段四：产品化定型与行业推广 (Productization)</div>
+            <p><strong>周期</strong>： 第 18 - 24+ 个月</p>
+            <p><strong>状态</strong>： TRL-7 (系统原型演示)</p>
+            <p><strong>核心目标</strong>： 推出工业级模组 "ST-Box"，建立生态壁垒。</p>
+            <ul>
+                <li><strong>1. 工业设计 (Ruggedization):</strong>
+                    <ul>
+                        <li>设计 CNC 铝合金外壳，集成被动散热槽。</li>
+                        <li>通过 GJB (国军标) 的震动与高低温测试 (-20°C ~ 60°C)。</li>
+                    </ul>
+                </li>
+                <li><strong>2. 软件定义生态 (SDK):</strong>
+                    <ul>
+                        <li>发布标准 SDK，允许大疆 M300 或 PX4 飞控直接读取 STEU 的网格流。</li>
+                        <li>训练轻量级 Transformer 预测模型，并固化到 STEU 内部。</li>
+                    </ul>
+                </li>
+                <li><strong>3. 商业闭环:</strong>
+                    <ul>
+                        <li>向先锋客户（如高校研究院、特种无人机厂商）交付首批 50 套开发套件。</li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        
+        <h3>关键里程碑 (Key Milestones)</h3>
+        
+        <table class="milestone-table">
+            <thead>
+                <tr>
+                    <th>节点</th>
+                    <th>时间</th>
+                    <th>里程碑事件</th>
+                    <th>交付物</th>
+                    <th>备注</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>M1</td>
+                    <td>T+3月</td>
+                    <td>算法闭环</td>
+                    <td>仿真演示视频</td>
+                    <td>证明数学逻辑无误</td>
+                </tr>
+                <tr>
+                    <td>M2</td>
+                    <td>T+9月</td>
+                    <td>首飞成功</td>
+                    <td>MVP 原型机 (Orin版)</td>
+                    <td>证明物理同步可行</td>
+                </tr>
+                <tr>
+                    <td>M3</td>
+                    <td>T+15月</td>
+                    <td>IP核固化</td>
+                    <td>FPGA 核心板</td>
+                    <td>性能达标，脱离 GPU</td>
+                </tr>
+                <tr>
+                    <td>M4</td>
+                    <td>T+21月</td>
+                    <td>国产化</td>
+                    <td>复旦微版原型</td>
+                    <td>获得军工准入资格</td>
+                </tr>
+                <tr>
+                    <td>M5</td>
+                    <td>T+24月</td>
+                    <td>量产发布</td>
+                    <td>ST-Box 标准产品</td>
+                    <td>正式上市</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <div class="section-divider"></div>
+        
+        <h2>9. 资源与风险 (Resources & Risks)</h2>
+        <ul>
+            <li><span class="highlight">核心团队</span>: 架构师、FPGA 工程师、算法工程师。</li>
+            <li><span class="highlight">主要风险</span>: 时间同步漂移（对策：引入 GNSS PPS）、FPGA 开发难度（对策：先 GPU 后 FPGA）、通信丢包（对策：重要性权重重发）。</li>
+        </ul>
+        
+        <div class="section-divider"></div>
+        
+        <h2>附件：竞争格局与生态位分析 (Competitive Landscape)</h2>
+        
+        <h3>1. 全球技术对标 (Global Benchmarks)</h3>
+        <ul>
+            <li><span class="highlight">Shield AI</span>: 最核心对标。其 Hivemind 专注于无 GPS 自主飞行，但系统较封闭。</li>
+            <li><span class="highlight">Anduril</span>: 商业典范。Lattice OS 是理想的下游集成商。</li>
+            <li><span class="highlight">Skydio</span>: 视觉 SLAM 霸主，强于单机避障，弱于多机开放协同。</li>
+        </ul>
+        
+        <h3>2. 国内竞争格局 (Domestic Landscape)</h3>
+        <ul>
+            <li><span class="highlight">大疆 (DJI)</span>: 硬件统治者，但生态封闭，留出了"强对抗、去中心化"的军工空白。</li>
+            <li><span class="highlight">军工国家队 (CETC)</span>: 既是竞对也是最大客户，目前多采用集中式控制。</li>
+            <li><span class="highlight">华为</span>: 基础设施层，STEU 可作为其边缘侧加速卡。</li>
+        </ul>
+        
+        <h3>3. 生态位图谱</h3>
+        
+        <div class="figure">
+            <svg width="100%" height="500" viewBox="0 0 600 500" xmlns="http://www.w3.org/2000/svg" style="font-family: 'PingFang SC', sans-serif;">
+                <defs>
+                    <marker id="arrow6" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#333"/></marker>
+                </defs>
+
+                <line x1="50" y1="450" x2="550" y2="450" stroke="#333" stroke-width="2" marker-end="url(#arrow6)"/> <line x1="300" y1="480" x2="300" y2="20" stroke="#333" stroke-width="2" marker-end="url(#arrow6)"/> <text x="550" y="480" text-anchor="end" font-weight="bold">软硬一体 (Hardware)</text>
+                <text x="50" y="480" text-anchor="start" font-weight="bold">纯软件 (Software)</text>
+                
+                <text x="310" y="30" text-anchor="start" font-weight="bold">专用结构化数据 (STEU)</text>
+                <text x="310" y="440" text-anchor="start" font-weight="bold" fill="#666">通用视频流 (Video)</text>
+
+                <path d="M50,450 L550,450 L550,50 L50,50 Z" fill="none" stroke="#f1f5f9"/>
+                <line x1="50" y1="250" x2="550" y2="250" stroke="#e2e8f0" stroke-dasharray="5,5"/>
+
+                <circle cx="150" cy="350" r="30" fill="#e2e8f0" opacity="0.8"/>
+                <text x="150" y="355" text-anchor="middle" font-size="10" fill="#475569">传统CV软件商</text>
+
+                <circle cx="450" cy="350" r="40" fill="#e2e8f0" opacity="0.8"/>
+                <text x="450" y="350" text-anchor="middle" font-size="12" font-weight="bold" fill="#475569">DJI 大疆</text>
+                <text x="450" y="365" text-anchor="middle" font-size="10" fill="#64748b">Skydio</text>
+
+                <circle cx="150" cy="150" r="35" fill="#e2e8f0" opacity="0.8"/>
+                <text x="150" y="150" text-anchor="middle" font-size="11" fill="#475569">华为/国家队</text>
+                <text x="150" y="165" text-anchor="middle" font-size="9" fill="#64748b">(基础设施)</text>
+
+                <rect x="350" y="50" width="200" height="180" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-dasharray="5,5"/>
+                
+                <circle cx="450" cy="140" r="35" fill="#bfdbfe" opacity="0.8"/>
+                <text x="450" y="140" text-anchor="middle" font-size="11" fill="#1e40af">Shield AI / Anduril</text>
+
+                <polygon points="500,90 510,115 490,115" fill="#f59e0b" stroke="#b45309"/> <text x="500" y="80" text-anchor="middle" font-weight="bold" fill="#b45309" font-size="14">★ 本方案 (STEU)</text>
+                <text x="500" y="135" text-anchor="middle" font-size="10" fill="#d97706" font-weight="bold">目标生态位</text>
+
+            </svg>
+            <div class="figcaption">图6 - 时空原生数据基础设施竞争生态位分析</div>
+        </div>
+        
+        <h3>4. 商业结论</h3>
+        <p>国外对标 Shield AI 的智能水平 + Anduril 的系统思维；国内利用 "军工国产化" 和 "低空经济" 风口，做所有无人机厂商背后的<strong>"时空网格神经中枢"</strong>供应商。</p>
+    </div>
+</body>
+</html>
