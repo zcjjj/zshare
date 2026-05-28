@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>基于FPGA的多传感器数据融合系统</title>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            line-height: 1.6;
+            color: #334155;
+            background-color: #f1f5f9;
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 45px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+        }
+        .header {
+            border-bottom: 3px solid #cbd5e1;
+            padding-bottom: 25px;
+            margin-bottom: 35px;
+        }
+        .header h1 {
+            color: #0f172a;
+            font-size: 24pt;
+            margin: 0 0 10px 0;
+            font-weight: 700;
+        }
+        .header .meta-info {
+            font-size: 10.5pt;
+            color: #64748b;
+        }
+        .meta-item {
+            margin-right: 20px;
+            display: inline-block;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 9.5pt;
+            font-weight: 600;
+        }
+        .badge-speed { background-color: #fee2e2; color: #991b1b; }
+        .badge-weight { background-color: #fef3c7; color: #92400e; }
+        .badge-success { background-color: #dcfce7; color: #166534; }
+        
+        h2 {
+            color: #1e3a8a;
+            font-size: 16pt;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            border-left: 5px solid #2563eb;
+            padding-left: 12px;
+            padding-bottom: 2px;
+        }
+        h3 {
+            color: #0f172a;
+            font-size: 12pt;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+        p {
+            font-size: 11pt;
+            text-align: justify;
+            margin-bottom: 16px;
+            color: #475569;
+        }
+        .highlight {
+            color: #2563eb;
+            font-weight: 600;
+        }
+        .svg-container {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .table-container {
+            margin: 15px 0 25px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 11pt;
+        }
+        th {
+            background-color: #f1f5f9;
+            color: #1e293b;
+            padding: 14px 16px;
+            font-weight: 600;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #334155;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        .callout-box {
+            background-color: #f0fdf4;
+            border-left: 4px solid #16a34a;
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .callout-box h4 {
+            margin: 0 0 8px 0;
+            color: #14532d;
+            font-size: 11.5pt;
+        }
+        .callout-box p {
+            margin: 0;
+            color: #166534;
+            font-size: 10.5pt;
+        }
+        .plan-list {
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+        .plan-list li {
+            margin-bottom: 10px;
+            font-size: 11pt;
+            color: #475569;
+        }
+
+        /* 悬浮打印按钮样式 */
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 24px;
+            font-size: 11pt;
+            font-weight: 600;
+            box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.3), 0 4px 6px -4px rgba(37, 99, 235, 0.3);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: all 0.2s ease-in-out;
+        }
+        .print-btn:hover {
+            background-color: #1d4ed8;
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.4), 0 8px 10px -6px rgba(37, 99, 235, 0.4);
+        }
+        .print-btn:active {
+            transform: translateY(0);
+        }
+        .print-btn svg {
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        /* 打印媒介查询：生成PDF或打印时生效 */
+        @media print {
+            .print-btn {
+                display: none !important; /* 打印时完全隐藏自身 */
+            }
+            body {
+                background-color: #ffffff;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                padding: 0;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>基于FPGA的多传感器数据融合系统</h1>
+        <p style="font-size: 13pt; color: #475569; margin: 5px 0 15px 0; font-weight: 500;"></p>
+        <div class="meta-info">
+        
+            <span class="meta-item"><strong>设计时速：</strong> <span class="badge badge-speed">200 km/h</span></span>
+            <span class="meta-item"><strong>系统总重：</strong> <span class="badge badge-weight">~300 g</span></span>
+        </div>
+    </div>
+
+    <h2>1. 核心定位：攻克高速飞行下的“时空错位”</h2>
+    <p>在无人机以 <span class="highlight">200 km/h（约合 55.6 m/s）</span> 的极速巡航或侦察状态下，传统的软件触发或异步数据采集机制会引入严重的传感器“时空偏差”。在如此高的动态场景下，哪怕仅有 <span class="highlight">1 ms</span> 的时间不同步，就会直接导致视觉目标与惯导数据之间产生高达 <span class="highlight">5.56 厘米</span> 的空间断层。这种断层对后期进行“数据层级”的深度多源融合算法是致命的。</p>
+    <p>本系统采用 <strong>FPGA 作为底层硬触发核心</strong>，通过纳秒级的硬件时钟沿精准控制链路，彻底消除了传统操作系统（如 Linux 调度）带来的非确定性延迟，实现了双目相机与高频 IMU 的高精度绝对时空同步。</p>
+
+    <h2>2. 物理外观与紧凑型机载架构</h2>
+    <p>为满足无人机机舱极其严苛的空间与载荷限制，系统摒弃了冗余的连接线缆，采用了高度紧凑的<strong>“三明治”垂直堆叠架构</strong>。该结构不仅极大地压缩了体积，同时缩短了高速信号的走线距离，极大增强了系统的电磁兼容性（EMC）。</p>
+    
+    <div class="svg-container">
+        <svg width="100%" height="240" viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+            <rect width="800" height="240" fill="#f8fafc" rx="8"/>
+            
+            <rect x="250" y="20" width="300" height="25" fill="#64748b" rx="4"/>
+            <text x="400" y="37" fill="#ffffff" font-size="11" font-weight="bold" text-anchor="middle">无人机内部碳纤维挂载点</text>
+            
+            <line x1="300" y1="45" x2="300" y2="215" stroke="#94a3b8" stroke-width="4" stroke-dasharray="4 4"/>
+            <line x1="500" y1="45" x2="500" y2="215" stroke="#94a3b8" stroke-width="4" stroke-dasharray="4 4"/>
+            
+            <rect x="220" y="65" width="360" height="35" fill="#475569" rx="6"/>
+            <text x="400" y="87" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">树莓派计算单元 (高层算法与网口下发)</text>
+            
+            <path d="M 350 100 L 350 130 M 450 100 L 450 130" stroke="#f59e0b" stroke-width="5"/>
+            <text x="400" y="120" fill="#d97706" font-size="10" font-weight="bold" text-anchor="middle">机载千兆网络互联通道 (RGMII)</text>
+            
+            <rect x="220" y="130" width="360" height="35" fill="#1e3a8a" rx="6"/>
+            <text x="400" y="152" fill="#ffffff" font-size="12" font-weight="bold" text-anchor="middle">FPGA 核心硬触发单元 (时序控制与数据拼装)</text>
+            
+            <rect x="180" y="195" width="120" height="30" fill="#0d9488" rx="4"/>
+            <text x="240" y="214" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">Cams (或者双目)</text>
+            
+            <rect x="340" y="195" width="120" height="30" fill="#b45309" rx="4"/>
+            <text x="400" y="214" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">高频 IMU (惯性导航)</text>
+            
+            <rect x="500" y="195" width="120" height="30" fill="#0d9488" rx="4"/>
+            <text x="560" y="214" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">雷达 (待定)</text>
+            
+            <path d="M 300 165 L 240 195 M 400 165 L 400 195 M 500 165 L 560 195" stroke="#ef4444" stroke-width="2"/>
+            <text x="250" y="180" fill="#ef4444" font-size="9" font-weight="bold">硬触发脉冲</text>
+        </svg>
+    </div>
+    <p style="text-align: center; font-size: 10pt; color: #64748b; margin-top: -10px;">图 1: 机载“三明治”紧凑堆叠及硬触发物理拓扑示意图</p>
+
+    <h3>2.1 物理载荷量化参数</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>评估核心指标</th>
+                    <th>实测/设计参数</th>
+                    <th>技术关注点势</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>系统总重量 (Total Weight)</strong></td>
+                    <td><span class="highlight">约 300 g</span>（安路fpga、树莓派计算）</td>
+                    <td>后续集成到一起“感知模组 System on Board (SoB) ”硬件。</td>
+                </tr>
+                <tr>
+                    <td><strong>机械稳定性 (Mechanical Stability)</strong></td>
+                    <td>多点定位刚性螺栓柱 + 锁扣排线</td>
+                    <td>针对高空高速带来的剧烈震动、强气流颠簸进行加固，防止飞控失联与接触不良。</td>
+                </tr>
+                <tr>
+                    <td><strong>散热与功耗 (Thermal & Power)</strong></td>
+                    <td>低功耗架构 + 机载标准高压直流DC-DC</td>
+                    <td>整体发热控制在理想范围内，无需主动风扇，完美利用无人机前向气流被动风冷。</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <h2>3. 系统核心性能与技术突破</h2>
+    <p>在本阶段的研发攻坚中，成功跨越了最艰难的<strong>千兆以太网高速通信物理层时序大关</strong>，打通了从硬件底层到上位机软件的全链路通道。</p>
+
+    <h3>3.1 核心量化性能与预期指标</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>核心性能参数</th>
+                    <th>实测数据 / 预期指标</th>
+                    <th>系统应用价值 (200km/h 环境)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>硬触发同步精度 (Sync Precision)</strong></td>
+                    <td><span class="highlight">< 50 ns</span> (纳秒级硬件时钟级对齐)</td>
+                    <td>即使在极速下，空间偏差也被压缩至微米级，彻底消除多传感器间的“时空错位”。</td>
+                </tr>
+                <tr>
+                    <td><strong>端到端链路延迟 (End-to-End Latency)</strong></td>
+                    <td><span class="highlight">< 8 ms</span> (从相机曝光到树莓派内存)</td>
+                    <td>极低的数据搬运延迟，为树莓派后端的实时 SLAM/VIO 融合算法争取到最大的算力时间窗口。</td>
+                </tr>
+                <tr>
+                    <td><strong>网络有效吞吐量 (Network Throughput)</strong></td>
+                    <td><span class="highlight">持续稳定 ~800 Mbps</span> (千兆物理层)</td>
+                    <td>充沛的底层带宽余量，完美支撑双路无压缩原画质视频流与高频状态数据的同步并发传输。</td>
+                </tr>
+                <tr>
+                    <td><strong>预期视觉帧率 (Visual Frame Rate)</strong></td>
+                    <td>双目全局曝光 <span class="highlight">60 FPS</span></td>
+                    <td>高帧率全局曝光捕捉（Global Shutter），拒绝高速运动模糊，清晰锁定动态位移特征点。</td>
+                </tr>
+                <tr>
+                    <td><strong>预期惯导频次 (IMU Sampling Rate)</strong></td>
+                    <td><span class="highlight">400 Hz - 1000 Hz</span> 硬锁存</td>
+                    <td>超高频姿态采样，填补两帧视觉图像间的轨迹空白，精确还原无人机的高频动态震动学特征。</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <h3>3.2 微秒级绝对同步硬触发机制</h3>
+    <p>系统由 FPGA 外部温控晶振（TCXO）时钟+pps（gps）周期触发矫正，在同一张纳秒级时钟沿上，强制双目相机同步曝光，并同时锁存高频 IMU 的动力学状态，确保多源数据的时空完全对齐。</p>
+
+    <div class="svg-container">
+        <svg width="100%" height="160" viewBox="0 0 800 160" xmlns="http://www.w3.org/2000/svg">
+            <rect width="800" height="160" fill="#f8fafc" rx="8"/>
+            
+            <line x1="50" y1="135" x2="750" y2="135" stroke="#94a3b8" stroke-width="2"/>
+            <polygon points="750,131 760,135 750,139" fill="#94a3b8"/>
+            <text x="750" y="152" fill="#64748b" font-size="10" text-anchor="middle">时间轴 (t)</text>
+            
+            <text x="60" y="40" fill="#dc2626" font-size="11" font-weight="bold">传统软件触发 (存在Jitter抖动)</text>
+            <path d="M 200 45 L 230 45 L 230 25 L 250 25 L 250 45 L 380 45 L 380 25 L 405 25 L 405 45 L 560 45" stroke="#dc2626" stroke-width="2" fill="none"/>
+            <path d="M 210 45 L 245 45 L 245 25 L 265 25 L 265 45 L 400 45 L 400 25 L 425 25 L 425 45 L 560 45" stroke="#fca5a5" stroke-width="1.5" stroke-dasharray="2 2" fill="none"/>
+            <text x="245" y="18" fill="#dc2626" font-size="9" text-anchor="middle">非确定性毫秒级延迟</text>
+            
+            <text x="60" y="95" fill="#16a34a" font-size="11" font-weight="bold">FPGA 纳秒级硬触发 (本系统)</text>
+            <path d="M 200 100 L 250 100 L 250 75 L 252 75 L 252 100 L 410 100 L 410 75 L 412 75 L 412 100 L 560 100" stroke="#16a34a" stroke-width="2.5" fill="none"/>
+            
+            <line x1="251" y1="75" x2="251" y2="135" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <line x1="411" y1="75" x2="411" y2="135" stroke="#16a34a" stroke-width="1.5" stroke-dasharray="3 3"/>
+            <circle cx="251" cy="135" r="4" fill="#16a34a"/>
+            <circle cx="411" cy="135" r="4" fill="#16a34a"/>
+            
+            <text x="251" y="65" fill="#16a34a" font-size="9" font-weight="bold" text-anchor="middle">绝对对齐点 T1</text>
+            <text x="411" y="65" fill="#16a34a" font-size="9" font-weight="bold" text-anchor="middle">绝对对齐点 T2</text>
+        </svg>
+    </div>
+    <p style="text-align: center; font-size: 10pt; color: #64748b; margin-top: -10px;">图 2: 软件异步触发与 FPGA 底层精准硬触发时序对比</p>
+
+    <h3>3.3 千兆网吞吐及全时段零丢包突破</h3>
+    <p>在千兆网高速传输物理层（RGMII）的调试中，深入底层电气特性分析，实施了决定性的时序优化：</p>
+    <ul class="plan-list">
+        <li><strong>驱动能力增强：</strong> 将 FPGA IO 管脚的驱动电流从默认的 8mA 提升至极限强驱动 <span class="highlight">16mA</span>，并配置 <span class="highlight">FAST</span> 压摆率，彻底撑大高速信号的数据眼（Data Eye）。</li>
+        <li><strong>时钟相位锁定：</strong> 精准微调 FPGA 内部的 PLL 锁相环，将 125MHz 千兆时钟相移精确锁死在物理窗口的绝对几何中心（<span class="highlight">90 度相移</span>）。</li>
+    </ul>
+    
+    <div class="callout-box">
+        <h4>🎯 最新网络压力验证：</h4>
+        <p>上述优化后，系统在长时段的高大流量灌包压力测试中表现强悍。启动初期的链路握手完成后，<strong>底层错包与 UDP 丢包彻底清零</strong>，硬件时序表现已达工业级完美稳态。</p>
+    </div>
+
+    
+
+
+</div>
+
+<button class="print-btn" onclick="window.print()">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 6 2 18 2 18 9"></polyline>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+        <rect x="6" y="14" width="12" height="8"></rect>
+    </svg>
+    打印 / 导出 PDF
+</button>
+
+</body>
+</html>
