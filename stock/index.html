@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>AI基础设施底层硬科技A股终极挖掘图谱_A4版</title>
+    <style>
+        /* 基础打印及A4纸张重置 */
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            color: #1e293b;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
+        /* A4 物理画布容器 */
+        .a4-page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 15mm 10mm;
+            margin: 10px auto;
+            background: #ffffff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        h2 {
+            text-align: center;
+            color: #0f172a;
+            margin: 0 0 15px 0;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 8px;
+        }
+
+        /* 顶部总路线：自上而下流向 */
+        .flow-header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .root-node {
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: bold;
+            border: 1px solid #0f172a;
+        }
+        .flow-line {
+            width: 2px;
+            height: 15px;
+            background: #94a3b8;
+            margin: 2px 0;
+        }
+
+        /* 大生命周期分流网格 */
+        .stage-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 8px;
+            align-items: start;
+        }
+
+        .stage-column {
+            border-radius: 6px;
+            padding: 10px 6px;
+        }
+        .stage-01-bg { background-color: #fff5f5; border: 1px dashed #fca5a5; }
+        .stage-110-bg { background-color: #f0fdf4; border: 1px dashed #a7f3d0; }
+
+        .stage-title {
+            font-size: 12px;
+            font-weight: bold;
+            text-align: center;
+            padding: 6px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .title-01 { background: #7f1d1d; color: #fca5a5; }
+        .title-110 { background: #064e3b; color: #a7f3d0; }
+
+        /* 卡片内容区布局 */
+        .cards-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .track-card {
+            background: #ffffff;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            border-top: 4px solid #38bdf8;
+            padding: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .card-01-top { border-top-color: #ef4444; }
+        .card-110-top { border-top-color: #10b981; }
+
+        .card-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 6px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .card-section {
+            margin-top: 5px;
+        }
+
+        .section-label {
+            font-size: 9px;
+            font-weight: bold;
+            padding: 1px 4px;
+            border-radius: 2px;
+            display: inline-block;
+            margin-bottom: 3px;
+        }
+        .label-deep { background: #f3e8ff; color: #6b21a8; }
+        .label-barrier { background: #ffedd5; color: #9a3412; }
+        .label-stock { background: #d1fae5; color: #065f46; }
+
+        .text-content {
+            font-size: 10px;
+            color: #475569;
+            line-height: 1.4;
+            margin-bottom: 3px;
+        }
+        
+        .deep-box {
+            font-size: 9.5px;
+            color: #5b21b6;
+            line-height: 1.35;
+            background: #faf5ff;
+            padding: 4px;
+            border-radius: 3px;
+            border-left: 2px solid #8b5cf6;
+            margin-bottom: 4px;
+        }
+
+        /* 映射股票精细对齐 */
+        .stock-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            margin-top: 2px;
+        }
+        .stock-item {
+            font-size: 10.5px;
+            font-weight: bold;
+            color: #047857;
+            background: #f0fdf4;
+            padding: 3px 5px;
+            border-radius: 2px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #d1fae5;
+        }
+        .stock-tag {
+            font-size: 8.5px;
+            color: #64748b;
+            font-weight: normal;
+            background: #ffffff;
+            padding: 0 2px;
+            border-radius: 1px;
+        }
+
+        /* 打印媒介专调 */
+        @media print {
+            body { background: #fff; }
+            .a4-page {
+                width: 210mm;
+                height: 297mm;
+                margin: 0;
+                box-shadow: none;
+                page-break-after: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="a4-page">
+    <h2>AI 基础设施硬科技底层全量深挖图谱 (A4标准版)</h2>
+    
+    <div class="flow-header">
+        <div class="root-node">AI基础设施底层核心材料与工艺</div>
+        <div class="flow-line"></div>
+    </div>
+
+    <div class="stage-container">
+        
+        <div class="stage-column stage-01-bg">
+            <div class="stage-title title-01">【0 → 1】纯爆发期 (卡脖子/高弹性)</div>
+            <div class="cards-grid">
+                
+                <div class="track-card card-01-top">
+                    <div class="card-title">玻璃基板①：石英原片与材料纯化</div>
+                    <div class="card-section">
+                        <span class="section-label label-deep">纵深下挖 (核心技术)</span>
+                        <div class="deep-box">高纯四氯化硅合成 → 高纯石英砂锭 → 溢流熔融法（厚度&lt;100μm）超薄化。需阻断碱金属离子迁移。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-barrier">垄断卡点</span>
+                        <div class="text-content">日本旭硝子、康宁垄断。国内瓶颈在于电子级高纯合成石英主料的批量稳定性。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-stock">A股映射标的</span>
+                        <div class="stock-group">
+                            <div class="stock-item">戈碧迦 <span class="stock-tag">石英原片</span></div>
+                            <div class="stock-item">凯盛科技 <span class="stock-tag">超薄玻璃</span></div>
+                            <div class="stock-item">菲利华 <span class="stock-tag">石英料</span></div>
+                            <div class="stock-item">彩虹股份 <span class="stock-tag">溢流积累</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="track-card card-01-top">
+                    <div class="card-title">玻璃基板②：TGV 激光改性设备</div>
+                    <div class="card-section">
+                        <span class="section-label label-deep">纵深下挖 (精密设备)</span>
+                        <div class="deep-box">贝塞尔光束整形 → 皮/飞秒脉冲激光诱导结晶改性 → 选择性化学刻蚀（SCE）成孔。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-barrier">技术死穴</span>
+                        <div class="text-content">脆裂应力控制、孔壁粗糙度控制（秒级万孔）。当前全球由德国 LPKF 绝对封锁。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-stock">A股映射标的</span>
+                        <div class="stock-group">
+                            <div class="stock-item">帝尔激光 <span class="stock-tag">LIDE设备</span></div>
+                            <div class="stock-item">德龙激光 <span class="stock-tag">精密加工</span></div>
+                            <div class="stock-item">杰普特 <span class="stock-tag">激光器</span></div>
+                            <div class="stock-item">大族激光 <span class="stock-tag">刻蚀储备</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="track-card card-01-top">
+                    <div class="card-title">玻璃基板③：高深径比通孔金属化</div>
+                    <div class="card-section">
+                        <span class="section-label label-deep">纵深下挖 (化学制程)</span>
+                        <div class="deep-box">通孔无电解镀铜（化学底） → 强流速VCP电镀铜。依赖“加速/抑制/整平剂”配方调配。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-barrier">核心难点</span>
+                        <div class="text-content">深孔内液体张力易导致药水失效从而空洞断路。玻璃表面粗糙度附着力极难调校。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-stock">A股映射标的</span>
+                        <div class="stock-group">
+                            <div class="stock-item">天承科技 <span class="stock-tag">填孔剂</span></div>
+                            <div class="stock-item">东威科技 <span class="stock-tag">VCP设备</span></div>
+                            <div class="stock-item">三孚新科 <span class="stock-tag">湿法药水</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="track-card card-01-top">
+                    <div class="card-title">HBM塑封①：GMC高端特种树脂</div>
+                    <div class="card-section">
+                        <span class="section-label label-deep">纵深下挖 (有机化学)</span>
+                        <div class="deep-box">多官能团联苯型环氧树脂+酚醛固化剂改性。配合超低游离氯纯化，保证极限薄度下低内应力。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-barrier">专利壁垒</span>
+                        <div class="text-content">日本住友培克专利网垄断。要求物料在高温熔融时粘度趋近于水以实现极窄缝隙全渗透。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-stock">A股映射标的</span>
+                        <div class="stock-group">
+                            <div class="stock-item">华海诚科 <span class="stock-tag">GMC前沿</span></div>
+                            <div class="stock-item">飞凯材料 <span class="stock-tag">封装配方</span></div>
+                            <div class="stock-item">宏昌电子 <span class="stock-tag">基材树脂</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="track-card card-01-top">
+                    <div class="card-title">HBM塑封②：Low-Alpha球形填料</div>
+                    <div class="card-section">
+                        <span class="section-label label-deep">纵深下挖 (无机纯化)</span>
+                        <div class="deep-box">高端石英喷雾熔融法。GMC中填料重占比超85%，必须将U、Th等放射性元素纯化至0.1ppb以下。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-barrier">卡脖子点</span>
+                        <div class="text-content">普通射线会引发高密度DRAM数据软错误。工艺目前由日本雅玛多单寡头垄断。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-stock">A股映射标的</span>
+                        <div class="stock-group">
+                            <div class="stock-item">联瑞新材 <span class="stock-tag">全球供应</span></div>
+                            <div class="stock-item">雅克科技 <span class="stock-tag">前驱体储备</span></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="stage-column stage-110-bg">
+            <div class="stage-title title-110">【1 → 10】加速放量期 (订单/业绩兑现)</div>
+            <div class="cards-grid">
+                
+                <div class="track-card card-110-top">
+                    <div class="card-title">浸没式液冷：全氟聚醚电子氟化液</div>
+                    <div class="card-section">
+                        <span class="section-label label-deep">纵深下挖 (氟精细化工)</span>
+                        <div class="deep-box">全氟聚醚（PFPE）与氢氟醚（HFE）高壁垒合成。由于海外环保大厂3M全面停产，迎来史诗级订单转移。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-barrier">放量驱动</span>
+                        <div class="text-content">AI集群高功耗强推浸没式液冷，材料需长年绝缘、零腐蚀、超低GWP环保指标。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-stock">A股映射标的</span>
+                        <div class="stock-group">
+                            <div class="stock-item">新宙邦 <span class="stock-tag">海外半导体</span></div>
+                            <div class="stock-item">巨化股份 <span class="stock-tag">国内数据中心</span></div>
+                            <div class="stock-item">永和股份 <span class="stock-tag">含氟高分子</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="track-card card-110-top">
+                    <div class="card-title">高速覆铜板CCL：官能团化PPO树脂</div>
+                    <div class="card-section">
+                        <span class="section-label label-deep">纵深下挖 (高分子改性)</span>
+                        <div class="deep-box">低分子量热固性聚苯醚树脂改性。专供英伟达GB200主板、高多层PCB板及1.6T高速光模块。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-barrier">放量驱动</span>
+                        <div class="text-content">在高频（28GHz+）通信下，将介电损耗（Df）压缩至极微（&lt;0.002），打破沙特SABIC垄断。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-stock">A股映射标的</span>
+                        <div class="stock-group">
+                            <div class="stock-item">圣泉集团 <span class="stock-tag">M7/M8出货龙头</span></div>
+                            <div class="stock-item">东材科技 <span class="stock-tag">全品类验证</span></div>
+                            <div class="stock-item">同益股份 <span class="stock-tag">特塑改性</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="track-card card-110-top">
+                    <div class="card-title">高速互连：Low-D 极薄电子玻璃布</div>
+                    <div class="card-section">
+                        <span class="section-label label-deep">纵深下挖 (特种无机纺织)</span>
+                        <div class="deep-box">单丝直径&lt;4微米极薄拉丝，厚度&lt;20μm的扁平开纤织造。属于覆铜板内部的绝缘强度核心。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-barrier">放量驱动</span>
+                        <div class="text-content">AI主板多层化（24层以上）带来极限薄型化与低损耗需求。直接对标日本日东纺。</div>
+                    </div>
+                    <div class="card-section">
+                        <span class="section-label label-stock">A股映射标的</span>
+                        <div class="stock-group">
+                            <div class="stock-item">宏和科技 <span class="stock-tag">极薄布打破垄断</span></div>
+                            <div class="stock-item">中国巨石 <span class="stock-tag">低介电纱底座</span></div>
+                            <div class="stock-item">国际复材 <span class="stock-tag">低损耗粗纱</span></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
