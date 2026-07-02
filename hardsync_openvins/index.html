@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FPGA + OpenVINS · 技术底座与物理AI应用</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f6f9fc;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            padding: 2rem 1.5rem;
+            line-height: 1.5;
+            color: #0b1c2e;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* header */
+        .header {
+            margin-bottom: 2.5rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            background: linear-gradient(145deg, #0b2a45, #1a4b6d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline-block;
+        }
+
+        .header .sub {
+            font-size: 1.05rem;
+            color: #2c5778;
+            background: #e7f0f8;
+            display: inline-block;
+            padding: 0.3rem 1.2rem;
+            border-radius: 30px;
+            margin-top: 0.4rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.7rem 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .badge {
+            background: #ffffffcc;
+            backdrop-filter: blur(4px);
+            padding: 0.3rem 1.1rem;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            box-shadow: 0 2px 6px rgba(0,20,40,0.04);
+            border: 1px solid #dae6ef;
+        }
+
+        .badge strong {
+            color: #0b4b6f;
+        }
+
+        /* 架构图 */
+        .architecture {
+            background: white;
+            border-radius: 28px;
+            padding: 2rem 1.8rem;
+            margin-bottom: 2.8rem;
+            box-shadow: 0 8px 24px rgba(0, 32, 64, 0.06);
+            border: 1px solid #e6eef6;
+        }
+
+        .arch-title {
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #1a405a;
+            letter-spacing: 0.3px;
+            margin-bottom: 1.8rem;
+        }
+
+        .arch-layer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .arch-base {
+            background: #0b2a45;
+            color: white;
+            padding: 0.8rem 2.2rem;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 1.2rem;
+            letter-spacing: 0.3px;
+            box-shadow: 0 6px 0 #062036;
+            margin-bottom: 1rem;
+        }
+
+        .arch-base small {
+            font-weight: 400;
+            font-size: 0.85rem;
+            opacity: 0.75;
+            margin-left: 8px;
+        }
+
+        .arch-arrow {
+            font-size: 1.8rem;
+            color: #688aa3;
+            margin: 0.2rem 0 0.2rem 0;
+            line-height: 1;
+        }
+
+        .arch-apps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1.5rem 2.5rem;
+            margin-top: 0.8rem;
+        }
+
+        .arch-app-item {
+            background: #ecf3fa;
+            padding: 0.5rem 1.8rem;
+            border-radius: 50px;
+            font-weight: 600;
+            color: #12415f;
+            font-size: 1.05rem;
+            box-shadow: inset 0 -2px 0 #b8cfdf;
+        }
+
+        .arch-app-item span {
+            font-weight: 400;
+            color: #2d5c7c;
+            font-size: 0.85rem;
+            margin-left: 6px;
+        }
+
+        /* 领域卡片 */
+        .domain-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.8rem;
+            margin: 2.5rem 0 2.8rem;
+        }
+
+        .domain-card {
+            background: white;
+            border-radius: 24px;
+            padding: 1.6rem 1.6rem 1.2rem;
+            box-shadow: 0 6px 18px rgba(0, 28, 56, 0.04);
+            border: 1px solid #dfeaf3;
+            transition: 0.2s;
+        }
+
+        .domain-card:hover {
+            border-color: #b8d0e3;
+            box-shadow: 0 10px 28px rgba(15, 60, 100, 0.07);
+        }
+
+        .domain-title {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #0f3450;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e3eef9;
+            padding-bottom: 0.7rem;
+        }
+
+        .domain-title .emoji {
+            font-size: 1.6rem;
+        }
+
+        .domain-sub {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #2f6a8a;
+            background: #e9f1fa;
+            display: inline-block;
+            padding: 0.1rem 0.9rem;
+            border-radius: 30px;
+            margin-bottom: 0.9rem;
+        }
+
+        .scene-list {
+            list-style: none;
+        }
+
+        .scene-list li {
+            display: flex;
+            gap: 0.5rem 0.8rem;
+            flex-wrap: wrap;
+            padding: 0.55rem 0;
+            border-bottom: 1px solid #f0f5fb;
+            font-size: 0.95rem;
+        }
+
+        .scene-list li:last-child {
+            border-bottom: none;
+        }
+
+        .scene-tag {
+            background: #e4eef8;
+            padding: 0.1rem 0.7rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1e5680;
+            white-space: nowrap;
+        }
+
+        .scene-desc {
+            flex: 1;
+            color: #1c3c55;
+        }
+
+        .tech-path {
+            font-size: 0.8rem;
+            color: #3a6f96;
+            background: #f2f8ff;
+            padding: 0.1rem 0.8rem;
+            border-radius: 30px;
+            margin-top: 0.2rem;
+            font-weight: 450;
+            border: 1px dashed #bdd6ea;
+        }
+
+        /* 切入点表格 */
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #0b2a45;
+            margin: 2.5rem 0 1.2rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .section-title small {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #3a6f8f;
+        }
+
+        .table-wrap {
+            background: white;
+            border-radius: 24px;
+            overflow: auto;
+            box-shadow: 0 6px 18px rgba(0, 24, 48, 0.04);
+            border: 1px solid #dfeaf3;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            min-width: 550px;
+        }
+
+        th {
+            background: #e8f1fa;
+            color: #0e3452;
+            font-weight: 600;
+            padding: 1rem 1.2rem;
+            text-align: left;
+            border-bottom: 2px solid #c7dae9;
+        }
+
+        td {
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid #e9f0f7;
+            vertical-align: top;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .highlight-bg {
+            background: #f8fcff;
+        }
+
+        .pill {
+            background: #e0ebf5;
+            border-radius: 30px;
+            padding: 0.1rem 0.9rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1f5680;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        .footer-note {
+            margin-top: 2.5rem;
+            padding: 1.2rem 1.8rem;
+            background: #e8f0f8;
+            border-radius: 40px;
+            color: #164664;
+            font-weight: 450;
+            text-align: center;
+            border: 1px solid #d0e1ef;
+        }
+
+        @media (max-width: 650px) {
+            .header h1 { font-size: 1.6rem; }
+            .arch-base { font-size: 1rem; padding: 0.6rem 1.2rem; }
+            .arch-app-item { font-size: 0.9rem; padding: 0.3rem 1.2rem; }
+            .domain-grid { grid-template-columns: 1fr; }
+            .table-wrap { border-radius: 16px; }
+            th, td { padding: 0.8rem 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- 头部 -->
+    <div class="header">
+        <h1>⚡ FPGA + 硬件同步 · OpenVINS 技术底座</h1>
+        <div class="sub">边缘计算 · 高频VIO · 物理AI感知核心</div>
+        <div class="badge-grid">
+            <span class="badge"><strong>FPGA</strong> 硬同步</span>
+            <span class="badge"><strong>OpenVINS</strong> 状态估计</span>
+            <span class="badge"><strong>香橙派</strong> 边缘部署</span>
+            <span class="badge"><strong>200Hz</strong> 低延迟</span>
+            <span class="badge"><strong>多模态</strong> 对齐数据</span>
+        </div>
+    </div>
+
+    <!-- 架构图 -->
+    <div class="architecture">
+        <div class="arch-title">🧱 技术底座 → 三大应用领域</div>
+        <div class="arch-layer">
+            <div class="arch-base">
+                🔩 FPGA硬同步 + OpenVINS + 边缘计算 <small>（你的核心技术底座）</small>
+            </div>
+            <div class="arch-arrow">⬇</div>
+            <div class="arch-apps">
+                <div class="arch-app-item">🤖 机器人控制 <span>Motion</span></div>
+                <div class="arch-app-item">🌐 空间智能 <span>Spatial</span></div>
+                <div class="arch-app-item">📊 具身数据 <span>Data</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 三大领域卡片 -->
+    <div class="domain-grid">
+
+        <!-- 领域1: 机器人控制 -->
+        <div class="domain-card">
+            <div class="domain-title"><span class="emoji">🤖</span> 机器人控制与导航</div>
+            <div class="domain-sub">Motion · 高频低延迟状态反馈</div>
+            <ul class="scene-list">
+                <li>
+                    <span class="scene-tag">无人机</span>
+                    <span class="scene-desc">无GPS自主飞行，接入PX4/ArduPilot</span>
+                    <span class="tech-path">VIO位姿 → 飞控</span>
+                </li>
+                <li>
+                    <span class="scene-tag">机器狗/人形</span>
+                    <span class="scene-desc">高动态行走，姿态估计替代里程计</span>
+                    <span class="tech-path">VIO → RL策略 → 电机</span>
+                </li>
+                <li>
+                    <span class="scene-tag">室内AGV</span>
+                    <span class="scene-desc">低成本巡检，ROS Nav2路径规划</span>
+                    <span class="tech-path">VIO + Nav2</span>
+                </li>
+                <li>
+                    <span class="scene-tag">视觉-语言导航</span>
+                    <span class="scene-desc">自然语言驱动移动（“去找红椅子”）</span>
+                    <span class="tech-path">VIO + VLM语义</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 领域2: 空间智能 -->
+        <div class="domain-card">
+            <div class="domain-title"><span class="emoji">🌐</span> 空间计算与三维重建</div>
+            <div class="domain-sub">Spatial · 带位姿的3D感知</div>
+            <ul class="scene-list">
+                <li>
+                    <span class="scene-tag">手持3D扫描</span>
+                    <span class="scene-desc">高精度纹理采集，NeRF/3D Gaussian数据</span>
+                    <span class="tech-path">VIO轨迹 + 深度相机</span>
+                </li>
+                <li>
+                    <span class="scene-tag">稠密建图</span>
+                    <span class="scene-desc">占据网格（Occupancy Grid）避障</span>
+                    <span class="tech-path">VIO → Voxblox/OctoMap</span>
+                </li>
+                <li>
+                    <span class="scene-tag">语义建图</span>
+                    <span class="scene-desc">3D语义记忆图（椅子/门/人等）</span>
+                    <span class="tech-path">VIO坐标 + YOLO语义</span>
+                </li>
+                <li>
+                    <span class="scene-tag">数字孪生</span>
+                    <span class="scene-desc">实时姿态映射到UE5/Unity</span>
+                    <span class="tech-path">VIO位姿 → 虚拟人驱动</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 领域3: 具身数据 -->
+        <div class="domain-card">
+            <div class="domain-title"><span class="emoji">📊</span> 具身智能数据基础设施</div>
+            <div class="domain-sub">Data · 黄金多模态物理数据</div>
+            <ul class="scene-list">
+                <li>
+                    <span class="scene-tag">VLA大模型数据</span>
+                    <span class="scene-desc">硬同步图像+IMU，避免模型“精神分裂”</span>
+                    <span class="tech-path">FPGA硬同步 → 对齐数据集</span>
+                </li>
+                <li>
+                    <span class="scene-tag">遥操作采集</span>
+                    <span class="scene-desc">穿戴式背心/遥控小车 → 模仿学习</span>
+                    <span class="tech-path">ALOHA等数据集构建</span>
+                </li>
+                <li>
+                    <span class="scene-tag">多机协同</span>
+                    <span class="scene-desc">无GPS下编队定位与协作建图</span>
+                    <span class="tech-path">多设备VIO信息共享</span>
+                </li>
+                <li>
+                    <span class="scene-tag">数字孪生驱动</span>
+                    <span class="scene-desc">实时位姿驱动虚拟角色</span>
+                    <span class="tech-path">VIO → UE5/Unity</span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 三大切入方向 -->
+    <div class="section-title">
+        🎯 物理AI三大切入方向
+        <small>· 你的底座直击核心痛点</small>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:18%">切入点</th>
+                    <th style="width:42%">解决什么问题</th>
+                    <th style="width:40%">谁需要这个</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>① 机器人控制器</strong><br><span class="pill">Motion</span></td>
+                    <td>让机器人在无GPS、高动态环境下不“迷路”，提供低延迟高频位姿反馈</td>
+                    <td>无人机厂商、机器人公司、高校机器人实验室、具身智能初创</td>
+                </tr>
+                <tr>
+                    <td><strong>② 3D扫描与建图</strong><br><span class="pill">Spatial</span></td>
+                    <td>让机器/人“看懂”并记录三维世界，输出带精确位姿的纹理与语义地图</td>
+                    <td>数字孪生公司、AR/VR、建筑测绘、NeRF数据服务商</td>
+                </tr>
+                <tr>
+                    <td><strong>③ 具身AI数据底座</strong><br><span class="pill">Data</span></td>
+                    <td>解决VLA大模型最缺的“对齐物理数据”，提供高质量多模态训练集</td>
+                    <td>具身智能大模型公司、AI研究机构、机器人遥操作平台</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 底部 -->
+    <div class="footer-note">
+        ⚡ 这套系统在物理AI中扮演 <strong>“前庭系统”</strong>（高频稳定姿态） + <strong>“本体感受器”</strong>（实时运动感知） 的核心角色
+    </div>
+
+</div>
+</body>
+</html>
