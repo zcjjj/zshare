@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=device-width, initial-scale=1.0">
+    <title>全自主边缘AI自研主板技术研发与投入评估报告</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #1e3a8a;
+            --secondary-color: #2563eb;
+            --accent-color: #f59e0b;
+            --danger-color: #dc2626;
+            --success-color: #16a34a;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: Arial, "Helvetica Neue", Helvetica, "Microsoft YaHei", sans-serif;
+            line-height: 1.6;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            margin: 0 0 10px 0;
+            font-size: 28px;
+        }
+
+        header p {
+            color: var(--text-muted);
+            margin: 0;
+            font-size: 16px;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            border-left: 5px solid var(--secondary-color);
+            padding-left: 12px;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .intro-box {
+            background-color: #eff6ff;
+            border-left: 4px solid var(--secondary-color);
+            padding: 15px 20px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+        }
+
+        /* 表格样式 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0 30px 0;
+            font-size: 15px;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            text-align: left;
+            padding: 12px 15px;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .total-row {
+            font-weight: bold;
+            background-color: #f1f5f9 !important;
+            color: var(--danger-color);
+        }
+
+        /* 周期时间轴样式 */
+        .timeline {
+            position: relative;
+            margin: 30px 0;
+            padding-left: 30px;
+            border-left: 2px solid #cbd5e1;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: -36px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            border: 2px solid white;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        .timeline-item h4 {
+            margin: 0 0 5px 0;
+            color: var(--text-main);
+            font-size: 16px;
+        }
+
+        .timeline-item p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        /* 卡片栅格样式 */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: #fafafa;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .card i {
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+
+        .card h3 {
+            margin: 0 0 10px 0;
+            font-size: 17px;
+        }
+
+        .card p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .icon-danger { color: var(--danger-color); }
+        .icon-warning { color: var(--accent-color); }
+        .icon-success { color: var(--success-color); }
+        .icon-primary { color: var(--secondary-color); }
+
+        /* 警示文本 */
+        .alert-text {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background-color: #fff7ed;
+            border: 1px solid #ffedd5;
+            padding: 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #9a3412;
+            margin-top: 15px;
+        }
+        .alert-text i {
+            margin-top: 3px;
+        }
+
+        /* 页脚 */
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1><i class="fa-solid fa-microchip"></i> 全自主异构主板（VIO+AI避障）技术评估报告</h1>
+        <p>评估方向：芯片级软硬件全集成载板（外包开发模式）</p>
+    </header>
+
+    <div class="intro-box">
+        <i class="fa-solid fa-circle-info icon-primary"></i> 
+        <strong>当前技术现状：</strong> 传感器群（单目前置快门相机、IMU、斜向下毫米波雷达、下视光流、单点激光、前视 8x8 ToF）已通过 FPGA 硬件对齐时间戳，利用网线 UDP 协议向香橙派传输数据。
+        <br><br>
+        <strong>终极硬件目标：</strong> 彻底淘汰网线和分体结构，进行芯片级（CPU + NPU + FPGA）硬件融合设计，集成丰富的外部传感器插座、千兆网口及高带宽 NVMe 固态存储。
+    </div>
+
+    <div class="section-title">
+        <i class="fa-solid fa-wallet"></i> 一、 资金投入预算（外包研发服务 + 芯片级制造）
+    </div>
+    <p>芯片级集成涉及密集的 BGA 封装与高速数字信号仿真（如 RGMII、PCIe Gen3、LPDDR 阻抗控制），必须采用 8层 至 10层 的 <strong>HDI 盲埋孔工艺</strong>，以下为首批（5-10块）工程板打样硬开销平摊估算：</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 25%;"><i class="fa-solid fa-layer-group"></i> 预算大项</th>
+                <th style="width: 55%;"><i class="fa-solid fa-list-check"></i> 涵盖内容说明</th>
+                <th style="width: 20%;"><i class="fa-solid fa-tag"></i> 预计金额 (RMB)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>1. 外包硬件研发服务费</strong></td>
+                <td>芯片级原理图绘制、10层HDI高密度PCB布线、高速信号完整性（SI/PI）仿真测试。</td>
+                <td>￥50,000 - ￥120,000</td>
+            </tr>
+            <tr>
+                <td><strong>2. 核心物料采购费 (BOM)</strong></td>
+                <td>批量散买散片：RK3588大SoC、大容量LPDDR内存颗粒、eMMC存储、FPGA芯片、千兆PHY芯片、专用电源管理芯片（PMIC）。</td>
+                <td>￥20,000 - ￥40,000</td>
+            </tr>
+            <tr>
+                <td><strong>3. 高阶PCB制造与贴片</strong></td>
+                <td>10层HDI盲埋孔高频板材生产、高精度SMT贴片、BGA焊接检测及必备的 <strong>X-Ray 射线透视缺陷检测</strong>。</td>
+                <td>￥10,000 - ￥20,000</td>
+            </tr>
+            <tr>
+                <td><strong>4. 硬件迭代沉没缓冲期</strong></td>
+                <td>针对首版（V1.0）可能存在的电磁干扰或电源纹波缺陷，预留 1~2 次微调改版打样的生产备用金。</td>
+                <td>￥30,000 - ￥50,000</td>
+            </tr>
+            <tr class="total-row">
+                <td><i class="fa-solid fa-chart-line"></i> 综合预计总投入</td>
+                <td>从零设计至首批完全跑通、可真机试飞的工业级芯片板卡总预算。</td>
+                <td>约 ￥110,000 - ￥230,000</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="section-title">
+        <i class="fa-solid fa-calendar-days"></i> 二、 研发与制造迭代周期
+    </div>
+    <p>依托纯外包设计制造链路，硬件制造由于涉及 HDI 压制与全球芯片物料订货锁期，整体研发属于典型的标准硬核长跑：</p>
+
+    <div class="timeline">
+        <div class="timeline-item">
+            <h4>第 1 ~ 2 个月：【高阶数字电路设计与多维仿真期】</h4>
+            <p>外包公司攻克 RK3588 密集引脚拉线、高速外设差分对线设计，进行核心电源轨道动态纹波和 EMI 电磁兼容性仿真。</p>
+        </div>
+        <div class="timeline-item">
+            <h4>第 3 个月：【全球物料扫货与高精度贴片期】</h4>
+            <p>PCB 钢板制作、特种高规格工业级 FPGA 和高速闪存订货，PCB 厂 HDI 工艺压制与工厂流水线高精贴片。</p>
+        </div>
+        <div class="timeline-item">
+            <h4>第 4 个月：【底层固件编译与接口硬激活期】</h4>
+            <p>V1.0 工程板回厂。外包配合底层团队通过烧录器强行灌入固件，打通嵌入式 Linux、千兆以太网协议栈与 NVMe 物理驱动。</p>
+        </div>
+        <div class="timeline-item">
+            <h4>第 5 ~ 6 个月：【VIO 异构对齐与真机作死联调期】</h4>
+            <p>攻克电磁干扰、修改物理 Bug，打样交付 V2.0 终版卡，进行复杂/浓烟等特种室内环境高强度挂机飞行试飞。</p>
+        </div>
+    </div>
+
+    <div class="section-title">
+        <i class="fa-solid fa-triangle-exclamation"></i> 三、 团队必须直面的 3 大工程重构瓶颈
+    </div>
+    <p>一旦系统由“外部网线 UDP 传输”升级为“纯芯片级集成”，你们内部的算法与逻辑团队必须配合进行以下技术底层大换血：</p>
+
+    <div class="grid-3">
+        <div class="card">
+            <i class="fa-solid fa-bolt icon-success"></i>
+            <h3>1. 废除 UDP，升级板载 DMA</h3>
+            <p>原 UDP 网线虽稳，但耗费 CPU。芯片一体化后，应要求外包建立 <strong>PCIe 或高速并行 MIPI-CSI 总线</strong>，数据对齐后直接通过硬件 DMA 刷入 CPU 内存，实现零 CPU 占用的通信架构。</p>
+        </div>
+        <div class="card">
+            <i class="fa-solid fa-shield-halved icon-danger"></i>
+            <h3>2. IMU 电磁“金钟罩”</h3>
+            <p>千兆以太网、NVMe 和大功耗 CPU 运行时辐射极强。跑 VINS 的高频 IMU 芯片若离它们太近，数据流会被噪声淹没。要求外包必须在 IMU 芯片上方加装<strong>金属屏蔽罩</strong>并做阻尼防震隔离。</p>
+        </div>
+        <div class="card">
+            <i class="fa-solid fa-circle-nodes icon-warning"></i>
+            <h3>3. NVMe 固态接口物理加强</h3>
+            <p>飞机螺旋桨产生巨大的物理高频振动。传统的 M.2 固态接口金手指极易由于高频微震动产生接触不良和坏块。外包在设计时必须加上<strong>物理防震锁紧结构</strong>甚至预留颗粒直接贴片焊死的备选方案。</p>
+        </div>
+    </div>
+
+    <div class="alert-text">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div>
+            <strong>决策避坑指南：</strong> 该系统在技术架构上属于目前的行业顶流。如果目前处于功能 Demo 阶段或发表成果期，继续采用<strong>“香橙派核心板 + FPGA 核心板 + 现成外接模块”的 4层载板组合形式</strong>能将硬件成本压到 1.5 万以内，且 2 个月内即可闭环。只有在面对明确的大客户批量军工/特种行业设备交付时，才有必要启动上述“数十万、长周期”的完全自研芯片级板卡链路。
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2026 特种全自主智能避障导航项目团队 · 绝密技术评估书</p>
+    </footer>
+</div>
+
+</body>
+</html>
