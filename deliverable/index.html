@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>极端环境多源融合感知系统 - 项目交付清单 v2.0</title>
+    <style>
+        :root {
+            --primary-color: #1a56db;
+            --text-color: #333333;
+            --bg-color: #f9fafb;
+            --border-color: #e5e7eb;
+        }
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text-color);
+            line-height: 1.6;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 40px 50px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+        .header h1 {
+            color: #111827;
+            font-size: 28px;
+            margin: 0 0 10px 0;
+        }
+        .header p {
+            color: #6b7280;
+            font-size: 16px;
+            margin: 0;
+        }
+        .alert-box {
+            background-color: #eff6ff;
+            border-left: 4px solid var(--primary-color);
+            padding: 16px;
+            margin-bottom: 30px;
+            border-radius: 0 4px 4px 0;
+        }
+        .alert-box strong {
+            color: #1e3a8a;
+            display: block;
+            margin-bottom: 8px;
+        }
+        .alert-box p {
+            margin: 0;
+            font-size: 14px;
+            color: #1e40af;
+        }
+        h2 {
+            color: var(--primary-color);
+            font-size: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        ul > li {
+            position: relative;
+            padding-left: 24px;
+            margin-bottom: 16px;
+        }
+        ul > li::before {
+            content: "•";
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 18px;
+            position: absolute;
+            left: 0;
+            top: -2px;
+        }
+        .sub-list {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            padding-left: 20px;
+        }
+        .sub-list li {
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #4b5563;
+        }
+        .sub-list li::before {
+            content: "-";
+            color: #9ca3af;
+        }
+        .badge {
+            display: inline-block;
+            background-color: #fee2e2;
+            color: #b91c1c;
+            padding: 2px 8px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 12px;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        .highlight {
+            font-weight: 600;
+            color: #111827;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>多源融合感知系统设计项目交付物</h1>
+        </div>
+
+        
+        <h2>一、硬件底板与全套工程源文件</h2>
+        <ul>
+            <li>
+                <span class="highlight">大算力融合感知底板 (PCBA)：</span> 搭载高性能算力中枢与FPGA时钟控制引擎的定制主板，完成贴片打样与硬件联调。算力与内存配置需满足千问9B模型 (INT8/INT4) 的流畅本地推理及多模态数据融合需求。
+            </li>
+            <li>
+                <span class="highlight">异构传感器套件及结构件：</span> 包含调试适配后的可见光相机（双目）、红外热成像仪、毫米波雷达、高精度IMU模块，以及定制数据/触发线束与专用减震/屏蔽结构件。
+            </li>
+            <li>
+                <span></span> <span class="highlight">硬件全套设计源文件：</span>
+                <ul class="sub-list">
+                    <li>原理图设计源文件。</li>
+                    <li>PCB Layout 源文件及可直接用于批量生产的 Gerber 制板文件。</li>
+                    <li>完整、经过打样验证的 BOM 表 (物料清单) 。</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h2>二、算法、大模型与全栈软件源码 (100%白盒交付)</h2>
+        <ul>
+            <li>
+                <span></span> <span class="highlight">FPGA 固件与底层系统代码：</span>
+                <ul class="sub-list">
+                    <li><strong>FPGA 源码：</strong> 全套硬件工程代码 (Verilog)，包含纳秒级时钟同步逻辑、传感器硬件触发机制、数据预处理及完整时序约束文件（完整工程）。</li>
+                    <li><strong>底层驱动：</strong> 定制主板的系统 BSP (板级支持包) 源码、Linux 内核源码及配置树、各异构传感器 (视觉/红外/雷达/IMU) 的底层驱动 C/C++ 源码。</li>
+                </ul>
+            </li>
+            <li>
+                <span></span> <span class="highlight">多源融合感知算法工程：</span>
+                <ul class="sub-list">
+                    <li>涵盖传感器标定、时空严格配准算法及多模态数据特征级/数据级融合全套 C++/Python 源码。</li>
+                    <li>动态障碍物识别、热点目标检测算法的模型结构文件及板端推理部署代码。</li>
+                </ul>
+            </li>
+            <li>
+                <span></span> <span class="highlight">端侧大语言模型 (LLM) 与语义导航工程：</span>
+                <ul class="sub-list">
+                    <li><strong>端侧推理部署源码：</strong> 深度适配定制主板 NPU 计算特性的千问9B (Qwen-9B) 大模型推理加速框架源码 (涵盖模型量化转换脚本、内存优化及 C++ 推理 API)。</li>
+                    <li><strong>大模型权重文件：</strong> 针对搜救/巡检领域指令进行过微调并量化处理的千问9B模型权重包。</li>
+                    <li><strong>语义导航源码：</strong> 基于大模型的自然语言指令解析逻辑、语义时序图 (TS-Graph) 构建机制及零样本未知路线自主规划算法 (A*/Dijkstra) 的完整代码实现。</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h2>三、场景验证与演示交付物</h2>
+        <ul>
+            <li>
+                <span class="highlight">端侧大模型赋能的整机测试系统：</span> 搭载高算力主板软硬件平台与端侧千问大模型的移动机器狗物理演示平台。
+            </li>
+            <li>
+                <span class="highlight">自然语言指令理解执行演示：</span> 系统完全在本地 (断开云端算力库) 执行复杂指令 (如：“主楼梯已损坏，请自行寻找备用路线去一楼设备区，并确认有无受困人员”) 的完整端到端演示。
+            </li>
+            <li>
+                <span class="highlight">断网与异常场景压测记录：</span> 提供系统在“通信彻底中断”(完全依靠本地9B大模型决策)、路线临时封闭、地图不一致、目标严重遮挡等极端条件下的压力过测报告与实况验证录像。
+            </li>
+        </ul>
+
+        <h2>四、研发级技术文档与二次开发指南</h2>
+        <ul>
+            <li>
+                <span></span> <span class="highlight">全栈环境搭建与源码级编译指南：</span> 提供系统教程，涵盖如何搭建编译环境、如何编译与烧录 FPGA 固件、打包 OS 镜像以及重新编译大模型推理节点。
+            </li>
+            <li>
+                <span></span> <span class="highlight">大语言模型端侧微调 (Fine-tuning) 与迭代手册：</span> 详细指导用户如何利用私有的巡检/搜救业务语料，对千问9B模型进行 LoRA 微调训练，并将新模型重新量化、打包部署到板卡的标准工作流。
+            </li>
+            <li>
+                <span class="highlight">系统架构说明书：</span> 硬件物理拓扑、软件数据流向、多传感器硬件触发机制深度剖析及全套系统 API/SDK 接口调用手册。
+            </li>
+        </ul>
+    </div>
+</body>
+</html>
