@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L型亚克力板 · 边沿标注图纸</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #ffffff;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            padding: 30px 20px;
+        }
+        .card {
+            max-width: 1000px;
+            width: 100%;
+            border: 2px solid #000;
+            background: #fff;
+            padding: 20px 20px 10px 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #000;
+        }
+        .header .badge {
+            font-size: 14px;
+            border: 1px solid #000;
+            padding: 4px 14px;
+            background: #f0f0f0;
+            font-weight: 600;
+        }
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            border: 1px solid #aaa;
+            background: #fcfcfc;
+            padding: 10px;
+        }
+        svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        /* SVG 内黑白样式 */
+        .plate-outline {
+            fill: none;
+            stroke: #000;
+            stroke-width: 2.5;
+        }
+        .m3-hole {
+            fill: #ffffff;
+            stroke: #000;
+            stroke-width: 2;
+        }
+        .center-line {
+            stroke: #666;
+            stroke-width: 0.8;
+            stroke-dasharray: 6, 4;
+        }
+        .dim-line {
+            stroke: #000;
+            stroke-width: 1.2;
+        }
+        .dim-text {
+            fill: #000;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            text-anchor: middle;
+        }
+        .view-title {
+            fill: #000;
+            font-size: 20px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+        }
+        .ext-line {
+            stroke: #000;
+            stroke-width: 0.8;
+            stroke-dasharray: 3, 3;
+            opacity: 0.5;
+        }
+        .hole-label {
+            fill: #000;
+            font-size: 13px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            text-anchor: middle;
+        }
+        .edge-label {
+            fill: #000;
+            font-size: 17px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            text-anchor: middle;
+            letter-spacing: 0.5px;
+        }
+        .footnote {
+            margin-top: 18px;
+            padding-top: 12px;
+            border-top: 1px solid #000;
+            font-size: 13px;
+            color: #000;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .footnote span {
+            background: #f0f0f0;
+            padding: 2px 10px;
+            border: 1px solid #666;
+        }
+        .highlight-edge {
+            stroke: #000;
+            stroke-width: 3.5;
+            stroke-dasharray: 8, 4;
+            fill: none;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="header">
+        <h1>📐 L型亚克力结构件 · 边沿标注</h1>
+        <span class="badge">单位 mm ｜ 比例 1mm = 7px ｜ 黑白版</span>
+    </div>
+
+    <div class="canvas-container">
+        <svg viewBox="0 0 880 700" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <marker id="arrow-start" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                    <path d="M 10 0 L 0 5 L 10 10 z" fill="#000"/>
+                </marker>
+                <marker id="arrow-end" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                    <path d="M 10 0 L 0 5 L 10 10 z" fill="#000"/>
+                </marker>
+            </defs>
+
+            <!-- ========================================== -->
+            <!-- 视图 1：前 (Front View)                     -->
+            <!-- 尺寸: 80mm x 28mm (560px x 196px)           -->
+            <!-- 基准: X=120, Y=80                           -->
+            <!-- ========================================== -->
+            <text x="70" y="180" class="view-title">【前视图】</text>
+
+            <!-- 外框 -->
+            <rect x="120" y="80" width="560" height="196" class="plate-outline"/>
+
+            <!-- 垂直中心虚线 (4列) -->
+            <line x1="146.25" y1="60" x2="146.25" y2="290" class="center-line"/>
+            <line x1="303.75" y1="60" x2="303.75" y2="290" class="center-line"/>
+            <line x1="496.25" y1="60" x2="496.25" y2="290" class="center-line"/>
+            <line x1="653.75" y1="60" x2="653.75" y2="290" class="center-line"/>
+
+            <!-- 水平中心虚线 (23.5mm, 6mm) -->
+            <line x1="100" y1="244.5" x2="680" y2="244.5" class="center-line"/>
+            <line x1="100" y1="122" x2="680" y2="122" class="center-line"/>
+
+            <!-- 底部 4 个 M3 固定孔 (Φ3.2mm -> r=1.6mm, 缩放7 => r=11.2px, 取整10px) -->
+            <circle cx="146.25" cy="244.5" r="10" class="m3-hole"/>
+            <circle cx="303.75" cy="244.5" r="10" class="m3-hole"/>
+            <circle cx="496.25" cy="244.5" r="10" class="m3-hole"/>
+            <circle cx="653.75" cy="244.5" r="10" class="m3-hole"/>
+
+            <!-- 上方 2 个 M3 孔 (偏移6mm) -->
+            <circle cx="345.75" cy="122" r="10" class="m3-hole"/>
+            <circle cx="454.25" cy="122" r="10" class="m3-hole"/>
+
+            <!-- 孔标签 -->
+            <text x="146.25" y="270" class="hole-label">M3</text>
+            <text x="303.75" y="270" class="hole-label">M3</text>
+            <text x="496.25" y="270" class="hole-label">M3</text>
+            <text x="653.75" y="270" class="hole-label">M3</text>
+            <text x="345.75" y="112" class="hole-label">M3</text>
+            <text x="454.25" y="112" class="hole-label">M3</text>
+
+            <!--【前视图 上边沿 高亮标注：L型亚克力板】-->
+            <!-- 上边沿：从 x=120 到 x=680，y=80 -->
+            <line x1="120" y1="80" x2="680" y2="80" class="highlight-edge" />
+            <text x="400" y="70" class="edge-label" fill="#000" font-size="18">⬆ 上边沿 (L型亚克力板)</text>
+
+            <!--【前视图尺寸标注】-->
+            <!-- 总高 28mm -->
+            <line x1="690" y1="80" x2="690" y2="276" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="725" y="182" class="dim-text">28</text>
+            <!-- 总长80mm 横向 -->
+            <line x1="120" y1="60" x2="680" y2="60" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="380" y="45" class="dim-text">80</text>
+
+            <!-- 23.5mm 高度 (底部到水平中心) -->
+            <line x1="100" y1="80" x2="100" y2="244.5" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="80" y="145" class="dim-text">23.5</text>
+
+            <!-- 6mm 顶边距 -->
+            <line x1="345.75" y1="80" x2="345.75" y2="122" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="360" y="105" class="dim-text">6</text>
+
+            <!-- 6mm 水平偏移 (从左侧中心线) -->
+            <line x1="303.75" y1="125" x2="345.75" y2="125" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="315" y="120" class="dim-text">6</text>
+
+            <!-- 底部边距: 3.75 | 22.5 | 22.5 | 3.75 -->
+            <line x1="120" y1="300" x2="146.25" y2="300" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="133" y="315" class="dim-text">3.75</text>
+            <line x1="146.25" y1="300" x2="303.75" y2="300" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="225" y="315" class="dim-text">22.5</text>
+            <line x1="496.25" y1="300" x2="653.75" y2="300" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="575" y="315" class="dim-text">22.5</text>
+            <line x1="653.75" y1="300" x2="680" y2="300" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="667" y="315" class="dim-text">3.75</text>
+
+
+            <!-- ========================================== -->
+            <!-- 视图 2：上 (Top View)                       -->
+            <!-- 尺寸: 80mm x 28mm (560px x 196px)           -->
+            <!-- 基准: X=120, Y=380                         -->
+            <!-- ========================================== -->
+            <text x="70" y="480" class="view-title">【上视图】</text>
+
+            <!-- 外框 -->
+            <rect x="120" y="380" width="560" height="196" class="plate-outline"/>
+
+            <!-- 水平中心虚线 (8mm, 16mm 深度) -->
+            <line x1="100" y1="436" x2="680" y2="436" class="center-line"/>
+            <line x1="100" y1="492" x2="680" y2="492" class="center-line"/>
+
+            <!-- 孔 1: 距左 32.38mm -->
+            <circle cx="346.66" cy="436" r="10" class="m3-hole"/>
+            <line x1="346.66" y1="360" x2="346.66" y2="590" class="center-line"/>
+
+            <!-- 孔 2: 距孔1 15.24mm -->
+            <circle cx="453.34" cy="436" r="10" class="m3-hole"/>
+            <line x1="453.34" y1="360" x2="453.34" y2="590" class="center-line"/>
+
+            <!-- 孔 3: 右侧单孔 (距右 20mm, 距底 12mm) -->
+            <circle cx="540" cy="492" r="10" class="m3-hole"/>
+            <line x1="540" y1="360" x2="540" y2="590" class="center-line"/>
+            
+            <!-- 孔 4: 右侧单孔 (距右 20mm, 距底 12mm) -->
+            <circle cx="260" cy="492" r="10" class="m3-hole"/>
+            <line x1="260" y1="360" x2="260" y2="590" class="center-line"/>
+
+            <!-- 孔标签 -->
+            <text x="346.66" y="425" class="hole-label">M3</text>
+            <text x="453.34" y="425" class="hole-label">M3</text>
+            <text x="540" y="510" class="hole-label">M3</text>
+            <text x="260" y="510" class="hole-label">M3</text>
+
+            <!--【上视图 上边沿 高亮标注：L型亚克力板】-->
+            <!-- 上边沿：从 x=120 到 x=680，y=380 -->
+            <line x1="120" y1="380" x2="680" y2="380" class="highlight-edge" />
+            <text x="400" y="370" class="edge-label" fill="#000" font-size="18">⬆ 上边沿 (L型亚克力板)</text>
+
+            <!--【上视图尺寸标注】-->
+            <!-- 8mm 顶边 -->
+            <line x1="100" y1="380" x2="100" y2="436" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="85" y="412" class="dim-text">8</text>
+
+            <!-- 12mm 底边 -->
+            <line x1="690" y1="492" x2="690" y2="576" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="710" y="538" class="dim-text">12</text>
+
+            <!-- 32.38mm 距左 -->
+            <line x1="120" y1="600" x2="346.66" y2="600" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="233" y="615" class="dim-text">32.38</text>
+
+            <!-- 15.24mm 间距 -->
+            <line x1="346.66" y1="600" x2="453.34" y2="600" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="400" y="615" class="dim-text">15.24</text>
+
+            <!-- 20mm 距左 (左侧孔) -->
+            <line x1="120" y1="540" x2="260" y2="540" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="190" y="555" class="dim-text">20</text>
+            
+            <!-- 20mm 距右 (右侧孔) -->
+            <line x1="540" y1="600" x2="680" y2="600" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="610" y="615" class="dim-text">20</text>
+
+            <!-- 总长 28mm (深度方向) -->
+            <line x1="740" y1="380" x2="740" y2="576" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="765" y="482" class="dim-text">28</text>
+                        
+            <!-- 总长80mm 横向 -->
+            <line x1="120" y1="630" x2="680" y2="630" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="440" y="645" class="dim-text">80</text>
+
+        </svg>
+    </div>
+
+    <div class="footnote">
+        <span>所有孔均为 M3 通孔 (Φ3.2mm)</span>
+        <span>板材厚度：3mm (亚克力)</span>
+        <span>未注公差：±0.2mm</span>
+        <span>2026-08-03</span>
+        <span style="border:2px solid #000; background:#fff;">⬆ 虚线高亮 = L型亚克力板上边沿</span>
+    </div>
+</div>
+</body>
+</html>
