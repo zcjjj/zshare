@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>平板亚克力板 · 边沿标注图纸</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #ffffff;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            justify-content: center;
+            padding: 30px 20px;
+        }
+        .card {
+            max-width: 1000px;
+            width: 100%;
+            border: 2px solid #000;
+            background: #fff;
+            padding: 20px 20px 10px 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: #000;
+        }
+        .header .badge {
+            font-size: 14px;
+            border: 1px solid #000;
+            padding: 4px 14px;
+            background: #f0f0f0;
+            font-weight: 600;
+        }
+        .canvas-container {
+            display: flex;
+            justify-content: center;
+            border: 1px solid #aaa;
+            background: #fcfcfc;
+            padding: 10px;
+        }
+        svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        /* SVG 内黑白样式 */
+        .plate-outline {
+            fill: none;
+            stroke: #000;
+            stroke-width: 2.5;
+        }
+        .m3-hole {
+            fill: #ffffff;
+            stroke: #000;
+            stroke-width: 2;
+        }
+        .center-line {
+            stroke: #666;
+            stroke-width: 0.8;
+            stroke-dasharray: 6, 4;
+        }
+        .dim-line {
+            stroke: #000;
+            stroke-width: 1.2;
+        }
+        .dim-text {
+            fill: #000;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: 'Courier New', monospace;
+            text-anchor: middle;
+        }
+        .ext-line {
+            stroke: #000;
+            stroke-width: 0.8;
+            stroke-dasharray: 3, 3;
+            opacity: 0.5;
+        }
+        .footnote {
+            margin-top: 18px;
+            padding-top: 12px;
+            border-top: 1px solid #000;
+            font-size: 13px;
+            color: #000;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .footnote span {
+            background: #f0f0f0;
+            padding: 2px 10px;
+            border: 1px solid #666;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="header">
+        <h1>📐 平板亚克力板 · 边沿标注</h1>
+        <span class="badge">单位 mm ｜ 比例 1mm = 7px ｜ 黑白版</span>
+    </div>
+
+    <div class="canvas-container">
+        <svg viewBox="0 0 880 710" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <marker id="arrow-start" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                    <path d="M 10 0 L 0 5 L 10 10 z" fill="#000"/>
+                </marker>
+                <marker id="arrow-end" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+                    <path d="M 10 0 L 0 5 L 10 10 z" fill="#000"/>
+                </marker>
+            </defs>
+
+            <!-- ================= 上方矩形板图纸 ================= -->
+            <!-- 外框 -->
+            <rect x="120" y="80" width="560" height="300" class="plate-outline"/>
+
+            <!-- 垂直中心虚线 -->
+            <line x1="164.25" y1="60" x2="164.25" y2="390" class="center-line"/>
+            <line x1="636.75" y1="60" x2="636.75" y2="390" class="center-line"/>
+
+            <!-- 水平中心虚线 -->
+            <line x1="100" y1="122" x2="680" y2="122" class="center-line"/>
+            <line x1="100" y1="340" x2="680" y2="340" class="center-line"/>
+        
+            <!-- M3 孔位 -->
+            <circle cx="165.75" cy="122" r="10" class="m3-hole"/>
+            <circle cx="635.25" cy="122" r="10" class="m3-hole"/>
+            <circle cx="165.75" cy="340" r="10" class="m3-hole"/>
+            <circle cx="635.25" cy="340" r="10" class="m3-hole"/>
+
+            <!-- 标注线 (上方板) -->
+            <line x1="165" y1="80" x2="165" y2="122" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="155" y="100" class="dim-text">6</text>
+
+            <line x1="116" y1="125" x2="164" y2="125" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="140" y="120" class="dim-text">6</text>
+            
+            <line x1="120" y1="60" x2="680" y2="60" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="400" y="55" class="dim-text">80</text>
+            
+            <line x1="720" y1="80" x2="720" y2="380" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="740" y="235" class="dim-text">40</text>
+
+
+            <!-- ================= 下方圆盘图纸 (直径 34.5mm) ================= -->
+            <!-- 比例：34.5mm * 7 = 241.5px, 半径 R = 120.75px, 圆心 (400, 520) -->
+            <text x="140" y="435" class="dim-text">下方是圆板（四个孔是M2.5）</text>
+             <text x="140" y="35" class="dim-text">下方是方板（四个孔是M3）</text>
+
+
+
+            
+            <!-- 圆盘中心线 -->
+            <line x1="400" y1="380" x2="400" y2="660" class="center-line"/>
+            <line x1="250" y1="560" x2="550" y2="560" class="center-line"/>
+
+            <!-- 外圆 (Φ34.5mm) -->
+            <circle cx="400" cy="560" r="120.75" class="plate-outline"/>
+
+            <!-- 内部 4 个红点 (带黑边) -->
+            <circle cx="360" cy="520" r="6" fill="#ff0000" stroke="#000" stroke-width="1.5"/>
+            <circle cx="440" cy="520" r="6" fill="#ff0000" stroke="#000" stroke-width="1.5"/>
+            <circle cx="360" cy="600" r="6" fill="#ff0000" stroke="#000" stroke-width="1.5"/>
+            <circle cx="440" cy="600" r="6" fill="#ff0000" stroke="#000" stroke-width="1.5"/>
+
+            <!-- Φ34.5mm 直径标注延伸线 -->
+            <line x1="279.25" y1="520" x2="279.25" y2="680" class="ext-line"/>
+            <line x1="520.75" y1="520" x2="520.75" y2="680" class="ext-line"/>
+
+            <!-- Φ34.5mm 尺寸标注线与文字 -->
+            <line x1="279.25" y1="690" x2="520.75" y2="690" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="400" y="710" class="dim-text">Φ34.5</text>
+            <line x1="360" y1="520" x2="440" y2="520" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="390" y="500" class="dim-text">13.4</text>
+            
+            <line x1="440" y1="520" x2="440" y2="600" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="460" y="550" class="dim-text">13.4</text>
+                    </svg>
+    </div>
+
+    <div class="footnote">
+        <span>板材厚度：3mm (亚克力)</span>
+        <span>未注公差：±0.2mm</span>
+        <span>2026-08-03</span>
+        <span style="border:2px solid #000; background:#fff;">⬆ 虚线高亮 = L型亚克力板上边沿</span>
+    </div>
+</div>
+</body>
+</html>
