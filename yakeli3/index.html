@@ -143,6 +143,11 @@
             <circle cx="635.25" cy="122" r="10" class="m3-hole"/>
             <circle cx="165.75" cy="340" r="10" class="m3-hole"/>
             <circle cx="635.25" cy="340" r="10" class="m3-hole"/>
+            
+            <circle cx="360" cy="180" r="6"  fill="none" stroke="red" stroke-width="2.5"/>
+            <circle cx="440" cy="180" r="6" fill="none" stroke="red" stroke-width="2.5"/>
+            <circle cx="360" cy="260" r="6" fill="none" stroke="red" stroke-width="2.5"/>
+            <circle cx="440" cy="260" r="6" fill="none" stroke="red" stroke-width="2.5"/>
 
             <!-- 标注线 (上方板) -->
             <line x1="165" y1="80" x2="165" y2="122" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
@@ -157,27 +162,51 @@
             <line x1="720" y1="80" x2="720" y2="380" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
             <text x="740" y="235" class="dim-text">40</text>
 
-
+            <line x1="360" y1="180" x2="440" y2="180" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="396" y="166" class="dim-text">13.4</text>
+            <line x1="440" y1="180" x2="440" y2="260" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="470" y="226" class="dim-text">13.4</text>
+            <line x1="440" y1="84" x2="440" y2="180" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="470" y="146" class="dim-text">13.3</text>
+            <line x1="440" y1="260" x2="440" y2="376" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
+            <text x="470" y="316" class="dim-text">13.3</text>
+            
             <!-- ================= 下方圆盘图纸 (直径 34.5mm) ================= -->
             <!-- 比例：34.5mm * 7 = 241.5px, 半径 R = 120.75px, 圆心 (400, 520) -->
-            <text x="140" y="435" class="dim-text">下方是圆板（四个孔是M2.5）</text>
-             <text x="140" y="35" class="dim-text">下方是方板（四个孔是M3）</text>
+            <text x="140" y="435" class="dim-text">圆板</text>
+             <text x="140" y="35" class="dim-text">矩形板</text>
 
 
 
             
             <!-- 圆盘中心线 -->
-            <line x1="400" y1="380" x2="400" y2="660" class="center-line"/>
-            <line x1="250" y1="560" x2="550" y2="560" class="center-line"/>
+            <line x1="400" y1="440" x2="400" y2="675" class="center-line"/>
+            <line x1="280" y1="560" x2="524" y2="560" class="center-line"/>
 
             <!-- 外圆 (Φ34.5mm) -->
             <circle cx="400" cy="560" r="120.75" class="plate-outline"/>
 
+             <!-- 圆 -->
+<circle cx="400" cy="560" r="40.75" fill="none" stroke="#222" stroke-width="2" stroke-dasharray="8 6"/>
+
+  <!-- 半径标注线：从圆心到圆周（水平向右） -->
+  <line x1="400" y1="560" x2="440.75" y2="560" class="dim-line"/>
+
+  <!-- 箭头（在圆周端） -->
+  <polygon points="438,557 440.75,560 438,563" class="dim-arrow"/>
+
+  <!-- 小圆点（在圆心端） -->
+  <circle cx="400" cy="560" r="2.5" fill="#e74c3c"/>
+
+  <!-- 文字标注 "R8"（醒目大号红色字体） -->
+  <text x="418" y="552" class="dim-text">R8</text>
+            
+
             <!-- 内部 4 个红点 (带黑边) -->
-            <circle cx="360" cy="520" r="6" fill="#ff0000" stroke="#000" stroke-width="1.5"/>
-            <circle cx="440" cy="520" r="6" fill="#ff0000" stroke="#000" stroke-width="1.5"/>
-            <circle cx="360" cy="600" r="6" fill="#ff0000" stroke="#000" stroke-width="1.5"/>
-            <circle cx="440" cy="600" r="6" fill="#ff0000" stroke="#000" stroke-width="1.5"/>
+            <circle cx="360" cy="560" r="6" fill="none" stroke="red" stroke-width="2.5"/>
+            <circle cx="440" cy="560" r="6" fill="none" stroke="red" stroke-width="2.5"/>
+            <circle cx="400" cy="600" r="6" fill="none" stroke="red" stroke-width="2.5"/>
+            <circle cx="400" cy="520" r="6" fill="none" stroke="red" stroke-width="2.5"/>
 
             <!-- Φ34.5mm 直径标注延伸线 -->
             <line x1="279.25" y1="520" x2="279.25" y2="680" class="ext-line"/>
@@ -186,19 +215,16 @@
             <!-- Φ34.5mm 尺寸标注线与文字 -->
             <line x1="279.25" y1="690" x2="520.75" y2="690" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
             <text x="400" y="710" class="dim-text">Φ34.5</text>
-            <line x1="360" y1="520" x2="440" y2="520" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
-            <text x="390" y="500" class="dim-text">13.4</text>
-            
-            <line x1="440" y1="520" x2="440" y2="600" class="dim-line" marker-start="url(#arrow-start)" marker-end="url(#arrow-end)"/>
-            <text x="460" y="550" class="dim-text">13.4</text>
+    、
                     </svg>
     </div>
 
     <div class="footnote">
         <span>板材厚度：3mm (亚克力)</span>
         <span>未注公差：±0.2mm</span>
-        <span>2026-08-03</span>
-        <span style="border:2px solid #000; background:#fff;">⬆ 虚线高亮 = L型亚克力板上边沿</span>
+<span style="font-family: 'SimHei', 'Microsoft YaHei', sans-serif; font-weight: bold;">
+  黑色通孔M3，<span style="color: red;">红色通孔M2.5</span>
+</span>        <span style="border:2px solid #000; background:#fff;">⬆ 虚线高亮 = L型亚克力板上边沿</span>
     </div>
 </div>
 </body>
