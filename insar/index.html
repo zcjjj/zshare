@@ -357,23 +357,46 @@
                 },
                 series: [{ 
                     name: 'PS 测点', type: 'scatter', coordinateSystem: 'geo', data: buildScatterData(), 
-                    symbolSize: val => val[2] < -6 ? 6 : 4, 
-                    itemStyle: { color: p => getVelocityColor(p.value[2]), borderColor: 'rgba(255,255,255,0.4)', borderWidth: 0.5 } 
+                    // ★ 优化 1：移动端将点放大，方便手指点中
+                    symbolSize: val => val[2] < -6 ? 7 : 5, 
+                    itemStyle: { color: p => getVelocityColor(p.value[2]), borderColor: 'rgba(255,255,255,0.4)', borderWidth: 0.5 },
+                    // ★ 优化 2：强制设置散点的点击触发模式，必须为 'item'
+                    triggerEvent: true 
                 }]
             };
             mapChart.setOption(option);
             setTimeout(() => { if (mapChart) mapChart.resize(); }, 200);
 
-            // ★ 核心：单击事件处理
-            mapChart.off('click'); // 先清除历史绑定，防止重复触发
-            mapChart.on('click', function (params) {
-                // 只有当点击的是散点系列，并且拿到了 psId 时才触发更新
-                if (params.componentType === 'series' && params.seriesType === 'scatter') {
-                    const pt = psPoints.find(p => p.id === params.data.psId);
-                    if (pt) { 
-                        selectedPoint = pt; 
-                        updateDetailInspector(pt); 
-                        updateChartData(pt); 
+            // ★ 优化 3：移除 click，改用原生 DOM 点击（拦截 tap 事件）
+            // 这样可以完美避开 ECharts 移动端拖动与点击判定容错过低的问题
+            mapChart.getZr().off('click');
+            mapChart.getZr().on('click', function (params) {
+                // 获取鼠标/手指点击的像素坐标
+                const pointInPixel = [params.offsetX, params.offsetY];
+                // 判断是否点在了图表内部
+                if (mapChart.containPixel('grid', pointInPixel)) {
+                    // 使用 ECharts 的 convertFromPixel 找到点击位置的散点
+                    const pointInGrid = mapChart.convertFromPixel({ seriesIndex: 0 }, pointInPixel);
+                    // 遍历所有 PS 点，计算与点击位置的距离（加大手机端点击容差）
+                    let minDist = 20; // 手机端容差 20px
+                    let clickedPt = null;
+                    psPoints.forEach(pt => {
+                        const pixel = mapChart.convertToPixel({ seriesIndex: 0 }, [pt.lon, pt.lat]);
+                        if (pixel) {
+                            const dist = Math.hypot(pixel[0] - params.offsetX, pixel[1] - params.offsetY);
+                            if (dist < minDist) {
+                                minDist = dist;
+                                clickedPt = pt;
+                            }
+                        }
+                    });
+
+                    if (clickedPt) {
+                        selectedPoint = clickedPt;
+                        updateDetailInspector(clickedPt);
+                        updateChartData(clickedPt);
+                        // 更新选中高亮
+                        mapChart.setOption({ series: [{ data: buildScatterData() }] });
                     }
                 }
             });
