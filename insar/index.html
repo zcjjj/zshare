@@ -35,79 +35,82 @@
             backdrop-filter: blur(12px);
             border: 1px solid rgba(59, 130, 246, 0.2);
         }
-        #mapChart { width: 100%; height: 100%; min-height: 200px; }
+        
+        #mapChart, #mapChartMobile { width: 100%; height: 100%; }
 
-        /* 布局核心控制 */
-        .layout-wrapper {
+        /* =========================================
+           桌面端布局 (>= 768px)
+           ========================================= */
+        .desktop-layout {
             display: flex;
             flex-direction: row;
             height: 100%;
             width: 100%;
             overflow: hidden;
         }
-        
-        .panel-left { width: 18rem; flex-shrink: 0; }
-        .panel-right { width: 24rem; flex-shrink: 0; }
-        .panel-center { flex: 1; min-width: 0; position: relative; }
+        .desktop-left { width: 18rem; flex-shrink: 0; }
+        .desktop-right { width: 24rem; flex-shrink: 0; }
+        .desktop-center { flex: 1; min-width: 0; position: relative; }
 
-        /* 手机竖屏 (宽 < 768px) */
-        @media (max-width: 768px) and (orientation: portrait) {
-            .layout-wrapper {
-                flex-direction: column;
-            }
-            .panel-center {
-                height: 50vh;
-                width: 100%;
-                flex: none;
-                border-bottom: 1px solid #1e293b;
-            }
-            .panels-bottom {
-                display: flex;
-                flex-direction: row;
-                height: 50vh;
-                width: 100%;
-            }
-            .panel-left, .panel-right {
-                flex: 1;
-                width: 50%;
-                height: 100%;
-                overflow-y: auto;
-            }
-            .panel-left { border-right: 1px solid #1e293b; }
-            
-            /* 字体与间距压缩 */
-            .mobile-text { font-size: 10px !important; line-height: 1.4; }
-            .mobile-title { font-size: 11px !important; margin-bottom: 4px; }
-            .mobile-padding { padding: 6px !important; margin-bottom: 6px !important; }
-            .chart-container { height: 120px !important; }
+        /* =========================================
+           手机端布局 (< 768px)
+           ========================================= */
+        .mobile-layout {
+            display: none; /* 默认隐藏 */
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+        .mobile-top {
+            flex: 5.5; /* 上半部分地图 */
+            width: 100%;
+            position: relative;
+            border-bottom: 1px solid #1e293b;
+            min-height: 200px;
+        }
+        .mobile-bottom {
+            flex: 4.5; /* 下半部分双栏 */
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            min-height: 0;
+        }
+        .mobile-bottom-left, .mobile-bottom-right {
+            flex: 1;
+            width: 50%;
+            height: 100%;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        .mobile-bottom-left { border-right: 1px solid #1e293b; }
+
+        /* 手机端元素缩小 */
+        .m-text { font-size: 10px !important; line-height: 1.3; }
+        .m-title { font-size: 11px !important; margin-bottom: 4px; }
+        .m-pad { padding: 6px !important; margin-bottom: 6px !important; }
+        .m-chart { height: 110px !important; }
+
+        /* 媒体查询切换布局 */
+        @media (max-width: 767px) {
+            .desktop-layout { display: none !important; }
+            .mobile-layout { display: flex !important; }
+            .desktop-header-menu { display: none !important; } /* 手机端隐藏顶部区域切换按钮 */
         }
 
-        /* 手机横屏 (高 < 500px) */
+        /* 手机横屏兼容 */
         @media (max-height: 500px) and (orientation: landscape) {
-            header { height: 2.5rem !important; padding-left: 10px !important; }
-            header h1 { font-size: 12px !important; }
-            .layout-wrapper {
-                flex-direction: row;
-            }
-            .panel-center { height: 100%; width: auto; }
-            .panels-bottom {
-                display: flex;
-                flex-direction: row;
-                height: 100%;
-            }
-            .panel-left { width: 12rem !important; overflow-y: auto; padding: 6px !important; }
-            .panel-right { width: 16rem !important; overflow-y: auto; padding: 6px !important; }
-            
-            .mobile-text { font-size: 9px !important; line-height: 1.2; }
-            .mobile-title { font-size: 10px !important; margin-bottom: 2px; }
-            .mobile-padding { padding: 4px !important; margin-bottom: 4px !important; }
-            .chart-container { height: 90px !important; }
-            .hide-landscape { display: none !important; }
+            header { height: 2.5rem !important; }
+            .mobile-top { flex: 1; min-height: auto; }
+            .mobile-bottom { flex: 1; }
+            .m-text { font-size: 9px !important; }
+            .m-chart { height: 80px !important; }
         }
     </style>
 </head>
 <body class="bg-cyber-bg text-slate-100 font-sans h-screen flex flex-col overflow-hidden select-none">
 
+    <!-- 顶部导航栏 -->
     <header class="h-12 md:h-14 bg-slate-900/90 border-b border-slate-800 px-3 md:px-4 flex items-center justify-between z-20 shrink-0">
         <div class="flex items-center space-x-2 md:space-x-3">
             <div class="w-7 h-7 md:w-9 md:h-9 rounded-lg bg-blue-600/20 border border-blue-500/50 flex items-center justify-center text-blue-400 text-sm md:text-lg shadow-lg shadow-blue-500/20">
@@ -120,161 +123,166 @@
             </div>
         </div>
         
-        <!-- 区域切换 -->
-        <div class="flex-1 flex justify-end md:justify-center overflow-x-auto whitespace-nowrap scrollbar-hide px-2">
-            <div class="flex items-center space-x-1 bg-slate-950/80 p-0.5 md:p-1 rounded-lg border border-slate-800 text-[10px] md:text-xs">
-                <button onclick="switchRegion('national')" id="btn-national" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded bg-blue-600 text-white font-medium transition-all hover:bg-blue-500">全国</button>
-                <button onclick="switchRegion('beijing')" id="btn-beijing" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 transition-all">北京</button>
-                <button onclick="switchRegion('three_gorges')" id="btn-three_gorges" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 transition-all">三峡</button>
-                <button onclick="switchRegion('qinghai_tibet')" id="btn-qinghai_tibet" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 transition-all">青藏</button>
-                <button onclick="switchRegion('gba')" id="btn-gba" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 transition-all">湾区</button>
-                <button onclick="switchRegion('taiwan')" id="btn-taiwan" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 transition-all">台湾</button>
+        <!-- 区域切换 (PC端显示) -->
+        <div class="desktop-header-menu flex-1 flex justify-center overflow-x-auto whitespace-nowrap px-2">
+            <div class="flex items-center space-x-1 bg-slate-950/80 p-1 rounded-lg border border-slate-800 text-xs">
+                <button onclick="switchRegion('national')" id="btn-national" class="region-btn px-3 py-1.5 rounded bg-blue-600 text-white font-medium transition-all hover:bg-blue-500">全国全景</button>
+                <button onclick="switchRegion('beijing')" id="btn-beijing" class="region-btn px-3 py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 transition-all">北京市内</button>
+                <button onclick="switchRegion('three_gorges')" id="btn-three_gorges" class="region-btn px-3 py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 transition-all">三峡大坝</button>
+                <button onclick="switchRegion('qinghai_tibet')" id="btn-qinghai_tibet" class="region-btn px-3 py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 transition-all">青藏铁路</button>
+                <button onclick="switchRegion('gba')" id="btn-gba" class="region-btn px-3 py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 transition-all">粤港澳大湾区</button>
+                <button onclick="switchRegion('taiwan')" id="btn-taiwan" class="region-btn px-3 py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 transition-all">台湾地区</button>
             </div>
         </div>
 
-        <div class="hidden sm:flex items-center space-x-4 text-xs ml-2">
-            <div id="clockDisplay" class="font-mono text-slate-400 bg-slate-950/60 px-2.5 py-1 rounded border border-slate-800 hidden md:block text-[10px]">
+        <div class="flex items-center space-x-4 text-xs ml-2">
+            <div id="clockDisplay" class="font-mono text-slate-400 bg-slate-950/60 px-2.5 py-1 rounded border border-slate-800 hidden md:block">
                 00:00 UTC
             </div>
         </div>
     </header>
 
-    <!-- 核心布局区 -->
-    <div class="layout-wrapper relative">
-        
-        <!-- 左侧控制面板 -->
-        <aside class="panel-left bg-slate-900/80 border-r border-slate-800 flex flex-col shrink-0 z-10 glass-panel">
-            <div class="mobile-padding p-3.5 border-b border-slate-800 space-y-3">
-                <div class="mobile-title flex justify-between items-center text-xs font-semibold text-slate-300 uppercase tracking-wider">
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-sliders text-blue-400"></i> 图层控制</span>
+    <!-- =========================================
+         桌面端布局 (PC显示)
+         ========================================= -->
+    <div class="desktop-layout">
+        <!-- 左侧面板 -->
+        <aside class="desktop-left bg-slate-900/80 border-r border-slate-800 flex flex-col glass-panel">
+            <div class="p-3.5 border-b border-slate-800 space-y-3">
+                <div class="flex justify-between items-center text-xs font-semibold text-slate-300 uppercase">
+                    <span><i class="fa-solid fa-sliders text-blue-400 mr-1"></i> 图层控制</span>
                 </div>
-                <div class="space-y-1">
-                    <div class="flex justify-between text-[10px] text-slate-400 font-mono">
-                        <span>-10mm</span><span>0</span><span>+8mm</span>
-                    </div>
-                    <div class="h-1.5 rounded-full w-full bg-gradient-to-r from-red-500 via-orange-400 via-emerald-400 to-cyan-400 shadow-inner"></div>
-                </div>
-                <div class="space-y-1.5 pt-1">
-                    <select id="filterSelect" onchange="applyFilter(this.value)" class="mobile-text w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-200 focus:outline-none focus:border-blue-500">
-                        <option value="all">全部测点 (145点)</option>
-                        <option value="high_risk">⚠️ 高风险沉降点</option>
-                        <option value="seasonal">🌊 周期波动点</option>
-                        <option value="stable">🟢 构造稳定点</option>
-                    </select>
-                </div>
+                <div class="h-2 rounded-full w-full bg-gradient-to-r from-red-500 via-emerald-400 to-cyan-400"></div>
+                <select id="filterSelectPC" onchange="applyFilter(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200">
+                    <option value="all">显示全部测点 (145 点)</option>
+                    <option value="high_risk">⚠️ 高风险加速沉降点</option>
+                    <option value="seasonal">🌊 周期波动点</option>
+                    <option value="stable">🟢 构造稳定点</option>
+                </select>
             </div>
-
-            <div class="flex-1 overflow-y-auto p-3 space-y-2">
-                <div class="mobile-title text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-                    <i class="fa-solid fa-chart-pie text-cyan-400"></i> 监视区态势
+            <div class="flex-1 overflow-y-auto p-3 space-y-2 text-xs">
+                <div class="text-xs font-semibold text-slate-300 mb-2"><i class="fa-solid fa-chart-pie text-cyan-400 mr-1"></i> 监视区态势</div>
+                <div onclick="switchRegion('beijing')" class="p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer">
+                    <div class="flex justify-between text-amber-300 font-medium"><span>北京市内</span><span class="text-[10px] bg-amber-500/20 px-1 rounded">中风险</span></div>
+                    <div class="text-[10px] text-slate-400 flex justify-between mt-1"><span>30 点</span><span class="text-red-400">-9.6 mm/a</span></div>
                 </div>
-                <div class="space-y-2 text-xs">
-                    <!-- 列表项 -->
-                    <div onclick="switchRegion('beijing')" class="mobile-padding p-2.5 rounded-lg bg-slate-950/60 border border-slate-800 cursor-pointer">
-                        <div class="flex justify-between items-center mobile-text">
-                            <span class="font-medium text-amber-300">北京市内</span>
-                            <span class="px-1.5 py-0.5 rounded text-[9px] bg-amber-500/20 text-amber-400">中风险</span>
-                        </div>
-                        <div class="text-[10px] text-slate-400 flex justify-between mt-1 mobile-text">
-                            <span>30 点</span><span class="text-red-400 font-mono">-9.6 mm/a</span>
-                        </div>
-                    </div>
-                    <div onclick="switchRegion('three_gorges')" class="mobile-padding p-2.5 rounded-lg bg-slate-950/60 border border-slate-800 cursor-pointer">
-                        <div class="flex justify-between items-center mobile-text">
-                            <span class="font-medium text-cyan-300">三峡大坝</span>
-                            <span class="px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-400">受控</span>
-                        </div>
-                        <div class="text-[10px] text-slate-400 flex justify-between mt-1 mobile-text">
-                            <span>25 点</span><span class="text-cyan-400 font-mono">±5.8 mm</span>
-                        </div>
-                    </div>
-                    <div onclick="switchRegion('qinghai_tibet')" class="mobile-padding p-2.5 rounded-lg bg-slate-950/60 border border-slate-800 cursor-pointer">
-                        <div class="flex justify-between items-center mobile-text">
-                            <span class="font-medium text-emerald-300">青藏铁路</span>
-                            <span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-400">融沉</span>
-                        </div>
-                        <div class="text-[10px] text-slate-400 flex justify-between mt-1 mobile-text">
-                            <span>35 点</span><span class="text-amber-400 font-mono">-8~+6 mm</span>
-                        </div>
-                    </div>
-                    <div onclick="switchRegion('gba')" class="mobile-padding p-2.5 rounded-lg bg-slate-950/60 border border-slate-800 cursor-pointer">
-                        <div class="flex justify-between items-center mobile-text">
-                            <span class="font-medium text-purple-300">大湾区</span>
-                            <span class="px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-400">预警</span>
-                        </div>
-                        <div class="text-[10px] text-slate-400 flex justify-between mt-1 mobile-text">
-                            <span>30 点</span><span class="text-red-400 font-mono">-9.9 mm/a</span>
-                        </div>
-                    </div>
+                <div onclick="switchRegion('three_gorges')" class="p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer">
+                    <div class="flex justify-between text-cyan-300 font-medium"><span>三峡大坝</span><span class="text-[10px] bg-blue-500/20 px-1 rounded">受控</span></div>
+                    <div class="text-[10px] text-slate-400 flex justify-between mt-1"><span>25 点</span><span class="text-cyan-400">±5.8 mm</span></div>
+                </div>
+                <div onclick="switchRegion('qinghai_tibet')" class="p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer">
+                    <div class="flex justify-between text-emerald-300 font-medium"><span>青藏铁路</span><span class="text-[10px] bg-emerald-500/20 px-1 rounded">融沉</span></div>
+                    <div class="text-[10px] text-slate-400 flex justify-between mt-1"><span>35 点</span><span class="text-amber-400">-8~+6 mm</span></div>
                 </div>
             </div>
         </aside>
 
-        <!-- 核心：包裹底部两栏的容器 -->
-        <div class="panels-bottom flex-1 flex min-h-0 w-full flex-col md:flex-row">
-            
-            <!-- 中央地图区 -->
-            <main class="panel-center bg-slate-950 flex flex-col">
-                <div id="mapChart" class="w-full h-full"></div>
-                <div class="absolute top-2 right-2 flex flex-col space-y-1.5 z-10">
-                    <button onclick="zoomMapIn()" class="w-7 h-7 md:w-9 md:h-9 rounded bg-slate-900/90 text-slate-200 border border-slate-700 hover:bg-blue-600 flex items-center justify-center shadow-lg"><i class="fa-solid fa-plus text-xs"></i></button>
-                    <button onclick="zoomMapOut()" class="w-7 h-7 md:w-9 md:h-9 rounded bg-slate-900/90 text-slate-200 border border-slate-700 hover:bg-blue-600 flex items-center justify-center shadow-lg"><i class="fa-solid fa-minus text-xs"></i></button>
-                    <button onclick="resetMapView()" class="w-7 h-7 md:w-9 md:h-9 rounded bg-slate-900/90 text-slate-200 border border-slate-700 hover:bg-blue-600 flex items-center justify-center shadow-lg"><i class="fa-solid fa-compress text-xs"></i></button>
+        <!-- 中间地图 -->
+        <main class="desktop-center bg-slate-950 flex flex-col">
+            <div id="mapChart" class="w-full h-full"></div>
+            <div class="absolute top-4 right-4 flex flex-col space-y-2 z-10">
+                <button onclick="zoomMapIn()" class="w-9 h-9 rounded bg-slate-900/90 border border-slate-700 hover:bg-blue-600 text-slate-200 flex items-center justify-center"><i class="fa-solid fa-plus text-sm"></i></button>
+                <button onclick="zoomMapOut()" class="w-9 h-9 rounded bg-slate-900/90 border border-slate-700 hover:bg-blue-600 text-slate-200 flex items-center justify-center"><i class="fa-solid fa-minus text-sm"></i></button>
+                <button onclick="resetMapView()" class="w-9 h-9 rounded bg-slate-900/90 border border-slate-700 hover:bg-blue-600 text-slate-200 flex items-center justify-center"><i class="fa-solid fa-compress text-sm"></i></button>
+            </div>
+        </main>
+
+        <!-- 右侧面板 -->
+        <aside class="desktop-right bg-slate-900/90 border-l border-slate-800 flex flex-col glass-panel">
+            <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+                <span class="text-xs font-semibold text-slate-300 uppercase"><i class="fa-solid fa-circle-dot text-rose-500 mr-1"></i> PS 测点诊断</span>
+                <span id="selectedPointRiskPC" class="px-2 py-0.5 rounded text-[10px] bg-red-500/20 text-red-400 border border-red-500/40">高危</span>
+            </div>
+            <div class="flex-1 p-3 overflow-y-auto space-y-3">
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="bg-slate-950/70 p-2 rounded border border-slate-800"><div class="text-[10px] text-slate-400">ID</div><div class="font-mono text-blue-300 font-bold" id="detailPointIdPC">PS-BJ-1000</div></div>
+                    <div class="bg-slate-950/70 p-2 rounded border border-slate-800"><div class="text-[10px] text-slate-400">战略区</div><div class="text-slate-200" id="detailRegionPC">北京</div></div>
+                    <div class="bg-slate-950/70 p-2 rounded border border-slate-800"><div class="text-[10px] text-slate-400">速率</div><div class="font-mono text-red-400 font-bold" id="detailVelocityPC">-8.2 mm/a</div></div>
+                    <div class="bg-slate-950/70 p-2 rounded border border-slate-800"><div class="text-[10px] text-slate-400">相干性</div><div class="font-mono text-emerald-400 font-bold" id="detailCoherencePC">0.97</div></div>
                 </div>
-            </main>
-
-            <!-- 右侧详情面板 -->
-            <aside class="panel-right bg-slate-900/90 border-l border-slate-800 flex flex-col shrink-0 z-10 glass-panel">
-                <div class="mobile-padding p-3 border-b border-slate-800 flex justify-between items-center">
-                    <div class="flex items-center space-x-2 mobile-title">
-                        <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-                            <i class="fa-solid fa-circle-dot text-rose-500 animate-pulse"></i> 测点诊断
-                        </span>
-                    </div>
-                    <span id="selectedPointRisk" class="px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-400 border border-red-500/40 font-medium">高危</span>
+                <div class="bg-slate-950/50 p-2 rounded border border-slate-800 text-xs">
+                    <span class="text-slate-400">设施:</span><span class="text-amber-300 ml-1" id="detailFeaturePC">双井沉降漏斗</span>
                 </div>
+                <div class="relative w-full h-56 bg-slate-950/80 rounded-xl p-2 border border-slate-800">
+                    <canvas id="timeSeriesChartPC"></canvas>
+                </div>
+                <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-xs space-y-2">
+                    <div class="font-semibold text-slate-300 border-b border-slate-800 pb-1"><i class="fa-solid fa-brain text-purple-400 mr-1"></i> AI 诊断意见</div>
+                    <p class="text-slate-300 text-[11px] leading-relaxed" id="detailAiAnalysisPC">该测点展现出加速沉降趋势...</p>
+                </div>
+            </div>
+        </aside>
+    </div>
 
-                <div class="flex-1 p-2 md:p-3 overflow-y-auto space-y-2 md:space-y-3">
-                    <div class="grid grid-cols-2 gap-2 text-xs">
-                        <div class="bg-slate-950/70 p-1.5 md:p-2 rounded border border-slate-800">
-                            <div class="text-[9px] text-slate-400">ID</div>
-                            <div class="font-mono text-blue-300 font-bold mobile-text truncate" id="detailPointId">PS-BJ-1000</div>
-                        </div>
-                        <div class="bg-slate-950/70 p-1.5 md:p-2 rounded border border-slate-800">
-                            <div class="text-[9px] text-slate-400">战略区</div>
-                            <div class="font-medium text-slate-200 mobile-text truncate" id="detailRegion">北京</div>
-                        </div>
-                        <div class="bg-slate-950/70 p-1.5 md:p-2 rounded border border-slate-800">
-                            <div class="text-[9px] text-slate-400">速率</div>
-                            <div class="font-mono text-red-400 font-bold mobile-text" id="detailVelocity">-8.2 mm/a</div>
-                        </div>
-                        <div class="bg-slate-950/70 p-1.5 md:p-2 rounded border border-slate-800">
-                            <div class="text-[9px] text-slate-400">相干性</div>
-                            <div class="font-mono text-emerald-400 font-bold mobile-text" id="detailCoherence">0.97</div>
-                        </div>
+    <!-- =========================================
+         手机端布局 (Mobile显示)
+         ========================================= -->
+    <div class="mobile-layout">
+        <!-- 上半部分：地图 -->
+        <main class="mobile-top bg-slate-950">
+            <div id="mapChartMobile" class="w-full h-full"></div>
+            <div class="absolute top-2 right-2 flex flex-col space-y-1.5 z-10">
+                <button onclick="zoomMapIn()" class="w-7 h-7 rounded bg-slate-900/90 border border-slate-700 text-slate-200 flex items-center justify-center"><i class="fa-solid fa-plus text-xs"></i></button>
+                <button onclick="zoomMapOut()" class="w-7 h-7 rounded bg-slate-900/90 border border-slate-700 text-slate-200 flex items-center justify-center"><i class="fa-solid fa-minus text-xs"></i></button>
+                <button onclick="resetMapView()" class="w-7 h-7 rounded bg-slate-900/90 border border-slate-700 text-slate-200 flex items-center justify-center"><i class="fa-solid fa-compress text-xs"></i></button>
+            </div>
+        </main>
+
+        <!-- 下半部分：左右双栏 -->
+        <div class="mobile-bottom">
+            <!-- 左栏：控制与态势 -->
+            <aside class="mobile-bottom-left bg-slate-900/90">
+                <div class="m-pad mb-2 space-y-2">
+                    <div class="m-title text-slate-300 font-semibold"><i class="fa-solid fa-sliders text-blue-400 mr-1"></i> 图层控制</div>
+                    <div class="h-1.5 rounded-full w-full bg-gradient-to-r from-red-500 via-emerald-400 to-cyan-400"></div>
+                    <select id="filterSelectMobile" onchange="applyFilter(this.value)" class="m-text w-full bg-slate-950 border border-slate-700 rounded px-1 py-1 text-slate-200">
+                        <option value="all">全部测点 (145 点)</option>
+                        <option value="high_risk">⚠️ 高风险</option>
+                        <option value="seasonal">🌊 周期波动</option>
+                        <option value="stable">🟢 稳定</option>
+                    </select>
+                </div>
+                <div class="m-title text-slate-300 font-semibold"><i class="fa-solid fa-chart-pie text-cyan-400 mr-1"></i> 监视区</div>
+                <div class="space-y-1.5">
+                    <div onclick="switchRegion('beijing')" class="m-pad p-1.5 rounded bg-slate-950 border border-slate-800 cursor-pointer">
+                        <div class="flex justify-between m-text text-amber-300 font-medium"><span>北京市内</span><span class="text-[9px] bg-amber-500/20 px-1 rounded">中风险</span></div>
+                        <div class="m-text text-slate-400 flex justify-between mt-0.5"><span>30 点</span><span class="text-red-400">-9.6 mm/a</span></div>
                     </div>
-
-                    <div class="bg-slate-950/50 p-2 rounded border border-slate-800 text-[9px] md:text-xs mobile-text">
-                        <span class="text-slate-400">设施:</span>
-                        <span class="text-amber-300 font-medium ml-1" id="detailFeature">双井沉降漏斗</span>
+                    <div onclick="switchRegion('three_gorges')" class="m-pad p-1.5 rounded bg-slate-950 border border-slate-800 cursor-pointer">
+                        <div class="flex justify-between m-text text-cyan-300 font-medium"><span>三峡大坝</span><span class="text-[9px] bg-blue-500/20 px-1 rounded">受控</span></div>
+                        <div class="m-text text-slate-400 flex justify-between mt-0.5"><span>25 点</span><span class="text-cyan-400">±5.8 mm</span></div>
                     </div>
-
-                    <div class="chart-container relative w-full bg-slate-950/80 rounded-lg p-1 border border-slate-800" style="height: 130px;">
-                        <canvas id="timeSeriesChart"></canvas>
-                    </div>
-
-                    <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-2 text-xs space-y-1 mt-1">
-                        <div class="font-semibold text-slate-300 text-[10px] flex items-center gap-1.5 border-b border-slate-800 pb-1 mobile-title">
-                            <i class="fa-solid fa-brain text-purple-400"></i> AI 诊断意见
-                        </div>
-                        <p class="text-slate-300 text-[9px] md:text-[11px] leading-relaxed mobile-text" id="detailAiAnalysis">
-                            该测点展现出加速沉降趋势...
-                        </p>
+                    <div onclick="switchRegion('qinghai_tibet')" class="m-pad p-1.5 rounded bg-slate-950 border border-slate-800 cursor-pointer">
+                        <div class="flex justify-between m-text text-emerald-300 font-medium"><span>青藏铁路</span><span class="text-[9px] bg-emerald-500/20 px-1 rounded">融沉</span></div>
+                        <div class="m-text text-slate-400 flex justify-between mt-0.5"><span>35 点</span><span class="text-amber-400">-8~+6 mm</span></div>
                     </div>
                 </div>
             </aside>
 
-        </div> <!-- panels-bottom 结束 -->
+            <!-- 右栏：详情与图表 -->
+            <aside class="mobile-bottom-right bg-slate-900/95">
+                <div class="m-pad flex justify-between items-center mb-1">
+                    <span class="m-title text-slate-300 font-semibold"><i class="fa-solid fa-circle-dot text-rose-500 mr-1"></i> 测点诊断</span>
+                    <span id="selectedPointRiskMobile" class="px-1 py-0.5 rounded text-[8px] bg-red-500/20 text-red-400 border border-red-500/40">高危</span>
+                </div>
+                <div class="grid grid-cols-2 gap-1.5 m-text mb-2">
+                    <div class="bg-slate-950 p-1 rounded border border-slate-800"><div class="text-[8px] text-slate-400">ID</div><div class="text-blue-300 truncate" id="detailPointIdMobile">PS-BJ-1000</div></div>
+                    <div class="bg-slate-950 p-1 rounded border border-slate-800"><div class="text-[8px] text-slate-400">战略区</div><div class="text-slate-200 truncate" id="detailRegionMobile">北京</div></div>
+                    <div class="bg-slate-950 p-1 rounded border border-slate-800"><div class="text-[8px] text-slate-400">速率</div><div class="text-red-400" id="detailVelocityMobile">-8.2 mm/a</div></div>
+                    <div class="bg-slate-950 p-1 rounded border border-slate-800"><div class="text-[8px] text-slate-400">相干性</div><div class="text-emerald-400" id="detailCoherenceMobile">0.97</div></div>
+                </div>
+                <div class="bg-slate-950/50 p-1 rounded border border-slate-800 m-text mb-2">
+                    <span class="text-slate-400">设施:</span><span class="text-amber-300 ml-1 block truncate" id="detailFeatureMobile">双井沉降漏斗</span>
+                </div>
+                <div class="m-chart relative w-full bg-slate-950 rounded border border-slate-800 mb-2 p-1">
+                    <canvas id="timeSeriesChartMobile"></canvas>
+                </div>
+                <div class="bg-slate-950 rounded border border-slate-800 p-1.5">
+                    <div class="text-[9px] text-slate-300 border-b border-slate-800 pb-1 mb-1"><i class="fa-solid fa-brain text-purple-400 mr-1"></i> AI 诊断</div>
+                    <p class="m-text text-slate-400 leading-tight" id="detailAiAnalysisMobile">该测点展现出加速沉降趋势...</p>
+                </div>
+            </aside>
+        </div>
     </div>
 
     <script>
@@ -293,75 +301,59 @@
         let psPoints = [];
         let selectedPoint = null;
         let activeFilter = 'all';
-        let mapChart = null;
+        
+        // 双端图表与地图实例
+        let mapChartPC = null, mapChartMobile = null;
+        let chartInstancePC = null, chartInstanceMobile = null;
 
         function randVelocity() { return -10 + Math.random() * 18; }
 
         function distributeAlongPolyline(route, count, jitter) {
-            const segLens = [];
-            let totalLen = 0;
+            const segLens = []; let totalLen = 0;
             for (let i = 0; i < route.length - 1; i++) {
-                const dx = route[i + 1].lon - route[i].lon;
-                const dy = route[i + 1].lat - route[i].lat;
-                const len = Math.hypot(dx, dy);
-                segLens.push(len);
-                totalLen += len;
+                const dx = route[i + 1].lon - route[i].lon; const dy = route[i + 1].lat - route[i].lat;
+                const len = Math.hypot(dx, dy); segLens.push(len); totalLen += len;
             }
             const points = [];
             for (let i = 0; i < count; i++) {
                 const target = count === 1 ? totalLen / 2 : (i / (count - 1)) * totalLen;
                 let acc = 0, seg = 0;
-                while (seg < segLens.length && acc + segLens[seg] < target) {
-                    acc += segLens[seg];
-                    seg++;
-                }
+                while (seg < segLens.length && acc + segLens[seg] < target) { acc += segLens[seg]; seg++; }
                 if (seg >= segLens.length) seg = segLens.length - 1;
                 const t = segLens[seg] === 0 ? 0 : (target - acc) / segLens[seg];
                 let lon = route[seg].lon + (route[seg + 1].lon - route[seg].lon) * t;
                 let lat = route[seg].lat + (route[seg + 1].lat - route[seg].lat) * t;
-                lon += (Math.random() - 0.5) * jitter;
-                lat += (Math.random() - 0.5) * jitter;
+                lon += (Math.random() - 0.5) * jitter; lat += (Math.random() - 0.5) * jitter;
                 points.push({ lon, lat });
             }
             return points;
         }
 
         function generatePSPoints() {
-            psPoints = [];
-            let id = 1000;
+            psPoints = []; let id = 1000;
 
             const bjFeatures = ['朝阳区地下水降水漏斗', '通州副中心基坑沉降', '地铁10号线双井站', '地铁6号线草房段', '顺义区地热开采区', '大兴机场高速路基'];
             for (let i = 0; i < 30; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                const r = Math.pow(Math.random(), 0.8);
-                const lon = 116.40 + Math.cos(angle) * r * 0.32;
-                const lat = 39.90 + Math.sin(angle) * r * 0.22;
+                const angle = Math.random() * Math.PI * 2; const r = Math.pow(Math.random(), 0.8);
+                const lon = 116.40 + Math.cos(angle) * r * 0.32; const lat = 39.90 + Math.sin(angle) * r * 0.22;
                 psPoints.push(createPSPoint(id++, lon, lat, randVelocity(), 'beijing', '北京市内', bjFeatures[Math.floor(Math.random() * bjFeatures.length)], 'linear'));
             }
 
             const tgRoute = [{ lon: 111.28, lat: 30.70 },{ lon: 110.98, lat: 30.83 },{ lon: 110.34, lat: 31.04 },{ lon: 109.88, lat: 31.08 },{ lon: 109.51, lat: 31.02 }];
             const tgFeatures = ['三峡右岸 2 号坝段', '茅坪库岸滑坡体', '巴东组软岩边坡', '新滩高位滑坡监测点', '秭归县库岸沉降带', '泄洪闸基础应变区'];
-            distributeAlongPolyline(tgRoute, 25, 0.06).forEach(p => {
-                psPoints.push(createPSPoint(id++, p.lon, p.lat, randVelocity(), 'three_gorges', '三峡大坝', tgFeatures[Math.floor(Math.random() * tgFeatures.length)], 'seasonal'));
-            });
+            distributeAlongPolyline(tgRoute, 25, 0.06).forEach(p => { psPoints.push(createPSPoint(id++, p.lon, p.lat, randVelocity(), 'three_gorges', '三峡大坝', tgFeatures[Math.floor(Math.random() * tgFeatures.length)], 'seasonal')); });
 
             const qtRoute = [{ lon: 101.7, lat: 36.6 },{ lon: 98.1, lat: 36.4 },{ lon: 94.9, lat: 36.4 },{ lon: 94.0, lat: 35.6 },{ lon: 92.8, lat: 34.2 },{ lon: 92.4, lat: 33.1 },{ lon: 92.0, lat: 31.5 },{ lon: 91.1, lat: 29.6 }];
             const qtFeatures = ['北麓河多年冻土热融塌陷', '昆仑山口路基冻胀区', '风火山隧道出口', '唐古拉山冻土段 K1135', '清水河特大桥桥墩', '错那湖段风沙路基'];
-            distributeAlongPolyline(qtRoute, 35, 0.12).forEach(p => {
-                psPoints.push(createPSPoint(id++, p.lon, p.lat, randVelocity(), 'qinghai_tibet', '青藏铁路', qtFeatures[Math.floor(Math.random() * qtFeatures.length)], 'permafrost'));
-            });
+            distributeAlongPolyline(qtRoute, 35, 0.12).forEach(p => { psPoints.push(createPSPoint(id++, p.lon, p.lat, randVelocity(), 'qinghai_tibet', '青藏铁路', qtFeatures[Math.floor(Math.random() * qtFeatures.length)], 'permafrost')); });
 
             const gbaRoute = [{ lon: 113.26, lat: 23.13 },{ lon: 113.75, lat: 23.02 },{ lon: 114.06, lat: 22.55 },{ lon: 114.17, lat: 22.32 },{ lon: 113.55, lat: 22.27 },{ lon: 113.55, lat: 22.19 }];
             const gbaFeatures = ['深圳前海吹填区软土固结', '香港国际机场第3跑道填海区', '广州南沙新区地基沉降', '珠海横琴口岸地下空间', '东莞滨海湾新区', '港珠澳大桥人工岛'];
-            distributeAlongPolyline(gbaRoute, 30, 0.08).forEach(p => {
-                psPoints.push(createPSPoint(id++, p.lon, p.lat, randVelocity(), 'gba', '粤港澳大湾区', gbaFeatures[Math.floor(Math.random() * gbaFeatures.length)], 'linear'));
-            });
+            distributeAlongPolyline(gbaRoute, 30, 0.08).forEach(p => { psPoints.push(createPSPoint(id++, p.lon, p.lat, randVelocity(), 'gba', '粤港澳大湾区', gbaFeatures[Math.floor(Math.random() * gbaFeatures.length)], 'linear')); });
 
             const twRoute = [{ lon: 121.56, lat: 25.03 },{ lon: 121.30, lat: 24.15 },{ lon: 120.90, lat: 23.30 },{ lon: 120.60, lat: 22.60 },{ lon: 120.85, lat: 21.95 }];
             const twFeatures = ['花莲-台东纵谷板块断层带', '台北盆地城市地下采空沉降', '高雄科技园区地表位移', '中央山脉东麓隆起带', '新竹科学园区地基稳定性', '垦丁断层蠕变监测点'];
-            distributeAlongPolyline(twRoute, 25, 0.10).forEach(p => {
-                psPoints.push(createPSPoint(id++, p.lon, p.lat, randVelocity(), 'taiwan', '台湾地区', twFeatures[Math.floor(Math.random() * twFeatures.length)], 'tectonic'));
-            });
+            distributeAlongPolyline(twRoute, 25, 0.10).forEach(p => { psPoints.push(createPSPoint(id++, p.lon, p.lat, randVelocity(), 'taiwan', '台湾地区', twFeatures[Math.floor(Math.random() * twFeatures.length)], 'tectonic')); });
 
             selectedPoint = psPoints[0];
             updateDetailInspector(selectedPoint);
@@ -369,10 +361,6 @@
 
         function createPSPoint(idNum, lon, lat, velocity, regionKey, regionName, featureName, patternType) {
             let coherence = (0.85 + Math.random() * 0.14).toFixed(2);
-            let riskLevel = 'Low';
-            if (velocity < -6) riskLevel = 'High';
-            else if (velocity < -3 || velocity > 4) riskLevel = 'Medium';
-
             let historyData = [];
             for (let i = 0; i < 120; i++) {
                 let noise = (Math.random() - 0.5) * 0.6;
@@ -382,127 +370,23 @@
                 else if (patternType === 'tectonic') trend += Math.sin((i / 60) * Math.PI) * 2.5;
                 historyData.push(parseFloat((trend + noise).toFixed(2)));
             }
-
-            let forecastData = [];
-            let lastVal = historyData[119];
+            let forecastData = []; let lastVal = historyData[119];
             for (let j = 1; j <= 60; j++) {
-                let i = 120 + j;
-                let aiNoise = (Math.random() - 0.5) * 0.4;
+                let i = 120 + j; let aiNoise = (Math.random() - 0.5) * 0.4;
                 let futureTrend = lastVal + (velocity / 50) * (j * 0.5);
                 if (patternType === 'seasonal') futureTrend = lastVal + Math.sin((i / 24) * Math.PI * 2) * 5.0 - Math.sin((120 / 24) * Math.PI * 2) * 5.0;
                 else if (patternType === 'permafrost') futureTrend = lastVal + Math.cos((i / 24) * Math.PI * 2) * 4.0 - Math.cos((120 / 24) * Math.PI * 2) * 4.0;
                 forecastData.push(parseFloat((futureTrend + aiNoise).toFixed(2)));
             }
-
             return {
-                id: `PS-${regionKey.toUpperCase().substring(0,3)}-${idNum}`,
-                lon: parseFloat(lon.toFixed(4)),
-                lat: parseFloat(lat.toFixed(4)),
-                velocity: parseFloat(velocity.toFixed(1)),
-                coherence: parseFloat(coherence),
-                riskLevel, regionKey, regionName, featureName, patternType,
-                historyData, forecastData
+                id: `PS-${regionKey.toUpperCase().substring(0,3)}-${idNum}`, lon: parseFloat(lon.toFixed(4)), lat: parseFloat(lat.toFixed(4)),
+                velocity: parseFloat(velocity.toFixed(1)), coherence: parseFloat(coherence), regionKey, regionName, featureName, patternType, historyData, forecastData
             };
         }
 
         function getVelocityColor(v) {
-            if (v < -6) return '#ef4444';
-            if (v < -3) return '#f97316';
-            if (v < 0) return '#facc15';
-            if (v <= 3) return '#10b981';
-            if (v <= 6) return '#38bdf8';
-            return '#06b6d4';
-        }
-
-        function initMapChart() {
-            mapChart = echarts.init(document.getElementById('mapChart'));
-            fetch('./china.json')
-                .then(res => {
-                    if (!res.ok) throw new Error('local missing');
-                    return res.json();
-                })
-                .catch(() => fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json').then(r => r.json()))
-                .then(geoJson => {
-                    if (geoJson && Array.isArray(geoJson.features)) {
-                        geoJson.features.forEach(feature => {
-                            const p = feature.properties || {};
-                            if (!p.name) p.name = p.NAME || p.Name || p.省 || p.省份 || p.province || p.ADMIN || p.adcode || '';
-                            feature.properties = p;
-                        });
-                    }
-                    echarts.registerMap('china', geoJson);
-                    renderMapOption();
-                })
-                .catch(err => {
-                    document.getElementById('mapChart').innerHTML = '<div class="flex items-center justify-center h-full text-slate-500 text-xs">地图数据加载失败，请检查 china.json</div>';
-                });
-        }
-
-        function renderMapOption() {
-            const option = {
-                backgroundColor: '#080d1a',
-                geo: {
-                    map: 'china',
-                    roam: true, 
-                    center: REGIONS.national.center,
-                    zoom: REGIONS.national.zoom,
-                    label: {
-                        show: true,
-                        color: '#cbd5e1',
-                        fontSize: 9,
-                        formatter: function (params) {
-                            const full = params.name || '';
-                            if (!full) return '';
-                            const shortMap = {
-                                '北京市': '北京', '天津市': '天津', '上海市': '上海', '重庆市': '重庆',
-                                '河北省': '河北', '山西省': '山西', '辽宁省': '辽宁', '吉林省': '吉林',
-                                '黑龙江省': '黑龙江', '江苏省': '江苏', '浙江省': '浙江', '安徽省': '安徽',
-                                '福建省': '福建', '江西省': '江西', '山东省': '山东', '河南省': '河南',
-                                '湖北省': '湖北', '湖南省': '湖南', '广东省': '广东', '海南省': '海南',
-                                '四川省': '四川', '贵州省': '贵州', '云南省': '云南', '陕西省': '陕西',
-                                '甘肃省': '甘肃', '青海省': '青海', '台湾省': '台湾',
-                                '内蒙古自治区': '内蒙古', '广西壮族自治区': '广西', '西藏自治区': '西藏',
-                                '宁夏回族自治区': '宁夏', '新疆维吾尔自治区': '新疆',
-                                '香港特别行政区': '香港', '澳门特别行政区': '澳门'
-                            };
-                            return shortMap[full] || full.replace(/省|市|自治区|特别行政区|壮族|回族|维吾尔/g, '');
-                        }
-                    },
-                    itemStyle: { areaColor: '#0f172a', borderColor: '#3b82f6', borderWidth: 1.2, shadowBlur: 12, shadowColor: 'rgba(59,130,246,0.35)' },
-                    emphasis: { itemStyle: { areaColor: '#1e293b' }, label: { show: true, color: '#ffffff', fontSize: 10 } }
-                },
-                series: [
-                    {
-                        name: 'PS 测点',
-                        type: 'scatter',
-                        coordinateSystem: 'geo',
-                        data: buildScatterData(),
-                        symbolSize: function (val) { return val[2] < -6 ? 5 : 3; },
-                        itemStyle: {
-                            color: function (params) { return getVelocityColor(params.value[2]); },
-                            borderColor: 'rgba(255,255,255,0.35)',
-                            borderWidth: 0.5
-                        }
-                    }
-                ]
-            };
-            mapChart.setOption(option, true);
-
-            mapChart.off('click');
-            mapChart.on('click', function (params) {
-                if (params.componentType === 'series' && params.seriesType === 'scatter') {
-                    const pt = psPoints.find(p => p.id === params.data.psId);
-                    if (pt) {
-                        selectedPoint = pt;
-                        updateDetailInspector(pt);
-                        updateChartData(pt);
-                    }
-                }
-            });
-
-            window.applyFilterToMap = function () {
-                mapChart.setOption({ series: [{ data: buildScatterData() }] });
-            };
+            if (v < -6) return '#ef4444'; if (v < -3) return '#f97316'; if (v < 0) return '#facc15';
+            if (v <= 3) return '#10b981'; if (v <= 6) return '#38bdf8'; return '#06b6d4';
         }
 
         function buildScatterData() {
@@ -512,127 +396,169 @@
                 if (activeFilter === 'stable' && (pt.velocity < -2 || pt.velocity > 2)) return false;
                 return true;
             }).map(pt => ({
-                name: pt.featureName,
-                value: [pt.lon, pt.lat, pt.velocity],
-                psId: pt.id,
+                name: pt.featureName, value: [pt.lon, pt.lat, pt.velocity], psId: pt.id,
                 itemStyle: { color: pt.id === (selectedPoint && selectedPoint.id) ? '#ffffff' : undefined }
             }));
         }
 
-        function switchRegion(key) {
-            const reg = REGIONS[key];
-            if (!reg || !mapChart) return;
-            mapChart.setOption({ geo: { center: reg.center, zoom: reg.zoom } });
-            
-            document.querySelectorAll('.region-btn').forEach(btn => {
-                btn.classList.remove('bg-blue-600', 'text-white');
-                btn.classList.add('text-slate-300');
-            });
-            const activeBtn = document.getElementById(`btn-${key}`);
-            if (activeBtn) {
-                activeBtn.classList.add('bg-blue-600', 'text-white');
-                activeBtn.classList.remove('text-slate-300');
+        // --- 初始化地图 ---
+        function initMap() {
+            const mapOption = {
+                backgroundColor: '#080d1a',
+                geo: {
+                    map: 'china', roam: true, center: REGIONS.national.center, zoom: REGIONS.national.zoom,
+                    label: {
+                        show: true, color: '#cbd5e1', fontSize: 9,
+                        formatter: function (params) {
+                            const full = params.name || ''; if (!full) return '';
+                            const shortMap = {'北京市':'北京','天津市':'天津','上海市':'上海','重庆市':'重庆','河北省':'河北','山西省':'山西','辽宁省':'辽宁','吉林省':'吉林','黑龙江省':'黑龙江','江苏省':'江苏','浙江省':'浙江','安徽省':'安徽','福建省':'福建','江西省':'江西','山东省':'山东','河南省':'河南','湖北省':'湖北','湖南省':'湖南','广东省':'广东','海南省':'海南','四川省':'四川','贵州省':'贵州','云南省':'云南','陕西省':'陕西','甘肃省':'甘肃','青海省':'青海','台湾省':'台湾','内蒙古自治区':'内蒙古','广西壮族自治区':'广西','西藏自治区':'西藏','宁夏回族自治区':'宁夏','新疆维吾尔自治区':'新疆','香港特别行政区':'香港','澳门特别行政区':'澳门'};
+                            return shortMap[full] || full.replace(/省|市|自治区|特别行政区|壮族|回族|维吾尔/g, '');
+                        }
+                    },
+                    itemStyle: { areaColor: '#0f172a', borderColor: '#3b82f6', borderWidth: 1.2, shadowBlur: 12, shadowColor: 'rgba(59,130,246,0.35)' },
+                    emphasis: { itemStyle: { areaColor: '#1e293b' }, label: { show: true, color: '#ffffff', fontSize: 10 } }
+                },
+                series: [{ name: 'PS 测点', type: 'scatter', coordinateSystem: 'geo', data: buildScatterData(), symbolSize: val => val[2] < -6 ? 5 : 3, itemStyle: { color: p => getVelocityColor(p.value[2]), borderColor: 'rgba(255,255,255,0.35)', borderWidth: 0.5 } }]
+            };
+
+            const handleMapClick = function (params) {
+                if (params.componentType === 'series' && params.seriesType === 'scatter') {
+                    const pt = psPoints.find(p => p.id === params.data.psId);
+                    if (pt) { selectedPoint = pt; updateDetailInspector(pt); updateChartData(pt); }
+                }
+            };
+
+            const pcEl = document.getElementById('mapChart');
+            if(pcEl && pcEl.offsetWidth > 0) {
+                mapChartPC = echarts.init(pcEl); mapChartPC.setOption(mapOption); mapChartPC.on('click', handleMapClick);
             }
+            const mobEl = document.getElementById('mapChartMobile');
+            if(mobEl && mobEl.offsetWidth > 0) {
+                mapChartMobile = echarts.init(mobEl); mapChartMobile.setOption(mapOption); mapChartMobile.on('click', handleMapClick);
+            }
+        }
+
+        function fetchAndRenderMap() {
+            fetch('./china.json').then(res => { if (!res.ok) throw new Error(); return res.json(); })
+                .catch(() => fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json').then(r => r.json()))
+                .then(geoJson => {
+                    if (geoJson && Array.isArray(geoJson.features)) {
+                        geoJson.features.forEach(f => {
+                            const p = f.properties || {};
+                            if (!p.name) p.name = p.NAME || p.Name || p.省 || p.province || p.ADMIN || p.adcode || '';
+                            f.properties = p;
+                        });
+                    }
+                    echarts.registerMap('china', geoJson);
+                    initMap();
+                })
+                .catch(err => {
+                    document.getElementById('mapChart').innerHTML = '<div class="text-slate-500 m-auto">地图数据加载失败</div>';
+                    document.getElementById('mapChartMobile').innerHTML = '<div class="text-slate-500 m-auto text-xs">地图加载失败</div>';
+                });
+        }
+
+        // --- 初始化图表 ---
+        function initCharts() {
+            const baseOption = {
+                type: 'line',
+                data: { labels: Array.from({length:180}, (_,i) => i<120 ? `T-${120-i}` : `F+${i-119}`), datasets: [
+                    { data: [], borderColor: '#3b82f6', borderWidth: 1.5, pointRadius: 0, tension: 0.2, fill: false },
+                    { data: [], borderColor: '#ec4899', borderWidth: 1.5, borderDash: [5, 4], pointRadius: 0, tension: 0.2, fill: false }
+                ]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { grid: { color: 'rgba(30, 41, 59, 0.4)' }, ticks: { color: '#94a3b8', font: { size: 9 } } } } }
+            };
+
+            const pcCtx = document.getElementById('timeSeriesChartPC');
+            if (pcCtx && pcCtx.offsetWidth > 0) chartInstancePC = new Chart(pcCtx.getContext('2d'), JSON.parse(JSON.stringify(baseOption)));
+
+            const mobCtx = document.getElementById('timeSeriesChartMobile');
+            if (mobCtx && mobCtx.offsetWidth > 0) chartInstanceMobile = new Chart(mobCtx.getContext('2d'), JSON.parse(JSON.stringify(baseOption)));
+        }
+
+        // --- 更新逻辑 ---
+        function switchRegion(key) {
+            const reg = REGIONS[key]; if (!reg) return;
+            if (mapChartPC) mapChartPC.setOption({ geo: { center: reg.center, zoom: reg.zoom } });
+            if (mapChartMobile) mapChartMobile.setOption({ geo: { center: reg.center, zoom: reg.zoom } });
+            
+            document.querySelectorAll('.region-btn').forEach(btn => { btn.classList.remove('bg-blue-600', 'text-white'); btn.classList.add('text-slate-300'); });
+            const activeBtn = document.getElementById(`btn-${key}`);
+            if (activeBtn) { activeBtn.classList.add('bg-blue-600', 'text-white'); activeBtn.classList.remove('text-slate-300'); }
 
             let regPoint = psPoints.find(p => p.regionKey === key);
-            if (regPoint) {
-                selectedPoint = regPoint;
-                updateDetailInspector(regPoint);
-                updateChartData(regPoint);
-                mapChart.setOption({ series: [{ data: buildScatterData() }] });
-            }
+            if (regPoint) { selectedPoint = regPoint; updateDetailInspector(regPoint); updateChartData(regPoint); }
         }
 
-        function zoomMapIn() { if (mapChart) mapChart.setOption({ geo: { zoom: mapChart.getOption().geo[0].zoom * 1.3 } }); }
-        function zoomMapOut() { if (mapChart) mapChart.setOption({ geo: { zoom: Math.max(mapChart.getOption().geo[0].zoom / 1.3, 0.6) } }); }
+        function zoomMapIn() { 
+            if (mapChartPC && mapChartPC.getOption()) mapChartPC.setOption({ geo: { zoom: mapChartPC.getOption().geo[0].zoom * 1.3 } });
+            if (mapChartMobile && mapChartMobile.getOption()) mapChartMobile.setOption({ geo: { zoom: mapChartMobile.getOption().geo[0].zoom * 1.3 } });
+        }
+        function zoomMapOut() { 
+            if (mapChartPC && mapChartPC.getOption()) mapChartPC.setOption({ geo: { zoom: Math.max(mapChartPC.getOption().geo[0].zoom / 1.3, 0.6) } });
+            if (mapChartMobile && mapChartMobile.getOption()) mapChartMobile.setOption({ geo: { zoom: Math.max(mapChartMobile.getOption().geo[0].zoom / 1.3, 0.6) } });
+        }
         function resetMapView() { switchRegion('national'); }
-        function applyFilter(val) { activeFilter = val; if (typeof window.applyFilterToMap === 'function') window.applyFilterToMap(); }
 
-        let chartInstance = null;
-        function initChart() {
-            const ctxChart = document.getElementById('timeSeriesChart').getContext('2d');
-            let labels = [];
-            for (let i = 1; i <= 120; i++) labels.push(`T-${121 - i}`);
-            for (let j = 1; j <= 60; j++) labels.push(`F+${j}`);
-
-            chartInstance = new Chart(ctxChart, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: '历史', data: [], borderColor: '#3b82f6', borderWidth: 1.5, pointRadius: 0, tension: 0.2, fill: false },
-                        { label: '预测', data: [], borderColor: '#ec4899', borderWidth: 1.5, borderDash: [5, 4], pointRadius: 0, tension: 0.2, fill: false }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { intersect: false, mode: 'index' },
-                    plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(15, 23, 42, 0.9)' } },
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 8 }, maxTicksLimit: 4 } },
-                        y: { grid: { color: 'rgba(30, 41, 59, 0.4)' }, ticks: { color: '#94a3b8', font: { size: 9 } } }
-                    }
-                }
-            });
-            if (selectedPoint) updateChartData(selectedPoint);
-        }
-
-        function updateChartData(point) {
-            if (!chartInstance) return;
-            let historyArr = [...point.historyData];
-            for (let i = 0; i < 60; i++) historyArr.push(null);
-            let forecastArr = new Array(119).fill(null);
-            forecastArr.push(point.historyData[119]);
-            forecastArr.push(...point.forecastData);
-            chartInstance.data.datasets[0].data = historyArr;
-            chartInstance.data.datasets[1].data = forecastArr;
-            chartInstance.update();
+        function applyFilter(val) { 
+            activeFilter = val; 
+            if (mapChartPC) mapChartPC.setOption({ series: [{ data: buildScatterData() }] });
+            if (mapChartMobile) mapChartMobile.setOption({ series: [{ data: buildScatterData() }] });
         }
 
         function updateDetailInspector(pt) {
-            document.getElementById('detailPointId').innerText = pt.id;
-            document.getElementById('detailRegion').innerText = pt.regionName;
-            document.getElementById('detailVelocity').innerText = `${pt.velocity} mm/a`;
-            document.getElementById('detailCoherence').innerText = pt.coherence;
-            document.getElementById('detailFeature').innerText = pt.featureName;
-
-            let riskElem = document.getElementById('selectedPointRisk');
-            let analysisElem = document.getElementById('detailAiAnalysis');
-
-            if (pt.velocity < -6) {
-                riskElem.innerText = '高危';
-                riskElem.className = 'px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-400 border border-red-500/40 font-medium';
-                analysisElem.innerText = `速率达 ${pt.velocity} mm/a，属加速沉降。预测将逼近 -10mm 警戒线，建议注浆加固。`;
-            } else if (pt.patternType === 'seasonal') {
-                riskElem.innerText = '受控';
-                riskElem.className = 'px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-400 border border-blue-500/40 font-medium';
-                analysisElem.innerText = `受蓄水周期影响呈 ±5mm 正弦形变，处于弹性恢复区间，结构安全。`;
-            } else if (pt.patternType === 'permafrost') {
-                riskElem.innerText = '融沉';
-                riskElem.className = 'px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-medium';
-                analysisElem.innerText = `夏融冬胀交替，循环振幅约 4mm。形变在控制线内，建议加强路基散热。`;
-            } else {
-                riskElem.innerText = '稳定';
-                riskElem.className = 'px-1.5 py-0.5 rounded text-[9px] bg-slate-700/50 text-slate-300 border border-slate-600 font-medium';
-                analysisElem.innerText = `速率 ${pt.velocity} mm/a，相干性 ${pt.coherence}，地表稳定无异常。`;
+            const textAI = pt.velocity < -6 ? `速率 ${pt.velocity} mm/a，属加速沉降，建议注浆加固。` : 
+                           pt.patternType === 'seasonal' ? `受蓄水周期影响呈 ±5mm 形变，结构安全。` :
+                           pt.patternType === 'permafrost' ? `夏融冬胀交替，循环振幅约 4mm，建议加强散热。` :
+                           `速率 ${pt.velocity} mm/a，相干性 ${pt.coherence}，地表稳定。`;
+            
+            // 更新 PC 端
+            if(document.getElementById('detailPointIdPC')) {
+                document.getElementById('detailPointIdPC').innerText = pt.id;
+                document.getElementById('detailRegionPC').innerText = pt.regionName;
+                document.getElementById('detailVelocityPC').innerText = `${pt.velocity} mm/a`;
+                document.getElementById('detailCoherencePC').innerText = pt.coherence;
+                document.getElementById('detailFeaturePC').innerText = pt.featureName;
+                document.getElementById('detailAiAnalysisPC').innerText = textAI;
+                document.getElementById('selectedPointRiskPC').innerText = pt.velocity < -6 ? '高危' : '稳定';
+            }
+            // 更新 Mobile 端
+            if(document.getElementById('detailPointIdMobile')) {
+                document.getElementById('detailPointIdMobile').innerText = pt.id;
+                document.getElementById('detailRegionMobile').innerText = pt.regionName;
+                document.getElementById('detailVelocityMobile').innerText = `${pt.velocity} mm/a`;
+                document.getElementById('detailCoherenceMobile').innerText = pt.coherence;
+                document.getElementById('detailFeatureMobile').innerText = pt.featureName;
+                document.getElementById('detailAiAnalysisMobile').innerText = textAI;
+                document.getElementById('selectedPointRiskMobile').innerText = pt.velocity < -6 ? '高危' : '稳定';
             }
         }
 
-        function startClock() {
-            setInterval(() => {
-                const now = new Date();
-                document.getElementById('clockDisplay').innerText = now.toUTCString().replace('GMT', 'UTC');
-            }, 1000);
+        function updateChartData(point) {
+            let hist = [...point.historyData]; for (let i = 0; i < 60; i++) hist.push(null);
+            let fore = new Array(119).fill(null); fore.push(point.historyData[119]); fore.push(...point.forecastData);
+            
+            if (chartInstancePC) { chartInstancePC.data.datasets[0].data = hist; chartInstancePC.data.datasets[1].data = fore; chartInstancePC.update(); }
+            if (chartInstanceMobile) { chartInstanceMobile.data.datasets[0].data = hist; chartInstanceMobile.data.datasets[1].data = fore; chartInstanceMobile.update(); }
         }
 
         window.onload = function () {
             generatePSPoints();
-            initMapChart();
-            initChart();
-            startClock();
+            fetchAndRenderMap();
+            initCharts();
+            if (selectedPoint) updateChartData(selectedPoint);
+            
+            setInterval(() => {
+                const now = new Date();
+                const timeStr = now.toUTCString().replace('GMT', 'UTC');
+                if(document.getElementById('clockDisplay')) document.getElementById('clockDisplay').innerText = timeStr;
+            }, 1000);
         };
-        window.addEventListener('resize', () => { if (mapChart) mapChart.resize(); });
+
+        window.addEventListener('resize', () => { 
+            if (mapChartPC) mapChartPC.resize(); 
+            if (mapChartMobile) mapChartMobile.resize(); 
+        });
     </script>
 </body>
 </html>
