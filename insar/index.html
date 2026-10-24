@@ -39,7 +39,7 @@
         }
 
         /* =========================================================
-           1. 电脑端布局 (>= 768px): 左(图层控制) | 中(地图) | 右(测点诊断)
+           1. 电脑端布局 (>= 768px): 左 | 中 | 右
            ========================================================= */
         @media (min-width: 768px) {
             .main-layout {
@@ -56,7 +56,7 @@
         }
 
         /* =========================================================
-           2. 手机端布局 (< 768px): 地图占上半部分 (50vh)，下半部分 (50vh) 左右并列
+           2. 手机端布局 (< 768px): 上地图，下双栏
            ========================================================= */
         @media (max-width: 767px) {
             .main-layout {
@@ -67,7 +67,6 @@
                 width: 100%;
                 overflow: hidden;
             }
-            /* 地图占上半部分 */
             .panel-center {
                 grid-row: 1;
                 grid-column: 1 / span 2;
@@ -76,7 +75,6 @@
                 position: relative;
                 border-bottom: 1px solid #1e293b;
             }
-            /* 下半部分：左栏 (图层控制) */
             .panel-left {
                 grid-row: 2;
                 grid-column: 1;
@@ -86,7 +84,6 @@
                 border-right: 1px solid #1e293b;
                 padding: 0.5rem;
             }
-            /* 下半部分：右栏 (测点诊断) */
             .panel-right {
                 grid-row: 2;
                 grid-column: 2;
@@ -125,7 +122,7 @@
         </div>
     </header>
 
-    <!-- 主布局 (桌面端：左 | 中 | 右) -->
+    <!-- 主布局 -->
     <div class="main-layout">
 
         <!-- 1. 左侧：图层控制与监视区态势 -->
@@ -337,9 +334,30 @@
                 backgroundColor: '#080d1a',
                 geo: {
                     map: 'china', roam: true, center: REGIONS.national.center, zoom: REGIONS.national.zoom,
-                    label: { show: false },
+                    label: {
+                        show: true,
+                        color: '#cbd5e1',
+                        fontSize: 9,
+                        formatter: function (params) {
+                            const full = params.name || '';
+                            if (!full) return '';
+                            const shortMap = {
+                                '北京市': '北京', '天津市': '天津', '上海市': '上海', '重庆市': '重庆',
+                                '河北省': '河北', '山西省': '山西', '辽宁省': '辽宁', '吉林省': '吉林',
+                                '黑龙江省': '黑龙江', '江苏省': '江苏', '浙江省': '浙江', '安徽省': '安徽',
+                                '福建省': '福建', '江西省': '江西', '山东省': '山东', '河南省': '河南',
+                                '湖北省': '湖北', '湖南省': '湖南', '广东省': '广东', '海南省': '海南',
+                                '四川省': '四川', '贵州省': '贵州', '云南省': '云南', '陕西省': '陕西',
+                                '甘肃省': '甘肃', '青海省': '青海', '台湾省': '台湾',
+                                '内蒙古自治区': '内蒙古', '广西壮族自治区': '广西', '西藏自治区': '西藏',
+                                '宁夏回族自治区': '宁夏', '新疆维吾尔自治区': '新疆',
+                                '香港特别行政区': '香港', '澳门特别行政区': '澳门'
+                            };
+                            return shortMap[full] || full.replace(/省|市|自治区|特别行政区|壮族|回族|维吾尔/g, '');
+                        }
+                    },
                     itemStyle: { areaColor: '#0f172a', borderColor: '#3b82f6', borderWidth: 1.2, shadowBlur: 10, shadowColor: 'rgba(59,130,246,0.3)' },
-                    emphasis: { itemStyle: { areaColor: '#1e293b' } }
+                    emphasis: { itemStyle: { areaColor: '#1e293b' }, label: { show: true, color: '#ffffff', fontSize: 10 } }
                 },
                 series: [{ 
                     name: 'PS 测点', type: 'scatter', coordinateSystem: 'geo', data: buildScatterData(), 
@@ -363,19 +381,21 @@
         }
 
         function loadMapEngine() {
-            // 直接请求同目录下的 china.json
+            // 1. 优先加载本地下载的 china.json
             fetch('./china.json')
-                .then(res => { 
-                    if (!res.ok) throw new Error(`HTTP ${res.status}`); 
-                    return res.json(); 
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.json();
                 })
                 .then(geoJson => {
-                    // 统一补全 name 字段，防止出现 {b} 
+                    // 如果数据已经具备 properties.name (如你的文件), 这里就无需补全了
                     if (geoJson && Array.isArray(geoJson.features)) {
                         geoJson.features.forEach(feature => {
                             const p = feature.properties || {};
-                            if (!p.name) {
-                                p.name = p.NAME || p.Name || p.省 || p.province || p.ADMIN || p.adcode || '';
+                            if (!p.name && !p.NAME) {
+                                p.name = p.省 || p.province || p.ADMIN || p.adcode || '';
+                            } else if (!p.name && p.NAME) {
+                                p.name = p.NAME;
                             }
                             feature.properties = p;
                         });
@@ -383,13 +403,22 @@
                     renderMapWithGeoJSON(geoJson);
                 })
                 .catch(err => {
-                    console.error('加载 china.json 失败:', err);
-                    document.getElementById('mapChart').innerHTML = 
-                        '<div class="flex flex-col items-center justify-center h-full text-slate-500 text-xs">' +
-                            '<i class="fa-solid fa-map-location-dot text-3xl mb-2 text-slate-600"></i>' +
-                            '<div>地图加载失败</div>' +
-                            '<div class="mt-1 text-[10px] text-slate-600">请确保 china.json 与本文件在同一目录</div>' +
-                        '</div>';
+                    console.warn('本地 china.json 加载失败，尝试使用阿里云 DataV 在线数据：', err);
+                    // 2. 如果本地加载失败，自动抓取阿里云镜像，绝不黑屏
+                    fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
+                        .then(res => res.json())
+                        .then(geoJson => {
+                            renderMapWithGeoJSON(geoJson);
+                        })
+                        .catch(e => {
+                            console.error('在线数据也获取失败', e);
+                            document.getElementById('mapChart').innerHTML = 
+                                '<div class="flex flex-col items-center justify-center h-full text-slate-500 text-xs">' +
+                                    '<i class="fa-solid fa-map-location-dot text-3xl mb-2 text-slate-600"></i>' +
+                                    '<div>地图加载失败</div>' +
+                                    '<div class="mt-1 text-[10px] text-slate-600">请检查 china.json 或网络状态</div>' +
+                                '</div>';
+                        });
                 });
         }
 
@@ -461,7 +490,7 @@
             let hist = [...point.historyData]; for (let i = 0; i < 60; i++) hist.push(null);
             let fore = new Array(119).fill(null); fore.push(point.historyData[119]); fore.push(...point.forecastData);
             chartInstance.data.datasets[0].data = hist;
-            chartInstance.datasets[1].data = fore;
+            chartInstance.data.datasets[1].data = fore;
             chartInstance.update();
         }
 
