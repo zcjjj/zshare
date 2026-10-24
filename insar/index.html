@@ -219,47 +219,6 @@
 
     <!-- JS 逻辑 -->
     <script>
-        // 兜底地图矢量数据 (避免离线或 CORS 加载失败导致黑屏)
-        const INLINE_CHINA_GEOJSON = {
-            "type": "FeatureCollection",
-            "features": [
-                {"type": "Feature", "properties": {"name": "新疆"}, "geometry": {"type": "Polygon", "coordinates": [[[73.5, 39.2], [73.5, 48.5], [87.0, 49.2], [96.4, 42.8], [93.5, 36.0], [79.5, 35.0]]]}},
-                {"type": "Feature", "properties": {"name": "西藏"}, "geometry": {"type": "Polygon", "coordinates": [[[78.4, 32.5], [80.0, 36.0], [89.0, 36.5], [99.0, 31.5], [97.0, 28.0], [88.0, 27.3], [82.0, 29.5]]]}},
-                {"type": "Feature", "properties": {"name": "青海"}, "geometry": {"type": "Polygon", "coordinates": [[[89.5, 36.0], [99.0, 39.2], [103.0, 35.8], [102.5, 32.8], [90.0, 32.5]]]}},
-                {"type": "Feature", "properties": {"name": "甘肃"}, "geometry": {"type": "Polygon", "coordinates": [[[92.5, 42.5], [98.5, 42.8], [108.0, 35.5], [105.0, 33.0], [101.0, 37.5]]]}},
-                {"type": "Feature", "properties": {"name": "内蒙古"}, "geometry": {"type": "Polygon", "coordinates": [[[97.0, 42.5], [106.0, 41.5], [111.0, 37.5], [115.0, 41.5], [126.0, 53.3], [121.0, 42.0], [105.0, 38.0]]]}},
-                {"type": "Feature", "properties": {"name": "黑龙江"}, "geometry": {"type": "Polygon", "coordinates": [[[121.3, 53.3], [127.0, 53.5], [135.0, 48.5], [131.0, 44.0], [124.0, 45.5]]]}},
-                {"type": "Feature", "properties": {"name": "吉林"}, "geometry": {"type": "Polygon", "coordinates": [[[122.0, 45.5], [131.0, 44.0], [130.5, 42.0], [125.0, 41.0], [123.0, 43.5]]]}},
-                {"type": "Feature", "properties": {"name": "辽宁"}, "geometry": {"type": "Polygon", "coordinates": [[[119.0, 42.0], [124.5, 43.0], [125.5, 40.0], [121.0, 38.8], [119.5, 40.0]]]}},
-                {"type": "Feature", "properties": {"name": "河北"}, "geometry": {"type": "Polygon", "coordinates": [[[113.5, 36.2], [114.5, 42.5], [119.5, 40.5], [118.0, 38.5], [115.0, 36.0]]]}},
-                {"type": "Feature", "properties": {"name": "北京"}, "geometry": {"type": "Polygon", "coordinates": [[[115.7, 40.2], [117.4, 40.2], [117.4, 39.4], [115.7, 39.4]]]}},
-                {"type": "Feature", "properties": {"name": "天津"}, "geometry": {"type": "Polygon", "coordinates": [[[116.8, 40.2], [118.0, 40.0], [117.8, 38.6], [116.8, 38.6]]]}},
-                {"type": "Feature", "properties": {"name": "山西"}, "geometry": {"type": "Polygon", "coordinates": [[[110.2, 34.6], [114.5, 40.7], [114.0, 35.2]]]}},
-                {"type": "Feature", "properties": {"name": "陕西"}, "geometry": {"type": "Polygon", "coordinates": [[[105.5, 32.0], [107.5, 39.0], [111.0, 39.5], [110.0, 34.5], [106.0, 32.0]]]}},
-                {"type": "Feature", "properties": {"name": "宁夏"}, "geometry": {"type": "Polygon", "coordinates": [[[104.3, 35.2], [107.0, 39.3], [107.6, 37.0]]]}},
-                {"type": "Feature", "properties": {"name": "山东"}, "geometry": {"type": "Polygon", "coordinates": [[[114.8, 36.0], [118.0, 38.2], [122.5, 37.5], [119.5, 34.5], [115.0, 34.5]]]}},
-                {"type": "Feature", "properties": {"name": "河南"}, "geometry": {"type": "Polygon", "coordinates": [[[110.4, 31.4], [112.5, 36.4], [116.0, 36.0], [116.5, 31.5]]]}},
-                {"type": "Feature", "properties": {"name": "江苏"}, "geometry": {"type": "Polygon", "coordinates": [[[116.4, 34.8], [119.5, 35.0], [121.8, 31.5], [118.8, 31.0]]]}},
-                {"type": "Feature", "properties": {"name": "安徽"}, "geometry": {"type": "Polygon", "coordinates": [[[114.9, 29.7], [116.5, 34.6], [119.0, 31.5], [118.0, 29.5]]]}},
-                {"type": "Feature", "properties": {"name": "上海"}, "geometry": {"type": "Polygon", "coordinates": [[[120.9, 31.8], [122.2, 31.8], [122.2, 30.7], [120.9, 30.7]]]}},
-                {"type": "Feature", "properties": {"name": "浙江"}, "geometry": {"type": "Polygon", "coordinates": [[[118.0, 27.2], [119.5, 31.1], [122.8, 30.5], [120.5, 27.2]]]}},
-                {"type": "Feature", "properties": {"name": "江西"}, "geometry": {"type": "Polygon", "coordinates": [[[113.6, 24.5], [114.0, 29.8], [118.4, 29.5], [116.5, 24.5]]]}},
-                {"type": "Feature", "properties": {"name": "福建"}, "geometry": {"type": "Polygon", "coordinates": [[[115.8, 23.5], [118.5, 28.3], [120.5, 27.0], [117.5, 23.5]]]}},
-                {"type": "Feature", "properties": {"name": "湖北"}, "geometry": {"type": "Polygon", "coordinates": [[[108.4, 29.0], [111.0, 33.3], [116.1, 31.5], [115.0, 29.0]]]}},
-                {"type": "Feature", "properties": {"name": "湖南"}, "geometry": {"type": "Polygon", "coordinates": [[[108.8, 24.6], [111.5, 30.1], [114.2, 29.5], [113.8, 24.6]]]}},
-                {"type": "Feature", "properties": {"name": "四川"}, "geometry": {"type": "Polygon", "coordinates": [[[97.3, 26.0], [101.0, 34.3], [108.5, 32.5], [105.0, 28.0]]]}},
-                {"type": "Feature", "properties": {"name": "重庆"}, "geometry": {"type": "Polygon", "coordinates": [[[105.3, 28.2], [108.5, 32.2], [110.2, 31.5], [109.0, 28.2]]]}},
-                {"type": "Feature", "properties": {"name": "贵州"}, "geometry": {"type": "Polygon", "coordinates": [[[103.6, 24.6], [105.0, 29.2], [109.5, 27.0], [107.5, 24.6]]]}},
-                {"type": "Feature", "properties": {"name": "云南"}, "geometry": {"type": "Polygon", "coordinates": [[[97.5, 21.2], [98.8, 29.2], [106.2, 27.5], [105.0, 22.5]]]}},
-                {"type": "Feature", "properties": {"name": "广西"}, "geometry": {"type": "Polygon", "coordinates": [[[104.5, 20.9], [105.0, 26.2], [112.0, 25.0], [109.0, 21.0]]]}},
-                {"type": "Feature", "properties": {"name": "广东"}, "geometry": {"type": "Polygon", "coordinates": [[[109.7, 20.2], [113.5, 25.5], [117.2, 23.5], [114.5, 22.0]]]}},
-                {"type": "Feature", "properties": {"name": "海南"}, "geometry": {"type": "Polygon", "coordinates": [[[108.6, 18.1], [111.0, 20.1], [111.0, 18.1], [108.6, 18.1]]]}},
-                {"type": "Feature", "properties": {"name": "台湾"}, "geometry": {"type": "Polygon", "coordinates": [[[119.9, 21.9], [122.1, 25.3], [122.1, 21.9]]]}},
-                {"type": "Feature", "properties": {"name": "香港"}, "geometry": {"type": "Polygon", "coordinates": [[[113.8, 22.1], [114.4, 22.5], [114.4, 22.1]]]}},
-                {"type": "Feature", "properties": {"name": "澳门"}, "geometry": {"type": "Polygon", "coordinates": [[[113.5, 22.1], [113.6, 22.2], [113.6, 22.1]]]}}
-            ]
-        };
-
         const REGIONS = {
             national: { name: '全国全景', center: [104.5, 36.0], zoom: 1.15 },
             beijing: { name: '北京市内', center: [116.4, 39.9], zoom: 9.0 },
@@ -404,18 +363,33 @@
         }
 
         function loadMapEngine() {
-            // 尝试 CDN 加载，失败时立刻自动切换为内置兜底矢量图
-            fetch('https://fastly.jsdelivr.net/gh/apache/echarts-website@asf-site/examples/data/asset/geo/china.json')
-                .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-                .then(geoJson => renderMapWithGeoJSON(geoJson))
-                .catch(() => {
-                    fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
-                        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-                        .then(geoJson => renderMapWithGeoJSON(geoJson))
-                        .catch(() => {
-                            // 最终兜底：采用内嵌数据渲染
-                            renderMapWithGeoJSON(INLINE_CHINA_GEOJSON);
+            // 直接请求同目录下的 china.json
+            fetch('./china.json')
+                .then(res => { 
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`); 
+                    return res.json(); 
+                })
+                .then(geoJson => {
+                    // 统一补全 name 字段，防止出现 {b} 
+                    if (geoJson && Array.isArray(geoJson.features)) {
+                        geoJson.features.forEach(feature => {
+                            const p = feature.properties || {};
+                            if (!p.name) {
+                                p.name = p.NAME || p.Name || p.省 || p.province || p.ADMIN || p.adcode || '';
+                            }
+                            feature.properties = p;
                         });
+                    }
+                    renderMapWithGeoJSON(geoJson);
+                })
+                .catch(err => {
+                    console.error('加载 china.json 失败:', err);
+                    document.getElementById('mapChart').innerHTML = 
+                        '<div class="flex flex-col items-center justify-center h-full text-slate-500 text-xs">' +
+                            '<i class="fa-solid fa-map-location-dot text-3xl mb-2 text-slate-600"></i>' +
+                            '<div>地图加载失败</div>' +
+                            '<div class="mt-1 text-[10px] text-slate-600">请确保 china.json 与本文件在同一目录</div>' +
+                        '</div>';
                 });
         }
 
@@ -487,7 +461,7 @@
             let hist = [...point.historyData]; for (let i = 0; i < 60; i++) hist.push(null);
             let fore = new Array(119).fill(null); fore.push(point.historyData[119]); fore.push(...point.forecastData);
             chartInstance.data.datasets[0].data = hist;
-            chartInstance.data.datasets[1].data = fore;
+            chartInstance.datasets[1].data = fore;
             chartInstance.update();
         }
 
