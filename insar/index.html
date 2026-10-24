@@ -36,58 +36,90 @@
             border: 1px solid rgba(59, 130, 246, 0.2);
         }
         
-        #mapChart { width: 100%; height: 100%; min-height: 250px; }
+        #mapChart { width: 100%; height: 100%; }
 
         /* =========================================
-           核心布局：CSS Grid
+           主布局：桌面端左-中-右
            ========================================= */
-        .layout-grid {
-            display: grid;
+        .main-layout {
+            display: flex;
+            flex: 1;
+            min-height: 0;
             width: 100%;
-            height: 100%;
-            overflow: hidden;
         }
+        .panel-left { width: 18rem; flex-shrink: 0; }
+        .panel-center { flex: 1; min-width: 0; position: relative; }
+        .panel-right { width: 24rem; flex-shrink: 0; display: flex; flex-direction: column; }
 
-        /* 电脑端布局 (大屏) */
-        @media (min-width: 768px) {
-            .layout-grid {
-                grid-template-columns: 18rem 1fr 24rem; /* 左-中-右 */
-                grid-template-rows: 1fr;
-                grid-template-areas: "left center right";
-            }
-        }
-
-        /* 手机端布局 (小屏) */
+        /* =========================================
+           手机端专用布局 (< 768px)
+           ========================================= */
         @media (max-width: 767px) {
-            .layout-grid {
-                grid-template-columns: 1fr 1fr; /* 左右双栏各占一半 */
-                grid-template-rows: 55% 45%;    /* 上地图，下双栏 */
-                grid-template-areas: 
-                    "center center" 
-                    "left right";
+            .main-layout {
+                flex-direction: column; /* 变成上下结构 */
+                overflow: hidden;
             }
-        }
 
-        /* 区域分配 */
-        .area-center { grid-area: center; position: relative; min-width: 0; min-height: 0; }
-        .area-left   { grid-area: left; min-width: 0; min-height: 0; overflow-y: auto; }
-        .area-right  { grid-area: right; min-width: 0; min-height: 0; overflow-y: auto; }
+            /* 上半部分：地图 */
+            .panel-center {
+                order: 1;
+                flex: none;
+                height: 50vh; /* 占据屏幕一半 */
+                width: 100%;
+                border-bottom: 1px solid #1e293b;
+            }
 
-        /* 手机端元素缩紧 */
-        @media (max-width: 767px) {
+            /* 下半部分：包裹左右双栏的容器 */
+            .mobile-bottom-wrapper {
+                order: 2;
+                display: flex;
+                flex-direction: row;
+                width: 100%;
+                height: 50vh; /* 占据屏幕另一半 */
+                overflow: hidden; /* 严禁子元素撑爆 */
+            }
+
+            /* 左栏 */
+            .panel-left {
+                width: 50%;
+                height: 100%;
+                overflow-y: auto; /* 内容多了内部滚动 */
+                border-right: 1px solid #1e293b;
+                padding: 8px;
+            }
+
+            /* 右栏 */
+            .panel-right {
+                width: 50%;
+                height: 100%;
+                overflow-y: auto;
+                border-left: none;
+                padding: 8px;
+            }
+
+            /* 图表强制自适应，防止撑爆 */
+            .chart-wrapper {
+                height: 120px !important;
+                width: 100%;
+                position: relative;
+            }
+
+            /* 字体缩小 */
             .m-text { font-size: 10px !important; line-height: 1.3; }
             .m-title { font-size: 11px !important; margin-bottom: 4px; }
             .m-pad { padding: 6px !important; margin-bottom: 6px !important; }
-            .m-chart { height: 120px !important; }
-            .hide-mobile { display: none !important; }
-            .area-left { padding: 8px; border-right: 1px solid #1e293b; }
-            .area-right { padding: 8px; }
+            
+            /* 隐藏横向滚动条 */
+            .no-scrollbar::-webkit-scrollbar { display: none; }
+            .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         }
 
         /* 手机横屏微调 */
         @media (max-height: 500px) and (orientation: landscape) {
-            .layout-grid { grid-template-rows: 100%; grid-template-columns: 40% 30% 30%; grid-template-areas: "center left right"; }
-            .m-chart { height: 80px !important; }
+            .panel-center { height: 100% !important; width: 60% !important; order: 1; }
+            .mobile-bottom-wrapper { flex-direction: row !important; height: 100% !important; width: 40% !important; order: 2; }
+            .panel-left, .panel-right { width: 50% !important; }
+            .chart-wrapper { height: 80px !important; }
         }
     </style>
 </head>
@@ -107,14 +139,14 @@
         </div>
         
         <!-- 区域切换 -->
-        <div class="flex-1 flex justify-end md:justify-center overflow-x-auto whitespace-nowrap px-2 scrollbar-hide">
+        <div class="flex-1 flex justify-end md:justify-center overflow-x-auto no-scrollbar whitespace-nowrap px-2">
             <div class="flex items-center space-x-1 bg-slate-950/80 p-0.5 md:p-1 rounded-lg border border-slate-800 text-[10px] md:text-xs">
-                <button onclick="switchRegion('national')" id="btn-national" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded bg-blue-600 text-white font-medium transition-all hover:bg-blue-500">全国</button>
-                <button onclick="switchRegion('beijing')" id="btn-beijing" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 transition-all">北京</button>
-                <button onclick="switchRegion('three_gorges')" id="btn-three_gorges" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 transition-all">三峡</button>
-                <button onclick="switchRegion('qinghai_tibet')" id="btn-qinghai_tibet" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 transition-all">青藏</button>
-                <button onclick="switchRegion('gba')" id="btn-gba" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 transition-all">湾区</button>
-                <button onclick="switchRegion('taiwan')" id="btn-taiwan" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded text-slate-300 hover:text-white hover:bg-slate-800 transition-all">台湾</button>
+                <button onclick="switchRegion('national')" id="btn-national" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded bg-blue-600 text-white font-medium transition-all">全国</button>
+                <button onclick="switchRegion('beijing')" id="btn-beijing" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded text-slate-300">北京</button>
+                <button onclick="switchRegion('three_gorges')" id="btn-three_gorges" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded text-slate-300">三峡</button>
+                <button onclick="switchRegion('qinghai_tibet')" id="btn-qinghai_tibet" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded text-slate-300">青藏</button>
+                <button onclick="switchRegion('gba')" id="btn-gba" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded text-slate-300">湾区</button>
+                <button onclick="switchRegion('taiwan')" id="btn-taiwan" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded text-slate-300">台湾</button>
             </div>
         </div>
 
@@ -123,65 +155,66 @@
         </div>
     </header>
 
-    <!-- 核心 Grid 布局区 -->
-    <div class="flex-1 min-h-0">
-        <div class="layout-grid">
-            
-            <!-- 左侧：图层与态势 -->
-            <aside class="area-left bg-slate-900/80 border-r border-slate-800 glass-panel">
-                <div class="m-pad p-3.5 border-b border-slate-800 space-y-3">
-                    <div class="m-title flex justify-between items-center text-xs font-semibold text-slate-300 uppercase">
-                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-sliders text-blue-400"></i> 图层控制</span>
+    <!-- 主布局 -->
+    <div class="main-layout">
+        
+        <!-- 左侧面板 -->
+        <aside class="panel-left bg-slate-900/80 border-r border-slate-800 glass-panel">
+            <div class="m-pad p-3.5 border-b border-slate-800 space-y-3">
+                <div class="m-title flex justify-between items-center text-xs font-semibold text-slate-300 uppercase">
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-sliders text-blue-400"></i> 图层控制</span>
+                </div>
+                <div class="space-y-1">
+                    <div class="flex justify-between text-[10px] text-slate-400 font-mono"><span>-10mm</span><span>0</span><span>+8mm</span></div>
+                    <div class="h-1.5 rounded-full w-full bg-gradient-to-r from-red-500 via-emerald-400 to-cyan-400"></div>
+                </div>
+                <div class="space-y-1.5 pt-1">
+                    <select id="filterSelect" onchange="applyFilter(this.value)" class="m-text w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-200">
+                        <option value="all">全部测点 (145点)</option>
+                        <option value="high_risk">⚠️ 高风险点</option>
+                        <option value="seasonal">🌊 周期波动点</option>
+                        <option value="stable">🟢 稳定点</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="p-3 space-y-2">
+                <div class="m-title text-xs font-semibold text-slate-300 uppercase mb-2"><i class="fa-solid fa-chart-pie text-cyan-400 mr-1"></i> 监视区态势</div>
+                <div class="space-y-2 text-xs">
+                    <div onclick="switchRegion('beijing')" class="m-pad p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer">
+                        <div class="flex justify-between m-text text-amber-300 font-medium"><span>北京市内</span><span class="text-[9px] bg-amber-500/20 px-1 rounded">中风险</span></div>
+                        <div class="m-text text-slate-400 flex justify-between mt-1"><span>30 点</span><span class="text-red-400">-9.6 mm/a</span></div>
                     </div>
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-[10px] text-slate-400 font-mono"><span>-10mm</span><span>0</span><span>+8mm</span></div>
-                        <div class="h-1.5 rounded-full w-full bg-gradient-to-r from-red-500 via-emerald-400 to-cyan-400"></div>
+                    <div onclick="switchRegion('three_gorges')" class="m-pad p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer">
+                        <div class="flex justify-between m-text text-cyan-300 font-medium"><span>三峡大坝</span><span class="text-[9px] bg-blue-500/20 px-1 rounded">受控</span></div>
+                        <div class="m-text text-slate-400 flex justify-between mt-1"><span>25 点</span><span class="text-cyan-400">±5.8 mm</span></div>
                     </div>
-                    <div class="space-y-1.5 pt-1">
-                        <select id="filterSelect" onchange="applyFilter(this.value)" class="m-text w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-slate-200 outline-none">
-                            <option value="all">全部测点 (145点)</option>
-                            <option value="high_risk">⚠️ 高风险点</option>
-                            <option value="seasonal">🌊 周期波动点</option>
-                            <option value="stable">🟢 稳定点</option>
-                        </select>
+                    <div onclick="switchRegion('qinghai_tibet')" class="m-pad p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer">
+                        <div class="flex justify-between m-text text-emerald-300 font-medium"><span>青藏铁路</span><span class="text-[9px] bg-emerald-500/20 px-1 rounded">融沉</span></div>
+                        <div class="m-text text-slate-400 flex justify-between mt-1"><span>35 点</span><span class="text-amber-400">-8~+6 mm</span></div>
+                    </div>
+                    <div onclick="switchRegion('gba')" class="m-pad p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer">
+                        <div class="flex justify-between m-text text-purple-300 font-medium"><span>大湾区</span><span class="text-[9px] bg-red-500/20 px-1 rounded">预警</span></div>
+                        <div class="m-text text-slate-400 flex justify-between mt-1"><span>30 点</span><span class="text-red-400">-9.9 mm/a</span></div>
                     </div>
                 </div>
+            </div>
+        </aside>
 
-                <div class="p-3 space-y-2">
-                    <div class="m-title text-xs font-semibold text-slate-300 uppercase"><i class="fa-solid fa-chart-pie text-cyan-400 mr-1"></i> 监视区态势</div>
-                    <div class="space-y-2 text-xs">
-                        <div onclick="switchRegion('beijing')" class="m-pad p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer">
-                            <div class="flex justify-between m-text text-amber-300 font-medium"><span>北京市内</span><span class="text-[9px] bg-amber-500/20 px-1 rounded">中风险</span></div>
-                            <div class="m-text text-slate-400 flex justify-between mt-1"><span>30 点</span><span class="text-red-400">-9.6 mm/a</span></div>
-                        </div>
-                        <div onclick="switchRegion('three_gorges')" class="m-pad p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer">
-                            <div class="flex justify-between m-text text-cyan-300 font-medium"><span>三峡大坝</span><span class="text-[9px] bg-blue-500/20 px-1 rounded">受控</span></div>
-                            <div class="m-text text-slate-400 flex justify-between mt-1"><span>25 点</span><span class="text-cyan-400">±5.8 mm</span></div>
-                        </div>
-                        <div onclick="switchRegion('qinghai_tibet')" class="m-pad p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer">
-                            <div class="flex justify-between m-text text-emerald-300 font-medium"><span>青藏铁路</span><span class="text-[9px] bg-emerald-500/20 px-1 rounded">融沉</span></div>
-                            <div class="m-text text-slate-400 flex justify-between mt-1"><span>35 点</span><span class="text-amber-400">-8~+6 mm</span></div>
-                        </div>
-                        <div onclick="switchRegion('gba')" class="m-pad p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer">
-                            <div class="flex justify-between m-text text-purple-300 font-medium"><span>大湾区</span><span class="text-[9px] bg-red-500/20 px-1 rounded">预警</span></div>
-                            <div class="m-text text-slate-400 flex justify-between mt-1"><span>30 点</span><span class="text-red-400">-9.9 mm/a</span></div>
-                        </div>
-                    </div>
-                </div>
-            </aside>
+        <!-- 中央地图 -->
+        <main class="panel-center bg-slate-950">
+            <div id="mapChart" class="w-full h-full"></div>
+            <div class="absolute top-2 right-2 flex flex-col space-y-1.5 z-10">
+                <button onclick="zoomMapIn()" class="w-7 h-7 md:w-9 md:h-9 rounded bg-slate-900/90 border border-slate-700 text-slate-200 flex items-center justify-center"><i class="fa-solid fa-plus text-xs"></i></button>
+                <button onclick="zoomMapOut()" class="w-7 h-7 md:w-9 md:h-9 rounded bg-slate-900/90 border border-slate-700 text-slate-200 flex items-center justify-center"><i class="fa-solid fa-minus text-xs"></i></button>
+                <button onclick="resetMapView()" class="w-7 h-7 md:w-9 md:h-9 rounded bg-slate-900/90 border border-slate-700 text-slate-200 flex items-center justify-center"><i class="fa-solid fa-compress text-xs"></i></button>
+            </div>
+        </main>
 
-            <!-- 中央：地图 -->
-            <main class="area-center bg-slate-950">
-                <div id="mapChart" class="w-full h-full"></div>
-                <div class="absolute top-2 right-2 flex flex-col space-y-1.5 z-10">
-                    <button onclick="zoomMapIn()" class="w-7 h-7 md:w-9 md:h-9 rounded bg-slate-900/90 border border-slate-700 text-slate-200 flex items-center justify-center hover:bg-blue-600"><i class="fa-solid fa-plus text-xs"></i></button>
-                    <button onclick="zoomMapOut()" class="w-7 h-7 md:w-9 md:h-9 rounded bg-slate-900/90 border border-slate-700 text-slate-200 flex items-center justify-center hover:bg-blue-600"><i class="fa-solid fa-minus text-xs"></i></button>
-                    <button onclick="resetMapView()" class="w-7 h-7 md:w-9 md:h-9 rounded bg-slate-900/90 border border-slate-700 text-slate-200 flex items-center justify-center hover:bg-blue-600"><i class="fa-solid fa-compress text-xs"></i></button>
-                </div>
-            </main>
-
-            <!-- 右侧：诊断详情 -->
-            <aside class="area-right bg-slate-900/90 border-l border-slate-800 glass-panel">
+        <!-- 手机端包裹层：使得左右面板在手机端并列，在电脑端"隐形" -->
+        <div class="mobile-bottom-wrapper lg:contents">
+            <!-- 右侧面板 -->
+            <aside class="panel-right bg-slate-900/90 border-l border-slate-800 glass-panel">
                 <div class="m-pad p-4 border-b border-slate-800 flex justify-between items-center">
                     <div class="flex items-center space-x-2 m-title">
                         <span class="text-xs font-semibold text-slate-300 uppercase flex items-center gap-1.5"><i class="fa-solid fa-circle-dot text-rose-500"></i> PS 测点诊断</span>
@@ -196,20 +229,24 @@
                         <div class="bg-slate-950/70 p-1.5 md:p-2 rounded border border-slate-800"><div class="text-[9px] text-slate-400">速率</div><div class="font-mono text-red-400 font-bold m-text" id="detailVelocity">-8.2 mm/a</div></div>
                         <div class="bg-slate-950/70 p-1.5 md:p-2 rounded border border-slate-800"><div class="text-[9px] text-slate-400">相干性</div><div class="font-mono text-emerald-400 font-bold m-text" id="detailCoherence">0.97</div></div>
                     </div>
+                    
                     <div class="bg-slate-950/50 p-2 rounded border border-slate-800 text-[10px] m-text">
                         <span class="text-slate-400">设施:</span><span class="text-amber-300 font-medium ml-1 block truncate" id="detailFeature">双井沉降漏斗</span>
                     </div>
-                    <div class="m-chart relative w-full bg-slate-950/80 rounded-lg p-1 border border-slate-800 h-56 md:h-56">
+                    
+                    <!-- 图表容器 -->
+                    <div class="chart-wrapper relative w-full bg-slate-950/80 rounded-lg p-1 border border-slate-800 h-56">
                         <canvas id="timeSeriesChart"></canvas>
                     </div>
+                    
                     <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-2 text-xs mt-1">
                         <div class="font-semibold text-slate-300 text-[10px] flex items-center gap-1.5 border-b border-slate-800 pb-1 m-title"><i class="fa-solid fa-brain text-purple-400"></i> AI 诊断意见</div>
                         <p class="text-slate-300 text-[9px] md:text-[11px] leading-relaxed m-text" id="detailAiAnalysis">该测点展现出加速沉降趋势...</p>
                     </div>
                 </div>
             </aside>
-            
         </div>
+        
     </div>
 
     <script>
