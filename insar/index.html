@@ -38,9 +38,7 @@
             border: 1px solid rgba(59, 130, 246, 0.2);
         }
 
-        /* =========================================================
-           1. 电脑端布局 (>= 768px): 左 | 中 | 右
-           ========================================================= */
+        /* 电脑端布局 */
         @media (min-width: 768px) {
             .main-layout {
                 display: flex;
@@ -55,9 +53,7 @@
             .chart-box { height: 15rem; }
         }
 
-        /* =========================================================
-           2. 手机端布局 (< 768px): 上地图，下双栏
-           ========================================================= */
+        /* 手机端布局 */
         @media (max-width: 767px) {
             .main-layout {
                 display: grid;
@@ -368,7 +364,10 @@
             mapChart.setOption(option);
             setTimeout(() => { if (mapChart) mapChart.resize(); }, 200);
 
+            // ★ 核心：单击事件处理
+            mapChart.off('click'); // 先清除历史绑定，防止重复触发
             mapChart.on('click', function (params) {
+                // 只有当点击的是散点系列，并且拿到了 psId 时才触发更新
                 if (params.componentType === 'series' && params.seriesType === 'scatter') {
                     const pt = psPoints.find(p => p.id === params.data.psId);
                     if (pt) { 
@@ -381,14 +380,12 @@
         }
 
         function loadMapEngine() {
-            // 1. 优先加载本地下载的 china.json
             fetch('./china.json')
                 .then(res => {
                     if (!res.ok) throw new Error(`HTTP ${res.status}`);
                     return res.json();
                 })
                 .then(geoJson => {
-                    // 如果数据已经具备 properties.name (如你的文件), 这里就无需补全了
                     if (geoJson && Array.isArray(geoJson.features)) {
                         geoJson.features.forEach(feature => {
                             const p = feature.properties || {};
@@ -404,7 +401,6 @@
                 })
                 .catch(err => {
                     console.warn('本地 china.json 加载失败，尝试使用阿里云 DataV 在线数据：', err);
-                    // 2. 如果本地加载失败，自动抓取阿里云镜像，绝不黑屏
                     fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
                         .then(res => res.json())
                         .then(geoJson => {
@@ -487,11 +483,21 @@
 
         function updateChartData(point) {
             if (!chartInstance) return;
-            let hist = [...point.historyData]; for (let i = 0; i < 60; i++) hist.push(null);
-            let fore = new Array(119).fill(null); fore.push(point.historyData[119]); fore.push(...point.forecastData);
+            // 1. 构建历史数据：前120个是真实数据，后60个用 null 填充（保证X轴对齐）
+            let hist = [...point.historyData]; 
+            for (let i = 0; i < 60; i++) hist.push(null);
+            
+            // 2. 构建预测数据：前119个用 null 填充，第120个（下标119）接上历史数据的最后一个点
+            let fore = new Array(119).fill(null); 
+            fore.push(point.historyData[119]); 
+            fore.push(...point.forecastData);
+
+            // 3. 强力覆盖数据
             chartInstance.data.datasets[0].data = hist;
             chartInstance.data.datasets[1].data = fore;
-            chartInstance.update();
+            
+            // 4. 强制无动画重绘，确保立刻更新
+            chartInstance.update('none');
         }
 
         window.onload = function () {
