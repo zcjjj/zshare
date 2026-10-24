@@ -36,35 +36,25 @@
         }
         #mapChart { width: 100%; height: 100%; }
         
-        /* 手机端布局核心控制 */
+        /* 基础布局：PC端默认 */
         .main-container {
             display: flex;
             flex-direction: row;
             height: 100%;
         }
-        .left-panel {
-            width: 18rem; /* w-72 */
-            flex-shrink: 0;
-        }
-        .right-panel {
-            width: 24rem; /* w-96 */
-            flex-shrink: 0;
-        }
-        .center-panel {
-            flex: 1;
-            position: relative;
-            min-width: 0;
-        }
+        .left-panel { width: 18rem; flex-shrink: 0; }
+        .right-panel { width: 24rem; flex-shrink: 0; }
+        .center-panel { flex: 1; position: relative; min-width: 0; }
 
-        /* 针对手机屏幕调整 (小于 768px) */
-        @media (max-width: 768px) {
+        /* 竖屏手机 (宽度 < 768px) */
+        @media (max-width: 768px) and (orientation: portrait) {
             .main-container {
                 flex-direction: column;
-                overflow-y: auto; /* 允许整体上下滑动 */
+                overflow-y: auto;
             }
             .center-panel {
                 width: 100%;
-                height: 50vh; /* 地图占屏幕高度的一半 */
+                height: 50vh;
                 flex: none;
                 border-bottom: 1px solid #1e293b;
             }
@@ -72,21 +62,41 @@
                 display: flex;
                 flex-direction: row;
                 width: 100%;
-                height: 50vh; /* 下方两栏占剩下的一半高度 */
+                height: 50vh;
             }
             .left-panel, .right-panel {
-                flex: 1; /* 左右各占 50% 宽度 */
+                flex: 1;
                 width: 50%;
                 height: 100%;
                 overflow-y: auto;
             }
-            /* 缩减手机端字体和间距 */
             .left-panel { padding: 8px; border-right: 1px solid #1e293b; }
             .right-panel { padding: 8px; }
             .mobile-compact-text { font-size: 10px !important; line-height: 1.4; }
             .mobile-compact-title { font-size: 12px !important; margin-bottom: 6px; }
             .mobile-compact-padding { padding: 6px !important; margin-bottom: 6px !important; }
-            .chart-container { height: 120px !important; } /* 缩小手机端图表高度 */
+            .chart-container { height: 120px !important; }
+        }
+
+        /* 横屏手机 (高度 < 500px，通常手机横过来就是这种比例) */
+        @media (max-height: 500px) and (orientation: landscape) {
+            header { height: 2.5rem !important; padding: 0 8px !important; }
+            header h1 { font-size: 12px !important; }
+            .main-container { flex-direction: row; overflow: hidden; }
+            
+            /* 左右侧边栏缩窄 */
+            .left-panel { width: 12rem !important; padding: 6px !important; overflow-y: auto; }
+            .right-panel { width: 18rem !important; padding: 6px !important; overflow-y: auto; }
+            .center-panel { height: 100%; }
+            
+            /* 极简微调 */
+            .mobile-compact-text { font-size: 9px !important; line-height: 1.2; }
+            .mobile-compact-title { font-size: 10px !important; margin-bottom: 4px; }
+            .mobile-compact-padding { padding: 4px !important; margin-bottom: 4px !important; }
+            .chart-container { height: 100px !important; }
+            
+            /* 隐藏横屏下过多的内容以留出空间 */
+            .hide-on-landscape { display: none !important; }
         }
     </style>
 </head>
@@ -110,7 +120,7 @@
             </div>
         </div>
         
-        <!-- 顶部区域切换 (手机端横向滚动，PC端完整展示) -->
+        <!-- 顶部区域切换 -->
         <div class="flex-1 flex justify-end md:justify-center overflow-x-auto whitespace-nowrap scrollbar-hide px-2">
             <div class="flex items-center space-x-1 bg-slate-950/80 p-0.5 md:p-1 rounded-lg border border-slate-800 text-[10px] md:text-xs">
                 <button onclick="switchRegion('national')" id="btn-national" class="region-btn px-2 py-1 md:px-3 md:py-1.5 rounded bg-blue-600 text-white font-medium transition-all hover:bg-blue-500">全国</button>
@@ -229,18 +239,16 @@
             </div>
 
             <div class="absolute bottom-2 left-2 right-2 z-10 pointer-events-none flex justify-center">
-                <div class="bg-slate-900/80 border border-slate-700/60 rounded-full px-3 py-1 flex items-center gap-2 text-[10px] shadow-2xl backdrop-blur-sm pointer-events-auto">
+                <div class="bg-slate-900/80 border border-slate-700/60 rounded-full px-3 py-1 flex items-center gap-2 text-[10px] shadow-2xl backdrop-blur-sm pointer-events-auto hide-on-landscape">
                     <span class="text-slate-200 hidden sm:inline-block">手势缩放/拖动 | 点击测点查看数据</span>
                     <span class="text-slate-200 sm:hidden">支持双指缩放</span>
                 </div>
             </div>
         </main>
 
-        <!-- 左右面板包裹层 (用于手机端布局) -->
+        <!-- 左右面板包裹层 (用于手机竖屏时排在底部) -->
         <div class="bottom-panels-wrapper contents md:contents"> 
-            <!-- 说明：在PC端使用 display: contents 让左右 aside 保持原有的 flex 排列；
-                 在手机端，这个 wrapper 变为 flex 容器，包裹左右两栏排在地图下方。
-                 由于原代码的左右 aside 是 main-container 的直接子元素，这里通过 media query 控制。 -->
+            <!-- 内容由 aside 直接填充 -->
         </div>
 
         <!-- 右侧详情面板 -->
@@ -642,7 +650,7 @@
                 analysisElem.innerText = `受蓄水周期影响呈 ±5mm 正弦形变，处于弹性恢复区间，结构安全。`;
             } else if (pt.patternType === 'permafrost') {
                 riskElem.innerText = '冻土融沉';
-                riskElem.className = 'px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-medium';
+                riskElem.className = 'px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-medium';
                 analysisElem.innerText = `夏融冬胀交替，循环振幅约 4mm。形变在控制线内，建议加强路基散热。`;
             } else {
                 riskElem.innerText = '构造稳定';
