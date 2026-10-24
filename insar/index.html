@@ -357,7 +357,6 @@
                 },
                 series: [{ 
                     name: 'PS 测点', type: 'scatter', coordinateSystem: 'geo', data: buildScatterData(), 
-                    // ★ 恢复：将点放大一点，方便点击
                     symbolSize: val => val[2] < -6 ? 7 : 5, 
                     itemStyle: { color: p => getVelocityColor(p.value[2]), borderColor: 'rgba(255,255,255,0.4)', borderWidth: 0.5 } 
                 }]
@@ -365,19 +364,83 @@
             mapChart.setOption(option);
             setTimeout(() => { if (mapChart) mapChart.resize(); }, 200);
 
-            // ★ 恢复：使用 ECharts 官方的 click 事件（最稳定，PC/移动端通吃）
+            // ★ 绑定原生 DOM 触摸事件（仅手机）
+            const mapContainer = document.getElementById('mapChart');
+            
+            // 移除旧监听
+            if (window.mapTouchStartHandler) {
+                mapContainer.removeEventListener('touchstart', window.mapTouchStartHandler);
+                mapContainer.removeEventListener('touchend', window.mapTouchEndHandler);
+            }
+
+            let touchStartX = 0, touchStartY = 0;
+
+            window.mapTouchStartHandler = function(e) {
+                if (e.touches.length === 1) {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                }
+            };
+
+            window.mapTouchEndHandler = function(e) {
+                if (e.changedTouches.length !== 1) return;
+                const touchX = e.changedTouches[0].clientX;
+                const touchY = e.changedTouches[0].clientY;
+                const dist = Math.hypot(touchX - touchStartX, touchY - touchStartY);
+                if (dist > 10) return; // 拖动距离大于 10px 视为拖拽，不触发选中
+
+                const rect = mapContainer.getBoundingClientRect();
+                const offsetX = touchX - rect.left;
+                const offsetY = touchY - rect.top;
+
+                handleMapClick(offsetX, offsetY);
+            };
+
+            mapContainer.addEventListener('touchstart', window.mapTouchStartHandler, { passive: true });
+            mapContainer.addEventListener('touchend', window.mapTouchEndHandler, { passive: true });
+
+            // ★ 绑定电脑端的 click 事件
             mapChart.off('click');
-            mapChart.on('click', function (params) {
+            mapChart.on('click', function(params) {
                 if (params.componentType === 'series' && params.seriesType === 'scatter') {
                     const pt = psPoints.find(p => p.id === params.data.psId);
-                    if (pt) { 
-                        selectedPoint = pt; 
-                        updateDetailInspector(pt); 
-                        updateChartData(pt); 
+                    if (pt) {
+                        selectedPoint = pt;
+                        updateDetailInspector(pt);
+                        updateChartData(pt);
                         mapChart.setOption({ series: [{ data: buildScatterData() }] });
                     }
                 }
             });
+        }
+
+        // 公共点选逻辑
+        function handleMapClick(offsetX, offsetY) {
+            if (!mapChart) return;
+            let minDist = 25; 
+            let clickedPt = null;
+
+            psPoints.forEach(pt => {
+                if (activeFilter === 'high_risk' && pt.velocity >= -6) return;
+                if (activeFilter === 'seasonal' && pt.patternType !== 'seasonal' && pt.patternType !== 'permafrost') return;
+                if (activeFilter === 'stable' && (pt.velocity < -2 || pt.velocity > 2)) return;
+
+                const pixel = mapChart.convertToPixel({ seriesIndex: 0 }, [pt.lon, pt.lat]);
+                if (pixel) {
+                    const d = Math.hypot(pixel[0] - offsetX, pixel[1] - offsetY);
+                    if (d < minDist) {
+                        minDist = d;
+                        clickedPt = pt;
+                    }
+                }
+            });
+
+            if (clickedPt) {
+                selectedPoint = clickedPt;
+                updateDetailInspector(clickedPt);
+                updateChartData(clickedPt);
+                mapChart.setOption({ series: [{ data: buildScatterData() }] });
+            }
         }
 
         function loadMapEngine() {
@@ -484,20 +547,15 @@
 
         function updateChartData(point) {
             if (!chartInstance) return;
-            // 1. 构建历史数据：前120个是真实数据，后60个用 null 填充（保证X轴对齐）
             let hist = [...point.historyData]; 
             for (let i = 0; i < 60; i++) hist.push(null);
             
-            // 2. 构建预测数据：前119个用 null 填充，第120个（下标119）接上历史数据的最后一个点
             let fore = new Array(119).fill(null); 
             fore.push(point.historyData[119]); 
             fore.push(...point.forecastData);
 
-            // 3. 强力覆盖数据
             chartInstance.data.datasets[0].data = hist;
             chartInstance.data.datasets[1].data = fore;
-            
-            // 4. 强制无动画重绘，确保立刻更新
             chartInstance.update('none');
         }
 
