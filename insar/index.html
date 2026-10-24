@@ -22,7 +22,7 @@
             }
         }
     </script>
-    <!-- FontAwesome Icon & Libraries -->
+    <!-- FontAwesome & Chart / ECharts CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
@@ -38,37 +38,66 @@
             border: 1px solid rgba(59, 130, 246, 0.2);
         }
 
-        /* 电脑端响应式布局 */
+        /* =========================================================
+           1. 电脑端布局 (>= 768px): 左(图层控制) | 中(地图) | 右(测点诊断)
+           ========================================================= */
         @media (min-width: 768px) {
             .main-layout {
                 display: flex;
-                flex: 1;
+                flex-direction: row;
                 height: calc(100vh - 3.5rem);
+                width: 100%;
                 overflow: hidden;
             }
-            .panel-left { width: 18rem; flex-shrink: 0; }
-            .panel-center { flex: 1; min-width: 0; position: relative; }
-            .panel-right { width: 22rem; flex-shrink: 0; }
-            .mobile-tab-bar { display: none !important; }
-            .mobile-tab-hidden { display: block !important; }
+            .panel-left { width: 18rem; flex-shrink: 0; height: 100%; overflow-y: auto; }
+            .panel-center { flex: 1; min-width: 0; height: 100%; position: relative; }
+            .panel-right { width: 22rem; flex-shrink: 0; height: 100%; overflow-y: auto; }
+            .chart-box { height: 15rem; }
         }
 
-        /* 手机端响应式布局 (< 768px) */
+        /* =========================================================
+           2. 手机端布局 (< 768px): 地图占上半部分 (50vh)，下半部分 (50vh) 左右并列
+           ========================================================= */
         @media (max-width: 767px) {
             .main-layout {
-                display: flex;
-                flex-direction: column;
-                height: calc(100vh - 3rem - 3rem); /* 扣除 Header 和 底部 Tab 栏 */
+                display: grid;
+                grid-template-rows: 50vh 50vh;
+                grid-template-columns: 1fr 1fr;
+                height: calc(100vh - 3rem);
+                width: 100%;
                 overflow: hidden;
             }
-            .panel-left, .panel-center, .panel-right {
+            /* 地图占上半部分 */
+            .panel-center {
+                grid-row: 1;
+                grid-column: 1 / span 2;
+                height: 100%;
+                width: 100%;
+                position: relative;
+                border-bottom: 1px solid #1e293b;
+            }
+            /* 下半部分：左栏 (图层控制) */
+            .panel-left {
+                grid-row: 2;
+                grid-column: 1;
+                height: 100%;
                 width: 100% !important;
-                height: 100% !important;
-                flex: 1;
+                overflow-y: auto;
+                border-right: 1px solid #1e293b;
+                padding: 0.5rem;
             }
-            .mobile-tab-hidden {
-                display: none !important;
+            /* 下半部分：右栏 (测点诊断) */
+            .panel-right {
+                grid-row: 2;
+                grid-column: 2;
+                height: 100%;
+                width: 100% !important;
+                overflow-y: auto;
+                padding: 0.5rem;
             }
+            .chart-box { height: 8.5rem !important; }
+            .m-text { font-size: 10px !important; line-height: 1.3; }
+            .m-title { font-size: 11px !important; }
         }
     </style>
 </head>
@@ -85,8 +114,8 @@
             </h1>
         </div>
         
-        <!-- 区域快速切换 Pill Bar -->
-        <div class="flex items-center space-x-1 bg-slate-950/80 p-1 rounded-lg border border-slate-800 text-[10px] md:text-xs overflow-x-auto no-scrollbar">
+        <!-- 区域选择按钮栏 -->
+        <div class="flex items-center space-x-1 bg-slate-950/80 p-1 rounded-lg border border-slate-800 text-[10px] md:text-xs overflow-x-auto">
             <button onclick="switchRegion('national')" id="btn-national" class="region-btn px-2 py-1 rounded bg-blue-600 text-white font-medium whitespace-nowrap">全国</button>
             <button onclick="switchRegion('beijing')" id="btn-beijing" class="region-btn px-2 py-1 rounded text-slate-300 whitespace-nowrap">北京</button>
             <button onclick="switchRegion('three_gorges')" id="btn-three_gorges" class="region-btn px-2 py-1 rounded text-slate-300 whitespace-nowrap">三峡</button>
@@ -96,20 +125,20 @@
         </div>
     </header>
 
-    <!-- 主交互区域 -->
+    <!-- 主布局 (桌面端：左 | 中 | 右) -->
     <div class="main-layout">
-        
-        <!-- 左侧：图层筛选与区域态势 -->
-        <aside id="tab-left" class="panel-left bg-slate-900/80 border-r border-slate-800 glass-panel overflow-y-auto mobile-tab-hidden">
-            <div class="p-3 border-b border-slate-800 space-y-3">
-                <div class="flex justify-between items-center text-xs font-semibold text-slate-300 uppercase">
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-sliders text-blue-400"></i> 图层控制</span>
+
+        <!-- 1. 左侧：图层控制与监视区态势 -->
+        <aside class="panel-left bg-slate-900/80 border-r border-slate-800 glass-panel">
+            <div class="p-2.5 md:p-3 border-b border-slate-800 space-y-2">
+                <div class="m-title text-xs font-semibold text-slate-300 uppercase flex items-center gap-1.5">
+                    <i class="fa-solid fa-sliders text-blue-400"></i> 图层控制
                 </div>
                 <div class="space-y-1">
-                    <div class="flex justify-between text-[10px] text-slate-400 font-mono"><span>-10mm/a</span><span>0</span><span>+8mm/a</span></div>
+                    <div class="flex justify-between text-[9px] md:text-[10px] text-slate-400 font-mono"><span>-10mm/a</span><span>0</span><span>+8mm/a</span></div>
                     <div class="h-1.5 rounded-full w-full bg-gradient-to-r from-red-500 via-emerald-400 to-cyan-400"></div>
                 </div>
-                <select id="filterSelect" onchange="applyFilter(this.value)" class="w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200">
+                <select id="filterSelect" onchange="applyFilter(this.value)" class="m-text w-full bg-slate-950 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200">
                     <option value="all">全部测点 (145点)</option>
                     <option value="high_risk">⚠️ 高风险点</option>
                     <option value="seasonal">🌊 周期波动点</option>
@@ -117,95 +146,120 @@
                 </select>
             </div>
 
-            <div class="p-3 space-y-2">
-                <div class="text-xs font-semibold text-slate-300 uppercase mb-2"><i class="fa-solid fa-chart-pie text-cyan-400 mr-1"></i> 监视区态势</div>
-                <div class="space-y-2 text-xs">
-                    <div onclick="switchRegion('beijing')" class="p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-blue-500/50">
-                        <div class="flex justify-between text-amber-300 font-medium"><span>北京市内</span><span class="text-[9px] bg-amber-500/20 px-1 rounded">中风险</span></div>
-                        <div class="text-slate-400 flex justify-between mt-1 text-[11px]"><span>30 点</span><span class="text-red-400">-9.6 mm/a</span></div>
+            <div class="p-2.5 md:p-3 space-y-2">
+                <div class="m-title text-xs font-semibold text-slate-300 uppercase mb-1.5"><i class="fa-solid fa-chart-pie text-cyan-400 mr-1"></i> 监视区态势</div>
+                <div class="space-y-1.5 text-xs">
+                    <div onclick="switchRegion('beijing')" class="p-2 rounded bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-blue-500/50">
+                        <div class="flex justify-between m-text text-amber-300 font-medium"><span>北京市内</span><span class="text-[9px] bg-amber-500/20 px-1 rounded">中风险</span></div>
+                        <div class="text-slate-400 flex justify-between mt-1 m-text"><span>30 点</span><span class="text-red-400">-9.6 mm/a</span></div>
                     </div>
-                    <div onclick="switchRegion('three_gorges')" class="p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-blue-500/50">
-                        <div class="flex justify-between text-cyan-300 font-medium"><span>三峡大坝</span><span class="text-[9px] bg-blue-500/20 px-1 rounded">受控</span></div>
-                        <div class="text-slate-400 flex justify-between mt-1 text-[11px]"><span>25 点</span><span class="text-cyan-400">±5.8 mm</span></div>
+                    <div onclick="switchRegion('three_gorges')" class="p-2 rounded bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-blue-500/50">
+                        <div class="flex justify-between m-text text-cyan-300 font-medium"><span>三峡大坝</span><span class="text-[9px] bg-blue-500/20 px-1 rounded">受控</span></div>
+                        <div class="text-slate-400 flex justify-between mt-1 m-text"><span>25 点</span><span class="text-cyan-400">±5.8 mm</span></div>
                     </div>
-                    <div onclick="switchRegion('qinghai_tibet')" class="p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-blue-500/50">
-                        <div class="flex justify-between text-emerald-300 font-medium"><span>青藏铁路</span><span class="text-[9px] bg-emerald-500/20 px-1 rounded">融沉</span></div>
-                        <div class="text-slate-400 flex justify-between mt-1 text-[11px]"><span>35 点</span><span class="text-amber-400">-8~+6 mm</span></div>
+                    <div onclick="switchRegion('qinghai_tibet')" class="p-2 rounded bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-blue-500/50">
+                        <div class="flex justify-between m-text text-emerald-300 font-medium"><span>青藏铁路</span><span class="text-[9px] bg-emerald-500/20 px-1 rounded">融沉</span></div>
+                        <div class="text-slate-400 flex justify-between mt-1 m-text"><span>35 点</span><span class="text-amber-400">-8~+6 mm</span></div>
                     </div>
-                    <div onclick="switchRegion('gba')" class="p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-blue-500/50">
-                        <div class="flex justify-between text-purple-300 font-medium"><span>粤港澳大湾区</span><span class="text-[9px] bg-red-500/20 px-1 rounded">预警</span></div>
-                        <div class="text-slate-400 flex justify-between mt-1 text-[11px]"><span>30 点</span><span class="text-red-400">-9.9 mm/a</span></div>
+                    <div onclick="switchRegion('gba')" class="p-2 rounded bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-blue-500/50">
+                        <div class="flex justify-between m-text text-purple-300 font-medium"><span>大湾区</span><span class="text-[9px] bg-red-500/20 px-1 rounded">预警</span></div>
+                        <div class="text-slate-400 flex justify-between mt-1 m-text"><span>30 点</span><span class="text-red-400">-9.9 mm/a</span></div>
                     </div>
-                    <div onclick="switchRegion('taiwan')" class="p-2.5 rounded bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-blue-500/50">
-                        <div class="flex justify-between text-indigo-300 font-medium"><span>台湾地区</span><span class="text-[9px] bg-indigo-500/20 px-1 rounded">蠕变</span></div>
-                        <div class="text-slate-400 flex justify-between mt-1 text-[11px]"><span>25 点</span><span class="text-indigo-400">±7.2 mm</span></div>
+                    <div onclick="switchRegion('taiwan')" class="p-2 rounded bg-slate-950/60 border border-slate-800 cursor-pointer hover:border-blue-500/50">
+                        <div class="flex justify-between m-text text-indigo-300 font-medium"><span>台湾地区</span><span class="text-[9px] bg-indigo-500/20 px-1 rounded">蠕变</span></div>
+                        <div class="text-slate-400 flex justify-between mt-1 m-text"><span>25 点</span><span class="text-indigo-400">±7.2 mm</span></div>
                     </div>
                 </div>
             </div>
         </aside>
 
-        <!-- 中间：ECharts 地图 -->
-        <main id="tab-center" class="panel-center bg-slate-950">
+        <!-- 2. 中间：地图 -->
+        <main class="panel-center bg-slate-950">
             <div id="mapChart" class="w-full h-full"></div>
-            <div class="absolute top-2 right-2 flex flex-col space-y-1.5 z-10">
-                <button onclick="zoomMapIn()" class="w-8 h-8 rounded bg-slate-900/90 border border-slate-700 text-slate-200 flex items-center justify-center hover:bg-slate-800"><i class="fa-solid fa-plus text-xs"></i></button>
-                <button onclick="zoomMapOut()" class="w-8 h-8 rounded bg-slate-900/90 border border-slate-700 text-slate-200 flex items-center justify-center hover:bg-slate-800"><i class="fa-solid fa-minus text-xs"></i></button>
-                <button onclick="resetMapView()" class="w-8 h-8 rounded bg-slate-900/90 border border-slate-700 text-slate-200 flex items-center justify-center hover:bg-slate-800"><i class="fa-solid fa-compress text-xs"></i></button>
+            <!-- 地图缩放控制 -->
+            <div class="absolute top-2 right-2 flex flex-col space-y-1 z-10">
+                <button onclick="zoomMapIn()" class="w-7 h-7 md:w-8 md:h-8 rounded bg-slate-900/90 border border-slate-700 text-slate-200 flex items-center justify-center hover:bg-slate-800"><i class="fa-solid fa-plus text-xs"></i></button>
+                <button onclick="zoomMapOut()" class="w-7 h-7 md:w-8 md:h-8 rounded bg-slate-900/90 border border-slate-700 text-slate-200 flex items-center justify-center hover:bg-slate-800"><i class="fa-solid fa-minus text-xs"></i></button>
+                <button onclick="resetMapView()" class="w-7 h-7 md:w-8 md:h-8 rounded bg-slate-900/90 border border-slate-700 text-slate-200 flex items-center justify-center hover:bg-slate-800"><i class="fa-solid fa-compress text-xs"></i></button>
             </div>
         </main>
 
-        <!-- 右侧：测点诊断与 AI 预测曲线 -->
-        <aside id="tab-right" class="panel-right bg-slate-900/90 border-l border-slate-800 glass-panel overflow-y-auto mobile-tab-hidden">
-            <div class="p-3 border-b border-slate-800 flex justify-between items-center">
-                <div class="flex items-center space-x-2">
-                    <span class="text-xs font-semibold text-slate-300 uppercase flex items-center gap-1.5"><i class="fa-solid fa-circle-dot text-rose-500"></i> PS 测点诊断</span>
-                </div>
-                <span id="selectedPointRisk" class="px-2 py-0.5 rounded text-[10px] bg-red-500/20 text-red-400 border border-red-500/40">高危</span>
+        <!-- 3. 右侧：测点诊断与 AI 预测 -->
+        <aside class="panel-right bg-slate-900/90 border-l border-slate-800 glass-panel">
+            <div class="p-2.5 md:p-3 border-b border-slate-800 flex justify-between items-center">
+                <span class="m-title text-xs font-semibold text-slate-300 uppercase flex items-center gap-1.5"><i class="fa-solid fa-circle-dot text-rose-500"></i> PS 测点诊断</span>
+                <span id="selectedPointRisk" class="px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-400 border border-red-500/40">高危</span>
             </div>
 
-            <div class="p-3 space-y-3">
-                <div class="grid grid-cols-2 gap-2 text-xs">
-                    <div class="bg-slate-950/70 p-2 rounded border border-slate-800"><div class="text-[10px] text-slate-400">ID</div><div class="font-mono text-blue-300 font-bold truncate" id="detailPointId">PS-BEI-1000</div></div>
-                    <div class="bg-slate-950/70 p-2 rounded border border-slate-800"><div class="text-[10px] text-slate-400">战略区</div><div class="text-slate-200 truncate" id="detailRegion">北京</div></div>
-                    <div class="bg-slate-950/70 p-2 rounded border border-slate-800"><div class="text-[10px] text-slate-400">形变速率</div><div class="font-mono text-red-400 font-bold" id="detailVelocity">-8.2 mm/a</div></div>
-                    <div class="bg-slate-950/70 p-2 rounded border border-slate-800"><div class="text-[10px] text-slate-400">相干性</div><div class="font-mono text-emerald-400 font-bold" id="detailCoherence">0.97</div></div>
+            <div class="p-2 md:p-3 space-y-2">
+                <div class="grid grid-cols-2 gap-1.5 text-xs">
+                    <div class="bg-slate-950/70 p-1.5 rounded border border-slate-800"><div class="text-[9px] text-slate-400">ID</div><div class="font-mono text-blue-300 font-bold m-text truncate" id="detailPointId">PS-BEI-1000</div></div>
+                    <div class="bg-slate-950/70 p-1.5 rounded border border-slate-800"><div class="text-[9px] text-slate-400">战略区</div><div class="text-slate-200 m-text truncate" id="detailRegion">北京</div></div>
+                    <div class="bg-slate-950/70 p-1.5 rounded border border-slate-800"><div class="text-[9px] text-slate-400">速率</div><div class="font-mono text-red-400 font-bold m-text" id="detailVelocity">-8.2 mm/a</div></div>
+                    <div class="bg-slate-950/70 p-1.5 rounded border border-slate-800"><div class="text-[9px] text-slate-400">相干性</div><div class="font-mono text-emerald-400 font-bold m-text" id="detailCoherence">0.97</div></div>
                 </div>
                 
-                <div class="bg-slate-950/50 p-2 rounded border border-slate-800 text-xs">
-                    <span class="text-slate-400">监测设施:</span><span class="text-amber-300 font-medium ml-1.5" id="detailFeature">朝阳区地下水降水漏斗</span>
+                <div class="bg-slate-950/50 p-1.5 rounded border border-slate-800 text-[10px] m-text truncate">
+                    <span class="text-slate-400">设施:</span><span class="text-amber-300 font-medium ml-1" id="detailFeature">朝阳区地下水降水漏斗</span>
                 </div>
                 
-                <!-- Chart.js 容器 -->
-                <div class="relative w-full bg-slate-950/80 rounded-lg p-2 border border-slate-800 h-60">
+                <!-- 折线图容器 -->
+                <div class="chart-box relative w-full bg-slate-950/80 rounded-lg p-1 border border-slate-800">
                     <canvas id="timeSeriesChart"></canvas>
                 </div>
                 
-                <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-2.5 text-xs">
-                    <div class="font-semibold text-slate-300 text-[11px] flex items-center gap-1.5 border-b border-slate-800 pb-1 mb-1.5"><i class="fa-solid fa-brain text-purple-400"></i> AI 物理外推分析</div>
-                    <p class="text-slate-300 text-[11px] leading-relaxed" id="detailAiAnalysis">该测点展现出持续沉降趋势，AI模型外推未来 60 帧将进一步拉大累计位移，建议注浆加固并加强排查。</p>
+                <div class="bg-slate-950/80 border border-slate-800 rounded-lg p-2 text-xs">
+                    <div class="font-semibold text-slate-300 text-[10px] flex items-center gap-1.5 border-b border-slate-800 pb-1 mb-1 m-title"><i class="fa-solid fa-brain text-purple-400"></i> AI 诊断分析</div>
+                    <p class="text-slate-300 text-[9px] md:text-[11px] leading-relaxed m-text" id="detailAiAnalysis">持续沉降，外推未来60帧位移增大，建议注浆。</p>
                 </div>
             </div>
         </aside>
 
     </div>
 
-    <!-- 手机端底部 Tab 切换栏 (< 768px 生效) -->
-    <nav class="mobile-tab-bar h-12 bg-slate-900 border-t border-slate-800 grid grid-cols-3 z-30 shrink-0">
-        <button onclick="switchMobileTab('center')" id="mtab-center" class="flex flex-col items-center justify-center text-blue-400 font-medium text-[11px]">
-            <i class="fa-solid fa-map text-sm mb-0.5"></i>
-            <span>3D地图</span>
-        </button>
-        <button onclick="switchMobileTab('left')" id="mtab-left" class="flex flex-col items-center justify-center text-slate-400 font-medium text-[11px]">
-            <i class="fa-solid fa-layer-group text-sm mb-0.5"></i>
-            <span>图层态势</span>
-        </button>
-        <button onclick="switchMobileTab('right')" id="mtab-right" class="flex flex-col items-center justify-center text-slate-400 font-medium text-[11px]">
-            <i class="fa-solid fa-chart-line text-sm mb-0.5"></i>
-            <span>测点诊断</span>
-        </button>
-    </nav>
-
+    <!-- JS 逻辑 -->
     <script>
+        // 兜底地图矢量数据 (避免离线或 CORS 加载失败导致黑屏)
+        const INLINE_CHINA_GEOJSON = {
+            "type": "FeatureCollection",
+            "features": [
+                {"type": "Feature", "properties": {"name": "新疆"}, "geometry": {"type": "Polygon", "coordinates": [[[73.5, 39.2], [73.5, 48.5], [87.0, 49.2], [96.4, 42.8], [93.5, 36.0], [79.5, 35.0]]]}},
+                {"type": "Feature", "properties": {"name": "西藏"}, "geometry": {"type": "Polygon", "coordinates": [[[78.4, 32.5], [80.0, 36.0], [89.0, 36.5], [99.0, 31.5], [97.0, 28.0], [88.0, 27.3], [82.0, 29.5]]]}},
+                {"type": "Feature", "properties": {"name": "青海"}, "geometry": {"type": "Polygon", "coordinates": [[[89.5, 36.0], [99.0, 39.2], [103.0, 35.8], [102.5, 32.8], [90.0, 32.5]]]}},
+                {"type": "Feature", "properties": {"name": "甘肃"}, "geometry": {"type": "Polygon", "coordinates": [[[92.5, 42.5], [98.5, 42.8], [108.0, 35.5], [105.0, 33.0], [101.0, 37.5]]]}},
+                {"type": "Feature", "properties": {"name": "内蒙古"}, "geometry": {"type": "Polygon", "coordinates": [[[97.0, 42.5], [106.0, 41.5], [111.0, 37.5], [115.0, 41.5], [126.0, 53.3], [121.0, 42.0], [105.0, 38.0]]]}},
+                {"type": "Feature", "properties": {"name": "黑龙江"}, "geometry": {"type": "Polygon", "coordinates": [[[121.3, 53.3], [127.0, 53.5], [135.0, 48.5], [131.0, 44.0], [124.0, 45.5]]]}},
+                {"type": "Feature", "properties": {"name": "吉林"}, "geometry": {"type": "Polygon", "coordinates": [[[122.0, 45.5], [131.0, 44.0], [130.5, 42.0], [125.0, 41.0], [123.0, 43.5]]]}},
+                {"type": "Feature", "properties": {"name": "辽宁"}, "geometry": {"type": "Polygon", "coordinates": [[[119.0, 42.0], [124.5, 43.0], [125.5, 40.0], [121.0, 38.8], [119.5, 40.0]]]}},
+                {"type": "Feature", "properties": {"name": "河北"}, "geometry": {"type": "Polygon", "coordinates": [[[113.5, 36.2], [114.5, 42.5], [119.5, 40.5], [118.0, 38.5], [115.0, 36.0]]]}},
+                {"type": "Feature", "properties": {"name": "北京"}, "geometry": {"type": "Polygon", "coordinates": [[[115.7, 40.2], [117.4, 40.2], [117.4, 39.4], [115.7, 39.4]]]}},
+                {"type": "Feature", "properties": {"name": "天津"}, "geometry": {"type": "Polygon", "coordinates": [[[116.8, 40.2], [118.0, 40.0], [117.8, 38.6], [116.8, 38.6]]]}},
+                {"type": "Feature", "properties": {"name": "山西"}, "geometry": {"type": "Polygon", "coordinates": [[[110.2, 34.6], [114.5, 40.7], [114.0, 35.2]]]}},
+                {"type": "Feature", "properties": {"name": "陕西"}, "geometry": {"type": "Polygon", "coordinates": [[[105.5, 32.0], [107.5, 39.0], [111.0, 39.5], [110.0, 34.5], [106.0, 32.0]]]}},
+                {"type": "Feature", "properties": {"name": "宁夏"}, "geometry": {"type": "Polygon", "coordinates": [[[104.3, 35.2], [107.0, 39.3], [107.6, 37.0]]]}},
+                {"type": "Feature", "properties": {"name": "山东"}, "geometry": {"type": "Polygon", "coordinates": [[[114.8, 36.0], [118.0, 38.2], [122.5, 37.5], [119.5, 34.5], [115.0, 34.5]]]}},
+                {"type": "Feature", "properties": {"name": "河南"}, "geometry": {"type": "Polygon", "coordinates": [[[110.4, 31.4], [112.5, 36.4], [116.0, 36.0], [116.5, 31.5]]]}},
+                {"type": "Feature", "properties": {"name": "江苏"}, "geometry": {"type": "Polygon", "coordinates": [[[116.4, 34.8], [119.5, 35.0], [121.8, 31.5], [118.8, 31.0]]]}},
+                {"type": "Feature", "properties": {"name": "安徽"}, "geometry": {"type": "Polygon", "coordinates": [[[114.9, 29.7], [116.5, 34.6], [119.0, 31.5], [118.0, 29.5]]]}},
+                {"type": "Feature", "properties": {"name": "上海"}, "geometry": {"type": "Polygon", "coordinates": [[[120.9, 31.8], [122.2, 31.8], [122.2, 30.7], [120.9, 30.7]]]}},
+                {"type": "Feature", "properties": {"name": "浙江"}, "geometry": {"type": "Polygon", "coordinates": [[[118.0, 27.2], [119.5, 31.1], [122.8, 30.5], [120.5, 27.2]]]}},
+                {"type": "Feature", "properties": {"name": "江西"}, "geometry": {"type": "Polygon", "coordinates": [[[113.6, 24.5], [114.0, 29.8], [118.4, 29.5], [116.5, 24.5]]]}},
+                {"type": "Feature", "properties": {"name": "福建"}, "geometry": {"type": "Polygon", "coordinates": [[[115.8, 23.5], [118.5, 28.3], [120.5, 27.0], [117.5, 23.5]]]}},
+                {"type": "Feature", "properties": {"name": "湖北"}, "geometry": {"type": "Polygon", "coordinates": [[[108.4, 29.0], [111.0, 33.3], [116.1, 31.5], [115.0, 29.0]]]}},
+                {"type": "Feature", "properties": {"name": "湖南"}, "geometry": {"type": "Polygon", "coordinates": [[[108.8, 24.6], [111.5, 30.1], [114.2, 29.5], [113.8, 24.6]]]}},
+                {"type": "Feature", "properties": {"name": "四川"}, "geometry": {"type": "Polygon", "coordinates": [[[97.3, 26.0], [101.0, 34.3], [108.5, 32.5], [105.0, 28.0]]]}},
+                {"type": "Feature", "properties": {"name": "重庆"}, "geometry": {"type": "Polygon", "coordinates": [[[105.3, 28.2], [108.5, 32.2], [110.2, 31.5], [109.0, 28.2]]]}},
+                {"type": "Feature", "properties": {"name": "贵州"}, "geometry": {"type": "Polygon", "coordinates": [[[103.6, 24.6], [105.0, 29.2], [109.5, 27.0], [107.5, 24.6]]]}},
+                {"type": "Feature", "properties": {"name": "云南"}, "geometry": {"type": "Polygon", "coordinates": [[[97.5, 21.2], [98.8, 29.2], [106.2, 27.5], [105.0, 22.5]]]}},
+                {"type": "Feature", "properties": {"name": "广西"}, "geometry": {"type": "Polygon", "coordinates": [[[104.5, 20.9], [105.0, 26.2], [112.0, 25.0], [109.0, 21.0]]]}},
+                {"type": "Feature", "properties": {"name": "广东"}, "geometry": {"type": "Polygon", "coordinates": [[[109.7, 20.2], [113.5, 25.5], [117.2, 23.5], [114.5, 22.0]]]}},
+                {"type": "Feature", "properties": {"name": "海南"}, "geometry": {"type": "Polygon", "coordinates": [[[108.6, 18.1], [111.0, 20.1], [111.0, 18.1], [108.6, 18.1]]]}},
+                {"type": "Feature", "properties": {"name": "台湾"}, "geometry": {"type": "Polygon", "coordinates": [[[119.9, 21.9], [122.1, 25.3], [122.1, 21.9]]]}},
+                {"type": "Feature", "properties": {"name": "香港"}, "geometry": {"type": "Polygon", "coordinates": [[[113.8, 22.1], [114.4, 22.5], [114.4, 22.1]]]}},
+                {"type": "Feature", "properties": {"name": "澳门"}, "geometry": {"type": "Polygon", "coordinates": [[[113.5, 22.1], [113.6, 22.2], [113.6, 22.1]]]}}
+            ]
+        };
+
         const REGIONS = {
             national: { name: '全国全景', center: [104.5, 36.0], zoom: 1.15 },
             beijing: { name: '北京市内', center: [116.4, 39.9], zoom: 9.0 },
@@ -316,26 +370,26 @@
             }));
         }
 
-        function initMap() {
-            mapChart = echarts.init(document.getElementById('mapChart'));
+        function renderMapWithGeoJSON(geoJson) {
+            if (!mapChart) mapChart = echarts.init(document.getElementById('mapChart'));
+            
+            echarts.registerMap('china', geoJson);
             const option = {
                 backgroundColor: '#080d1a',
                 geo: {
                     map: 'china', roam: true, center: REGIONS.national.center, zoom: REGIONS.national.zoom,
-                    label: {
-                        show: true, color: '#cbd5e1', fontSize: 9,
-                        formatter: function (params) {
-                            const full = params.name || ''; if (!full || full.includes('100000')) return '';
-                            const shortMap = {'北京市':'北京','天津市':'天津','上海市':'上海','重庆市':'重庆','河北省':'河北','山西省':'山西','辽宁省':'辽宁','吉林省':'吉林','黑龙江省':'黑龙江','江苏省':'江苏','浙江省':'浙江','安徽省':'安徽','福建省':'福建','江西省':'江西','山东省':'山东','河南省':'河南','湖北省':'湖北','湖南省':'湖南','广东省':'广东','海南省':'海南','四川省':'四川','贵州省':'贵州','云南省':'云南','陕西省':'陕西','甘肃省':'甘肃','青海省':'青海','台湾省':'台湾','内蒙古自治区':'内蒙古','广西壮族自治区':'广西','西藏自治区':'西藏','宁夏回族自治区':'宁夏','新疆维吾尔自治区':'新疆','香港特别行政区':'香港','澳门特别行政区':'澳门'};
-                            return shortMap[full] || full.replace(/省|市|自治区|特别行政区|壮族|回族|维吾尔/g, '');
-                        }
-                    },
-                    itemStyle: { areaColor: '#0f172a', borderColor: '#3b82f6', borderWidth: 1.2, shadowBlur: 12, shadowColor: 'rgba(59,130,246,0.35)' },
-                    emphasis: { itemStyle: { areaColor: '#1e293b' }, label: { show: true, color: '#ffffff', fontSize: 10 } }
+                    label: { show: false },
+                    itemStyle: { areaColor: '#0f172a', borderColor: '#3b82f6', borderWidth: 1.2, shadowBlur: 10, shadowColor: 'rgba(59,130,246,0.3)' },
+                    emphasis: { itemStyle: { areaColor: '#1e293b' } }
                 },
-                series: [{ name: 'PS 测点', type: 'scatter', coordinateSystem: 'geo', data: buildScatterData(), symbolSize: val => val[2] < -6 ? 6 : 4, itemStyle: { color: p => getVelocityColor(p.value[2]), borderColor: 'rgba(255,255,255,0.4)', borderWidth: 0.5 } }]
+                series: [{ 
+                    name: 'PS 测点', type: 'scatter', coordinateSystem: 'geo', data: buildScatterData(), 
+                    symbolSize: val => val[2] < -6 ? 6 : 4, 
+                    itemStyle: { color: p => getVelocityColor(p.value[2]), borderColor: 'rgba(255,255,255,0.4)', borderWidth: 0.5 } 
+                }]
             };
             mapChart.setOption(option);
+            setTimeout(() => { if (mapChart) mapChart.resize(); }, 200);
 
             mapChart.on('click', function (params) {
                 if (params.componentType === 'series' && params.seriesType === 'scatter') {
@@ -344,28 +398,24 @@
                         selectedPoint = pt; 
                         updateDetailInspector(pt); 
                         updateChartData(pt); 
-                        if (window.innerWidth < 768) switchMobileTab('right');
                     }
                 }
             });
         }
 
-        function fetchAndRenderMap() {
-            fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
-                .then(r => r.json())
-                .then(geoJson => {
-                    if (geoJson && Array.isArray(geoJson.features)) {
-                        geoJson.features.forEach(f => {
-                            const p = f.properties || {};
-                            if (!p.name) p.name = p.NAME || p.Name || p.省 || p.province || p.ADMIN || p.adcode || '';
-                            f.properties = p;
+        function loadMapEngine() {
+            // 尝试 CDN 加载，失败时立刻自动切换为内置兜底矢量图
+            fetch('https://fastly.jsdelivr.net/gh/apache/echarts-website@asf-site/examples/data/asset/geo/china.json')
+                .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+                .then(geoJson => renderMapWithGeoJSON(geoJson))
+                .catch(() => {
+                    fetch('https://geo.datav.aliyun.com/areas_v3/bound/100000_full.json')
+                        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+                        .then(geoJson => renderMapWithGeoJSON(geoJson))
+                        .catch(() => {
+                            // 最终兜底：采用内嵌数据渲染
+                            renderMapWithGeoJSON(INLINE_CHINA_GEOJSON);
                         });
-                    }
-                    echarts.registerMap('china', geoJson);
-                    initMap();
-                })
-                .catch(err => {
-                    document.getElementById('mapChart').innerHTML = '<div class="text-slate-500 flex h-full items-center justify-center text-xs">地图数据加载失败，请检查网络</div>';
                 });
         }
 
@@ -381,10 +431,10 @@
                 options: { 
                     responsive: true, 
                     maintainAspectRatio: false, 
-                    plugins: { legend: { display: true, labels: { color: '#94a3b8', font: { size: 10 } } } }, 
+                    plugins: { legend: { display: true, labels: { color: '#94a3b8', font: { size: 9 } } } }, 
                     scales: { 
                         x: { display: false }, 
-                        y: { grid: { color: 'rgba(30, 41, 59, 0.4)' }, ticks: { color: '#94a3b8', font: { size: 9 } } } 
+                        y: { grid: { color: 'rgba(30, 41, 59, 0.4)' }, ticks: { color: '#94a3b8', font: { size: 8 } } } 
                     } 
                 }
             });
@@ -399,25 +449,6 @@
             if (activeBtn) { activeBtn.classList.add('bg-blue-600', 'text-white'); activeBtn.classList.remove('text-slate-300'); }
             let regPoint = psPoints.find(p => p.regionKey === key);
             if (regPoint) { selectedPoint = regPoint; updateDetailInspector(regPoint); updateChartData(regPoint); mapChart.setOption({ series: [{ data: buildScatterData() }] }); }
-        }
-
-        function switchMobileTab(tabName) {
-            const panels = ['left', 'center', 'right'];
-            panels.forEach(p => {
-                const el = document.getElementById(`tab-${p}`);
-                const btn = document.getElementById(`mtab-${p}`);
-                if (p === tabName) {
-                    el.classList.remove('mobile-tab-hidden');
-                    btn.classList.add('text-blue-400');
-                    btn.classList.remove('text-slate-400');
-                } else {
-                    el.classList.add('mobile-tab-hidden');
-                    btn.classList.remove('text-blue-400');
-                    btn.classList.add('text-slate-400');
-                }
-            });
-            if (tabName === 'center' && mapChart) setTimeout(() => mapChart.resize(), 100);
-            if (tabName === 'right' && chartInstance) setTimeout(() => chartInstance.resize(), 100);
         }
 
         function zoomMapIn() { if (mapChart) mapChart.setOption({ geo: { zoom: mapChart.getOption().geo[0].zoom * 1.3 } }); }
@@ -437,16 +468,16 @@
             let analysisElem = document.getElementById('detailAiAnalysis');
 
             if (pt.velocity < -6) {
-                riskElem.innerText = '高危'; riskElem.className = 'px-2 py-0.5 rounded text-[10px] bg-red-500/20 text-red-400 border border-red-500/40';
-                analysisElem.innerText = `速率达 ${pt.velocity} mm/a，属加速沉降。AI预测将逼近 -10mm 警戒线，建议注浆加固并现场巡检。`;
+                riskElem.innerText = '高危'; riskElem.className = 'px-1.5 py-0.5 rounded text-[9px] bg-red-500/20 text-red-400 border border-red-500/40';
+                analysisElem.innerText = `速率 ${pt.velocity} mm/a，属加速沉降。AI预测将逼近 -10mm 警戒线，建议现场巡检。`;
             } else if (pt.patternType === 'seasonal') {
-                riskElem.innerText = '受控'; riskElem.className = 'px-2 py-0.5 rounded text-[10px] bg-blue-500/20 text-blue-400 border border-blue-500/40';
+                riskElem.innerText = '受控'; riskElem.className = 'px-1.5 py-0.5 rounded text-[9px] bg-blue-500/20 text-blue-400 border border-blue-500/40';
                 analysisElem.innerText = `受蓄水周期影响呈 ±5mm 动态弹性恢复，结构状态良好。`;
             } else if (pt.patternType === 'permafrost') {
-                riskElem.innerText = '融沉'; riskElem.className = 'px-2 py-0.5 rounded text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
-                analysisElem.innerText = `夏融冬胀周期交替，振幅约 4mm，建议加强路基通风热棒散热。`;
+                riskElem.innerText = '融沉'; riskElem.className = 'px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/40';
+                analysisElem.innerText = `夏融冬胀周期交替，振幅约 4mm，建议加强路基散热。`;
             } else {
-                riskElem.innerText = '稳定'; riskElem.className = 'px-2 py-0.5 rounded text-[10px] bg-slate-700/50 text-slate-300 border border-slate-600';
+                riskElem.innerText = '稳定'; riskElem.className = 'px-1.5 py-0.5 rounded text-[9px] bg-slate-700/50 text-slate-300 border border-slate-600';
                 analysisElem.innerText = `速率 ${pt.velocity} mm/a，相干性 ${pt.coherence}，地表稳定无异常。`;
             }
         }
@@ -462,7 +493,7 @@
 
         window.onload = function () {
             generatePSPoints();
-            fetchAndRenderMap();
+            loadMapEngine();
             initChart();
         };
 
